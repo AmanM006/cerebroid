@@ -127,6 +127,7 @@ docker compose exec api python -m app.cli create-user --username evaluator --rol
 | `GET /api/v1/cases/{id}` | Bearer | One case; another user's case returns 404 |
 | `GET /api/v1/studies/{id}/profile` | Bearer | Molecular profile: per marker the call, probability range across the model set, stability verdict, model version and provenance. Optional `known=IDH:1` (repeatable) for lab results already known. |
 | `GET /api/v1/studies/{id}/reveal` | Bearer | Demo cases only: the dataset's true lab results (`provenance: measured`), for checking predictions. Never used by `/profile`. |
+| `GET /api/v1/studies/{id}/evidence?marker=IDH` | Bearer | Which input groups drove that marker's call (grouped perturbation against the training-cohort median), whether each supports or contradicts the call, and how much the models agree on why. Accepts the same `known=` values as `/profile`. |
 | `GET /api/v1/studies/{id}/volumes` | Bearer | MRI sequences stored for the study (`t1`, `t1c`, `t2`, `flair`, `seg`) |
 | `GET /api/v1/studies/{id}/volume/{sequence}` | Bearer | One compressed NIfTI volume for the viewer; same access rule as the case itself |
 
@@ -249,6 +250,8 @@ Every error response has the shape `{error_code, message, request_id}`.
 | `INVALID_KNOWN_MARKER` | A `known` value isn't `<IDH\|1p19q\|MGMT\|GRADE>:<0\|1>`, or repeats a marker |
 | `FEATURES_NOT_READY` | No extracted imaging features exist for this study yet |
 | `NO_GROUND_TRUTH` | No lab results exist for this study (uploads, or no dataset row) |
+| `MARKER_ALREADY_KNOWN` | Evidence was requested for a marker given as a known lab result |
+| `MODEL_NOT_AVAILABLE` | No model set is deployed for the requested marker |
 | `VOLUME_NOT_AVAILABLE` | The study has no stored volume for that sequence |
 | `HTTP_ERROR` | Generic HTTP error (404, 405, ...) |
 | `INTERNAL_ERROR` | Unexpected server error (details only in server logs) |

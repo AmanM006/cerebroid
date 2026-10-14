@@ -77,7 +77,8 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
       {profile && (
         <div className={`space-y-2.5 ${loading ? "opacity-60" : ""}`}>
           {profile.markers.map((m) => (
-            <MarkerCard key={m.marker} marker={m} truth={truth?.studyId === studyId ? truth.values[m.marker] : undefined} />
+            <MarkerCard key={m.marker} marker={m} studyId={studyId} known={known}
+              truth={truth?.studyId === studyId ? truth.values[m.marker] : undefined} />
           ))}
           {truth?.studyId !== studyId && (
             <button
