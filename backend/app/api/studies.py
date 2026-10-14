@@ -434,7 +434,9 @@ def get_tipping(
 
 
 def _claim(claim: Claim) -> ClaimOut:
-    return ClaimOut(text=claim.text, evidence_ids=claim.evidence_ids, provenance=claim.provenance)
+    return ClaimOut(
+        short=claim.short, text=claim.text, evidence_ids=claim.evidence_ids, provenance=claim.provenance,
+    )
 
 
 @router.get("/{study_id}/falsification")

@@ -9,11 +9,16 @@ import { ProvenanceBadge } from "./ProvenanceBadge"
 import { VerdictBadge } from "./VerdictBadge"
 
 // The card stays glanceable (call, badge, probability band); explanations live behind "Details".
-// One plain sentence per verdict, shown under the call so the badge never needs decoding.
-const VERDICT_MEANING: Record<string, string> = {
-  STABLE: "The panel of models agrees",
-  CONTESTED: "The models disagree",
-  ARBITRARY: "The models are split close to 50/50",
+// One plain sentence under the call, so the badge never needs decoding. A Contested call can come
+// from split votes or from unanimous votes with very different confidence; the sentence says which.
+function verdictMeaning(marker: MarkerProfile): string {
+  if (marker.low_signal) return "MRI can't tell for this marker"
+  if (marker.verdict === "STABLE") return "The models agree"
+  if (marker.verdict === "ARBITRARY") return "The models are split close to 50/50"
+  if (marker.verdict === "CONTESTED") {
+    return marker.agreement === 1 ? "The models agree on the call, not on how sure" : "The models disagree"
+  }
+  return ""
 }
 
 const TABS = [
@@ -56,7 +61,7 @@ export function MarkerCard({
           </p>
           {marker.status === "predicted" && (
             <p className="font-mono text-[10px] text-[#716c87]">
-              {marker.low_signal ? "MRI can't tell for this marker" : marker.verdict ? VERDICT_MEANING[marker.verdict] : ""}
+              {verdictMeaning(marker)}
             </p>
           )}
         </div>
@@ -112,20 +117,11 @@ export function MarkerCard({
 
           {open && (
             <div className="space-y-2.5 border-t border-[#1b1926] pt-2">
-              <div className="space-y-0.5 font-mono text-[10.5px] text-[#716c87]">
-                {agreeing != null && (
-                  <p>
-                    {agreeing} of {marker.n_models} equally good models agree
-                    {marker.variant === "fused_given_idh" && " · uses the known IDH result"}
-                  </p>
-                )}
-                {marker.imaging_only_verdict && (
-                  <p>MRI alone: {marker.imaging_only_call} · {marker.imaging_only_verdict.toLowerCase()}</p>
-                )}
-                {marker.low_signal && marker.skill != null && (
-                  <p>Models are only {Math.max(0, Math.round(marker.skill * 100))}% better than guessing from how common each result is.</p>
-                )}
-              </div>
+              <p className="font-mono text-[10.5px] text-[#716c87]">
+                {agreeing != null && <>{agreeing}/{marker.n_models} models say {marker.call}</>}
+                {marker.imaging_only_verdict && <> · MRI alone: {marker.imaging_only_call}</>}
+                {marker.variant === "fused_given_idh" && <> · uses the known IDH result</>}
+              </p>
               {explainable && (
                 <>
                   <div role="tablist" className="flex flex-wrap gap-1">

@@ -18,37 +18,27 @@ function nearestIndex(item: TippingItem, value: number): number {
   return best
 }
 
-/** One input: the tipping sentence plus a slider that shows the call at any plausible value. */
-function TippingRow({ item, marker }: { item: TippingItem; marker: MarkerName }) {
+/** Age: a slider showing the call at any age, with the flip point marked in words. */
+function AgeSlider({ item, marker }: { item: TippingItem; marker: MarkerName }) {
   const [index, setIndex]=useState(()=>nearestIndex(item, item.current))
   const point=item.curve[index]!
   const labels=MARKER_LABELS[marker]
   const call=point.positive_fraction>=0.5 ? labels.positive : labels.negative
-  const share=Math.round(Math.max(point.positive_fraction, 1-point.positive_fraction)*100)
-
   return (
-    <li className="space-y-1 font-mono text-[10.5px]">
-      <p className="text-[#c9c5d8]">
-        {item.label}: <span className="text-white">{format(item, item.current)}</span>
-        {item.flip_at!=null ? (
-          <span className="text-amber-200"> · flips to {item.flips_to} at {format(item, item.flip_at)}</span>
-        ) : (
-          <span className="text-emerald-300"> · no plausible value flips this call</span>
-        )}
-      </p>
+    <div className="space-y-1">
       <input
         type="range"
         min={0}
         max={item.curve.length-1}
         value={index}
         onChange={(e)=>setIndex(Number(e.target.value))}
-        aria-label={`Try another ${item.label.toLowerCase()}`}
+        aria-label="Try another age"
         className="h-1 w-full cursor-pointer accent-cyan-400"
       />
-      <p className="text-[9.5px] text-[#716c87]">
-        At {format(item, point.value)}: <span className="capitalize text-[#c9c5d8]">{call}</span> ({share}% of models)
+      <p className="text-[10.5px] text-[#8c889e]">
+        Try it: at {format(item, point.value)} the call would be <span className="capitalize text-white">{call}</span>
       </p>
-    </li>
+    </div>
   )
 }
 
@@ -80,14 +70,23 @@ export function TippingView({
   const tipping=result.tipping
   if (!tipping) return null
 
+  const flips=tipping.items.filter((i)=>i.flip_at!=null)
+  const age=tipping.items.find((i)=>i.input==="age")
   return (
-    <div className="space-y-2">
-      <ul className="space-y-2.5">
-        {tipping.items.map((item)=><TippingRow key={item.input} item={item} marker={marker} />)}
-      </ul>
-      <p className="border-t border-[#1e1b2b] pt-1.5 font-mono text-[9.5px] text-[#615c75]" title={tipping.method}>
-        Everything else held fixed. Shows how sensitive the models are, not what would change the tumor.
-      </p>
+    <div className="space-y-2 font-mono text-[11px]" title={tipping.method}>
+      {flips.length===0 ? (
+        <p className="text-emerald-300">● No realistic change to age or tumor size/shape flips this call.</p>
+      ) : (
+        <ul className="space-y-1">
+          {flips.map((i)=>(
+            <li key={i.input} className="text-[#c9c5d8]">
+              {i.label} {format(i, i.current)} → <span className="text-amber-200">{i.flips_to}</span> at {format(i, i.flip_at!)}
+            </li>
+          ))}
+        </ul>
+      )}
+      {age && <AgeSlider item={age} marker={marker} />}
+      <p className="text-[9.5px] text-[#615c75]">Everything else held fixed · model sensitivity, not cause</p>
     </div>
   )
 }
