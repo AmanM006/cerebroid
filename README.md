@@ -8,8 +8,8 @@
 ## 1. Project & team details
 - **Team:** Void
 - **Repository:** https://github.com/Manipal-Hackathon-2026/Void
-- **Problem statement:** From Image to Clinical Story
-- **Team members:** TODO (fill in before Judging R1)
+- **Problem statement:** From Image to Clinical Story (Healthcare Track, PS 2)
+- **Team members:** Tanish Kuvar, Aman Mishra
 
 ## 2. Solution summary
 A pre-operative "virtual molecular biopsy" for diffuse gliomas. From multi-sequence brain MRI,
