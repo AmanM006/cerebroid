@@ -204,6 +204,12 @@ pre-operative scan per patient, split/fold rules, models load in the API environ
 held-out patients; skipped while those files are absent).
 
 ## Model artifacts
+[ml/notebooks/03_inference_demo.ipynb](ml/notebooks/03_inference_demo.ipynb) is the committed, executed demonstration of the trained
+models: the deployed sets, inference on held-out patients (every model's vote, verdict and call next to the true result), a
+known lab result re-scoring the other markers, evidence, tipping points, doubt, held-out metrics and "resolved by
+combining". Every number in it is computed when it runs. To re-run: `pip install -r backend/requirements-dev.txt`, then
+`jupyter nbconvert --to notebook --execute --inplace ml/notebooks/03_inference_demo.ipynb` (or run it cell by cell).
+
 Golden regression set: `backend/tests/golden/expected.json` freezes the profile (call, verdict, median probability,
 variant, low-signal flag, top IDH evidence group) for 10 held-out patients, with and without a known IDH result. CI fails
 if predictions drift. After an intended model update, regenerate it in the same commit:
