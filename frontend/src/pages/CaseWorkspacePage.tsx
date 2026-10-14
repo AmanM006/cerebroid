@@ -14,9 +14,8 @@ export function CaseWorkspacePage() {
   const [readiness, setReadiness] = useState<Readiness | null>(null)
   const [error, setError] = useState<unknown>(null)
 
-  // Scratch block swapping: order can be toggled by clicking panel headers
+  // Scratch block swapping for the top MRI viewers
   const [leftComponent, setLeftComponent] = useState<"2d" | "3d">("3d")
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (!caseId) return
@@ -30,17 +29,17 @@ export function CaseWorkspacePage() {
 
   return (
     <AppShell>
-      <div className="flex h-[calc(100vh-3.25rem)] w-full flex-col overflow-hidden bg-black p-3 space-y-2.5">
-        {/* Top Clinical Case Bar */}
-        <div className="flex shrink-0 items-center justify-between border-b border-neutral-850 pb-2 px-1">
+      <div className="flex w-full flex-col bg-black p-4 lg:p-6 space-y-6">
+        {/* Sticky Case Navigation Subheader */}
+        <div className="flex items-center justify-between border-b border-neutral-850 pb-3">
           <div className="flex items-center gap-3">
             <Link
               to="/cases"
-              className="rounded-xl border border-neutral-800 bg-[#121212] px-3 py-1.5 text-xs font-mono text-neutral-300 hover:border-neutral-600 hover:text-white transition-all cursor-pointer"
+              className="rounded-xl border border-neutral-800 bg-[#121212] px-3.5 py-1.5 text-xs font-mono text-neutral-300 hover:border-neutral-600 hover:text-white transition-all cursor-pointer"
             >
               ← Back to Cohort
             </Link>
-            <h1 className="text-sm font-mono font-bold text-white tracking-wide">
+            <h1 className="text-base font-mono font-bold text-white tracking-wide">
               {study?.label ?? "Case Workspace"}
             </h1>
             {study && (
@@ -58,55 +57,98 @@ export function CaseWorkspacePage() {
           </div>
 
           <div className="flex items-center gap-2 font-mono text-xs">
-            <button
-              onClick={() => setIsSidebarOpen((prev) => !prev)}
-              className={`rounded-xl px-3 py-1.5 text-[11px] font-semibold border transition-all cursor-pointer ${
-                isSidebarOpen
-                  ? "bg-cyan-950/80 border-cyan-700/80 text-cyan-300"
-                  : "bg-[#121212] border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700"
-              }`}
-            >
-              {isSidebarOpen ? "◧ Hide Molecular Sidebars" : "◧ Molecular & Evidence Sidebar"}
-            </button>
+            <span className="rounded-full bg-emerald-950/60 border border-emerald-700/50 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300">
+              ● Active Diagnostic Session
+            </span>
           </div>
         </div>
 
         {error !== null && <ErrorNotice error={error} />}
 
-        {/* Modular Workspace Stage: MRI fills full width by default or shares space cleanly */}
-        <div className="flex flex-1 gap-3 overflow-hidden min-h-0">
-          {/* Main MRI Studio: Click header to swap 2D and 3D scratch block positions */}
-          <section className="flex flex-1 overflow-hidden min-w-0">
+        {/* SECTION 1: Full-Screen Height (100vh) Multi-Planar & 3D GPU MRI Viewport */}
+        <section className="flex flex-col space-y-2">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-400" />
+              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-200">
+                Primary Neuro-Imaging Stage
+              </h2>
+            </div>
+            <span className="text-[11px] font-mono text-neutral-500">
+              Click either block header to swap left ⇄ right
+            </span>
+          </div>
+
+          <div className="h-[88vh] min-h-[580px] w-full rounded-2xl border border-neutral-800 bg-[#080808] p-2 overflow-hidden shadow-2xl">
             <ClinicalMriStudio leftComponent={leftComponent} onSwap={toggleSwap} />
-          </section>
+          </div>
+        </section>
 
-          {/* Slide-in Molecular Profile & Evidence Panel */}
-          {isSidebarOpen && (
-            <aside className="flex w-96 shrink-0 flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all">
-              <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-4 py-2.5">
-                <h2 className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-300">
-                  Molecular Profile &amp; Doubt
-                </h2>
-                <button
-                  onClick={() => setIsSidebarOpen(false)}
-                  className="text-neutral-500 hover:text-white font-mono text-xs cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {caseId && <ProfilePanel studyId={caseId} readiness={readiness} />}
+        {/* SECTION 2: Molecular Inferences & Doubt Analysis (Below MRI — full scrollable section) */}
+        <section className="flex flex-col space-y-3 pt-4 border-t border-neutral-850">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-200">
+                Molecular Profile, Multiplicity &amp; Clinical Doubt
+              </h2>
+            </div>
+            <span className="text-[11px] font-mono text-neutral-500">
+              WHO 2021 CNS Criteria · Multi-Model Ensemble Verdicts
+            </span>
+          </div>
 
-                <div className="border-t border-neutral-850 pt-4 text-xs font-mono text-neutral-400 space-y-2">
-                  <p className="font-semibold text-white text-[11px]">WHO 2021 Clinical Criteria:</p>
-                  <p className="text-[11px] leading-relaxed">
-                    Cross-model multiplicity evaluation actively isolates stable genomic calls from contested predictions requiring histological biopsy.
-                  </p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {/* Molecular Marker Cards (2 Columns Wide on Desktop) */}
+            <div className="lg:col-span-2 rounded-2xl border border-neutral-800 bg-[#0c0c0c] p-5 shadow-xl">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-400 mb-4 border-b border-neutral-850 pb-2">
+                Predicted Genomic Biomarkers
+              </h3>
+              {caseId && <ProfilePanel studyId={caseId} readiness={readiness} />}
+            </div>
+
+            {/* Evidence, Doubt Decomposition & Clinical Guidelines */}
+            <div className="space-y-4">
+              <div className="rounded-2xl border border-neutral-800 bg-[#0c0c0c] p-5 shadow-xl space-y-3">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-850 pb-2">
+                  Clinical Evidence &amp; Doubt
+                </h3>
+                <p className="font-mono text-xs text-neutral-400 leading-relaxed">
+                  Decisions are generated across near-optimal multiplicity sets ($\varepsilon \le 0.03$). Markers marked as <strong className="text-emerald-400">Stable</strong> achieve $\ge 85\%$ cross-model consensus.
+                </p>
+                <div className="rounded-xl border border-neutral-800 bg-[#141414] p-3 text-[11px] font-mono text-neutral-400 space-y-1.5">
+                  <span className="font-bold text-neutral-200 block">Doubt Protocol:</span>
+                  <p>• If Contested / Arbitrary: Tissue biopsy mandatory.</p>
+                  <p>• If Stable: Molecular profiling matches non-invasive radiomic features.</p>
                 </div>
               </div>
-            </aside>
-          )}
-        </div>
+
+              <div className="rounded-2xl border border-neutral-800 bg-[#0c0c0c] p-5 shadow-xl space-y-3">
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-neutral-400 border-b border-neutral-850 pb-2">
+                  WHO 2021 Diagnostic Targets
+                </h3>
+                <ul className="space-y-2 font-mono text-xs text-neutral-400">
+                  <li className="flex items-center justify-between border-b border-neutral-900 pb-1.5">
+                    <span>IDH1/2 Mutation</span>
+                    <span className="text-white font-semibold">Codon 132/172</span>
+                  </li>
+                  <li className="flex items-center justify-between border-b border-neutral-900 pb-1.5">
+                    <span>1p/19q Co-deletion</span>
+                    <span className="text-white font-semibold">Oligodendroglioma</span>
+                  </li>
+                  <li className="flex items-center justify-between border-b border-neutral-900 pb-1.5">
+                    <span>MGMT Methylation</span>
+                    <span className="text-white font-semibold">Temozolomide Response</span>
+                  </li>
+                  <li className="flex items-center justify-between">
+                    <span>Histopathologic Grade</span>
+                    <span className="text-white font-semibold">WHO CNS Grade 2–4</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </AppShell>
   )

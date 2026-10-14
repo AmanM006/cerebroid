@@ -6,9 +6,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth()
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-black text-slate-100 antialiased selection:bg-neutral-800 selection:text-white">
+    <div className="flex min-h-screen w-full flex-col bg-black text-slate-100 antialiased selection:bg-neutral-800 selection:text-white">
       {/* Top Clinical Navigation Bar */}
-      <header className="flex h-13 shrink-0 items-center justify-between border-b border-neutral-800 bg-[#0a0a0a] px-5 shadow-sm z-30">
+      <header className="sticky top-0 z-40 flex h-13 shrink-0 items-center justify-between border-b border-neutral-800 bg-[#0a0a0a]/95 px-5 shadow-sm backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Link to="/cases" className="flex items-center gap-2.5 group">
             <span className="font-heading text-lg font-black tracking-tight text-white group-hover:text-cyan-400 transition-colors">
@@ -46,11 +46,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      {/* Main Content Viewport */}
-      <main className="flex flex-1 overflow-hidden bg-black">{children}</main>
+      {/* Main Content Viewport: Scrolls naturally down as far as needed (100vh, 200vh, etc.) */}
+      <main className="flex-1 bg-black">{children}</main>
 
-      {/* Fixed Compact Clinical Footer */}
-      <footer className="flex h-8 shrink-0 items-center justify-between border-t border-neutral-900 bg-[#080808] px-5 text-[11px] text-neutral-400 font-mono">
+      {/* Ground Footer at the bottom of the entire page */}
+      <footer className="flex h-10 shrink-0 items-center justify-between border-t border-neutral-900 bg-[#080808] px-5 text-[11px] text-neutral-400 font-mono mt-auto">
         <div className="flex items-center gap-2">
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
           <span className="text-[10.5px]">WHO 2021 CNS Molecular Taxonomy · Virtual Molecular Biopsy</span>
