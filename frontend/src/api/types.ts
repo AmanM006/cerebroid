@@ -96,8 +96,11 @@ export interface Reveal {
   results: { marker: MarkerName; value: ProvenancedValue }[]
 }
 
+export type ProfileView="fused" | "imaging_only" | "clinical_only"
+
 export interface Profile {
   study_id: string
+  view: ProfileView
   inputs: {
     age: ProvenancedValue
     sex: ProvenancedValue

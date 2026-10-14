@@ -144,6 +144,7 @@ class DoubtOut(_Response):
 
 class ProfileOut(_Response):
     study_id: uuid.UUID
+    view: Literal["fused", "imaging_only", "clinical_only"]
     inputs: ProfileInputs
     missing_inputs: list[str]
     markers: list[MarkerProfileOut]

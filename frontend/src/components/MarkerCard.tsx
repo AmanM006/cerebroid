@@ -11,11 +11,14 @@ export function MarkerCard({
   truth,
   studyId,
   known,
+  explainable = true,
 }: {
   marker: MarkerProfile
   truth?: ProvenancedValue
   studyId: string
   known: Partial<Record<MarkerName, 0 | 1>>
+  /** Evidence and doubt describe the combined model set, so they are offered only in that view. */
+  explainable?: boolean
 }) {
   const [showWhy, setShowWhy] = useState(false)
   const [showDoubt, setShowDoubt] = useState(false)
@@ -79,7 +82,7 @@ export function MarkerCard({
               ⚑ Imaging evidence inconclusive: confirm with tissue testing.
             </p>
           )}
-          <div className="flex items-center gap-4">
+          {explainable && <div className="flex items-center gap-4">
             <button
               onClick={() => setShowWhy((v) => !v)}
               aria-expanded={showWhy}
@@ -94,9 +97,9 @@ export function MarkerCard({
             >
               {showDoubt ? "▾ Hide doubt" : "▸ What's uncertain?"}
             </button>
-          </div>
-          {showWhy && <EvidenceView studyId={studyId} marker={marker.marker} known={known} />}
-          {showDoubt && <DoubtView studyId={studyId} marker={marker.marker} known={known} />}
+          </div>}
+          {explainable && showWhy && <EvidenceView studyId={studyId} marker={marker.marker} known={known} />}
+          {explainable && showDoubt && <DoubtView studyId={studyId} marker={marker.marker} known={known} />}
         </div>
       )}
 

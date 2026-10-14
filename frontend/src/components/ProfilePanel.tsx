@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { api, ApiError } from "../api/client"
-import type { MarkerName, Profile, ProvenancedValue, Readiness } from "../api/types"
+import type { MarkerName, Profile, ProfileView, ProvenancedValue, Readiness } from "../api/types"
 import { ErrorNotice } from "./ErrorNotice"
 import { KnownResultsForm, type KnownResults } from "./KnownResultsForm"
 import { MarkerCard } from "./MarkerCard"
@@ -13,23 +13,31 @@ const MARKER_STATUS_TEXT: Record<string, string> = {
   invalid: "model files invalid",
 }
 
+// What the models may look at: the counterfactual views show what each source decides alone.
+const VIEWS: { id: ProfileView; label: string; hint: string }[] = [
+  { id: "fused", label: "MRI + patient info", hint: "All inputs combined" },
+  { id: "imaging_only", label: "MRI only", hint: "Context-blind: age, sex and history hidden from the models" },
+  { id: "clinical_only", label: "Patient info only", hint: "Image-blind: only age, sex and history" },
+]
+
 const short = (sha: string) => sha.replace("sha256:", "").slice(0, 10)
 
 export function ProfilePanel({ studyId, readiness }: { studyId: string; readiness: Readiness | null }) {
   const [known, setKnown] = useState<KnownResults>({})
+  const [view, setView] = useState<ProfileView>("fused")
   // Each result remembers which request it answers; "loading" = the latest answer is for an older request.
   const [result, setResult] = useState<{ key: string; profile: Profile | null; error: unknown } | null>(null)
-  const key = JSON.stringify([studyId, known])
+  const key = JSON.stringify([studyId, known, view])
 
   useEffect(() => {
     let cancelled = false
-    api.getProfile(studyId, known)
+    api.getProfile(studyId, known, view)
       .then((profile) => !cancelled && setResult({ key, profile, error: null }))
       .catch((error) => !cancelled && setResult({ key, profile: null, error }))
     return () => {
       cancelled = true
     }
-  }, [key, studyId, known])
+  }, [key, studyId, known, view])
 
   const [truth, setTruth] = useState<{ studyId: string; values: Partial<Record<MarkerName, ProvenancedValue>> } | null>(null)
   const [revealError, setRevealError] = useState<unknown>(null)
@@ -49,6 +57,26 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
   return (
     <div className="space-y-3">
       <KnownResultsForm value={known} onChange={setKnown} disabled={notReady} />
+
+      <div role="radiogroup" aria-label="Inputs the models may use" className="flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-[#716c87]">Models see:</span>
+        {VIEWS.map((v) => (
+          <button
+            key={v.id}
+            role="radio"
+            aria-checked={view === v.id}
+            title={v.hint}
+            onClick={() => setView(v.id)}
+            className={`rounded-lg border px-2 py-0.5 font-mono text-[10.5px] transition-colors cursor-pointer ${
+              view === v.id
+                ? "border-cyan-700 bg-cyan-950/60 text-cyan-200 font-bold"
+                : "border-[#2a2638] text-[#8c889e] hover:text-white"
+            }`}
+          >
+            {v.label}
+          </button>
+        ))}
+      </div>
 
       {loading && !profile && (
         <div className="flex items-center gap-2 py-4 text-xs font-mono text-[#8c889e]">
@@ -77,7 +105,7 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
       {profile && (
         <div className={`space-y-2.5 ${loading ? "opacity-60" : ""}`}>
           {profile.markers.map((m) => (
-            <MarkerCard key={m.marker} marker={m} studyId={studyId} known={known}
+            <MarkerCard key={m.marker} marker={m} studyId={studyId} known={known} explainable={view === "fused"}
               truth={truth?.studyId === studyId ? truth.values[m.marker] : undefined} />
           ))}
           {truth?.studyId !== studyId && (

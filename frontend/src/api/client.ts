@@ -10,7 +10,7 @@
  *   request_id, so a user can report the exact request that failed.
  */
 import type {
-  Case, CaseList, Doubt, ErrorBody, Evidence, MarkerName, MriSequence, Profile, Readiness, Reveal, TokenResponse, User, Volumes,
+  Case, CaseList, Doubt, ErrorBody, Evidence, MarkerName, MriSequence, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes,
 } from "./types"
 
 export class ApiError extends Error {
@@ -108,8 +108,9 @@ export const api={
   getCase: (id: string)=>getJson<Case>(`/api/v1/cases/${encodeURIComponent(id)}`),
 
   /** known: lab results the clinician already has, 1 = positive class, 0 = negative. */
-  getProfile(id: string, known: Partial<Record<MarkerName, 0 | 1>>={}): Promise<Profile> {
+  getProfile(id: string, known: Partial<Record<MarkerName, 0 | 1>>={}, view: ProfileView="fused"): Promise<Profile> {
     const params=new URLSearchParams()
+    if (view!=="fused") params.set("view", view)
     for (const [marker, value] of Object.entries(known)) params.append("known", `${marker}:${value}`)
     const query=params.size>0 ? `?${params}` : ""
     return getJson<Profile>(`/api/v1/studies/${encodeURIComponent(id)}/profile${query}`)
