@@ -143,6 +143,31 @@ export interface Evidence {
   latency_ms: number
 }
 
+export type DoubtLevel="low" | "medium" | "high" | "unknown"
+
+export interface DoubtComponent {
+  source: "multiplicity" | "ambiguity" | "data_sparsity" | "missing_inputs" | "model_skill"
+  level: DoubtLevel
+  value: number | null
+  detail: string
+  action: string
+  provenance: Provenance
+}
+
+export interface Doubt {
+  study_id: string
+  marker: MarkerName
+  variant: string
+  call: string
+  verdict: Verdict
+  primary_source: string | null
+  recommended_action: string
+  components: DoubtComponent[]
+  model_version: string
+  request_id: string | null
+  latency_ms: number
+}
+
 export type MriSequence="t1" | "t1c" | "t2" | "flair" | "seg"
 
 export interface Volumes {

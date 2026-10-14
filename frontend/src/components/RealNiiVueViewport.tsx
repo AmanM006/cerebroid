@@ -69,7 +69,7 @@ export function RealNiiVueViewport({
 
     const nv=new Niivue({
       backColor: [0, 0, 0, 1],
-      show3Dcrosshair: true,
+      show3Dcrosshair: false,
       crosshairColor: [0, 0.85, 0.95, 0.8],
       dragMode: 1,
       isColorbar: false,
@@ -87,8 +87,9 @@ export function RealNiiVueViewport({
           if (cancelled) return
           const volume=nv.volumes[i]
           if (volume) {
-            volume.colormap=i===0 ? colormapRef.current : (v.colormap ?? "gray")
-            volume.opacity=v.opacity ?? 1
+            const cmap=i===0 ? colormapRef.current : (v.colormap ?? "warm")
+            nv.setColorMap(volume.id, cmap)
+            nv.setOpacity(i, v.opacity ?? 1)
           }
         }
         nv.updateGLVolume()
@@ -120,6 +121,9 @@ export function RealNiiVueViewport({
     const nv=nvRef.current
     if (!nv || state!=="ready") return
     applySliceType(nv, sliceType)
+    // In 3D volume rendering, crosshair lines obstruct the anatomy; in 2D slices they help locate voxels
+    nv.opts.show3Dcrosshair=false
+    nv.setCrosshairWidth(sliceType==="render3d" ? 0 : 1)
     nv.drawScene()
   }, [sliceType, state])
 
@@ -137,6 +141,7 @@ export function RealNiiVueViewport({
     if (nv && base) {
       nv.setColormap(base.id, cmap)
       nv.updateGLVolume()
+      nv.drawScene()
     }
   }
 

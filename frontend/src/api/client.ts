@@ -10,7 +10,7 @@
  *   request_id, so a user can report the exact request that failed.
  */
 import type {
-  Case, CaseList, ErrorBody, Evidence, MarkerName, MriSequence, Profile, Readiness, Reveal, TokenResponse, User, Volumes,
+  Case, CaseList, Doubt, ErrorBody, Evidence, MarkerName, MriSequence, Profile, Readiness, Reveal, TokenResponse, User, Volumes,
 } from "./types"
 
 export class ApiError extends Error {
@@ -120,6 +120,13 @@ export const api={
     const params=new URLSearchParams({ marker })
     for (const [m, value] of Object.entries(known)) params.append("known", `${m}:${value}`)
     return getJson<Evidence>(`/api/v1/studies/${encodeURIComponent(id)}/evidence?${params}`)
+  },
+
+  /** Why one marker's call is uncertain, by source, with the action each calls for. */
+  getDoubt(id: string, marker: MarkerName, known: Partial<Record<MarkerName, 0 | 1>>={}): Promise<Doubt> {
+    const params=new URLSearchParams({ marker })
+    for (const [m, value] of Object.entries(known)) params.append("known", `${m}:${value}`)
+    return getJson<Doubt>(`/api/v1/studies/${encodeURIComponent(id)}/doubt?${params}`)
   },
 
   /** The dataset's true lab results, for held-out demo cases only. */

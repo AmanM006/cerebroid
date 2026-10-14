@@ -306,3 +306,28 @@ def test_other_users_study_evidence_is_not_found(client, make_user, make_study, 
     url=f"/api/v1/studies/{study.id}/evidence"
     r=client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory"))
     assert r.status_code==404
+
+
+def test_doubt_breaks_down_the_same_call_as_the_profile(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    headers=login(client, "alice")
+    profile=client.get(f"/api/v1/studies/{study.id}/profile", headers=headers).json()
+    idh=next(m for m in profile["markers"] if m["marker"]=="IDH")
+
+    r=client.get(f"/api/v1/studies/{study.id}/doubt", params={"marker": "IDH"}, headers=headers)
+    assert r.status_code==200
+    body=r.json()
+    assert body["call"]==idh["call"] and body["verdict"]==idh["verdict"]
+    sources={c["source"] for c in body["components"]}
+    assert sources=={"multiplicity", "ambiguity", "data_sparsity", "missing_inputs", "model_skill"}
+    assert all(c["provenance"] for c in body["components"])
+    assert body["recommended_action"]
+
+
+def test_other_users_study_doubt_is_not_found(client, make_user, make_study, deployed):
+    owner=make_user("owner")
+    make_user("mallory")
+    study=make_study(kind=StudyKind.UPLOAD, owner=owner)
+    url=f"/api/v1/studies/{study.id}/doubt"
+    assert client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory")).status_code==404
