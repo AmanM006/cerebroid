@@ -11,7 +11,7 @@ from app.domain.feature_store import load_feature_store
 from app.domain.registry import load_registry
 from tests.conftest import login
 from tests.unit.test_registry import _meta, _train_set, _write_manifest, _write_marker
-from tests.unit.test_registry_variants import FUSED, _config, _fit, _variant_meta
+from tests.unit.test_registry_variants import FUSED, IMAGING, _config, _fit, _variant_meta
 
 
 def _table(flip_labels: bool=False) -> pd.DataFrame:
@@ -44,8 +44,13 @@ def deployed(tmp_path, client):
         root, "models/codel_idh", _fit([*FUSED, "known__idh"], "known__idh"),
         _variant_meta("1p19q", "fused_given_idh", [*FUSED, "known__idh"], ["IDH"]),
     )
+    _write_marker(root, "models/idh_imaging", _fit(IMAGING), _variant_meta("IDH", "imaging_only", IMAGING))
     _write_manifest(root)
-    entries=[("IDH", "fused", "models/idh"), ("1p19q", "fused_given_idh", "models/codel_idh")]
+    entries=[
+        ("IDH", "fused", "models/idh"),
+        ("IDH", "imaging_only", "models/idh_imaging"),
+        ("1p19q", "fused_given_idh", "models/codel_idh"),
+    ]
     config=_config(tmp_path, entries)
     (root/"features").mkdir()
     table_path=root/"features"/"features.parquet"
@@ -95,7 +100,9 @@ def test_profile_predicts_deployed_markers_and_reports_the_rest_unavailable(
     assert idh["evidence_ids"]==[]
     sha=hashlib.sha256((deployed["root"]/"models/idh/models.joblib").read_bytes()).hexdigest()
     assert idh["model_version"]=="sha256:"+sha
-    assert body["model_versions"]=={"IDH": "sha256:"+sha}
+    assert body["model_versions"]["IDH"]=="sha256:"+sha
+    assert idh["imaging_only_verdict"] in {"STABLE", "CONTESTED", "ARBITRARY"}
+    assert isinstance(idh["resolved_by_combining"], bool)
 
     for name in ("1p19q", "MGMT", "GRADE"):
         marker=_marker(body, name)
@@ -208,3 +215,25 @@ def test_other_users_study_profile_is_not_found(client, make_user, make_study, d
 def test_profile_requires_authentication(client, deployed, demo_study):
     study=demo_study()
     assert client.get(f"/api/v1/studies/{study.id}/profile").status_code==401
+
+
+def test_reveal_shows_dataset_labels_as_measured(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study("UCSF-PDGM-0002")
+    response=client.get(f"/api/v1/studies/{study.id}/reveal", headers=login(client, "alice"))
+    assert response.status_code==200
+    results={r["marker"]: r["value"] for r in response.json()["results"]}
+    expected="mutant" if _table().loc[2, "idh"]==1 else "wildtype"
+    assert results["IDH"]=={"value": expected, "provenance": "measured"}
+    assert results["GRADE"]=={"value": "grade 4", "provenance": "measured"}
+
+
+def test_reveal_is_refused_for_uploads_and_hidden_across_users(client, make_user, make_study, deployed):
+    alice=make_user("alice")
+    bob=make_user("bob")
+    own=make_study(StudyKind.UPLOAD, owner=alice, label="alice-1")
+    foreign=make_study(StudyKind.UPLOAD, owner=bob, label="bob-1")
+    headers=login(client, "alice")
+    own_reveal=client.get(f"/api/v1/studies/{own.id}/reveal", headers=headers)
+    assert own_reveal.json()["error_code"]=="NO_GROUND_TRUTH"
+    assert client.get(f"/api/v1/studies/{foreign.id}/reveal", headers=headers).status_code==404

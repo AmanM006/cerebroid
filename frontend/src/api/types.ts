@@ -82,6 +82,14 @@ export interface MarkerProfile {
   prob_max?: number | null
   model_version?: string | null
   reason?: string | null
+  imaging_only_call?: string | null
+  imaging_only_verdict?: Verdict | null
+  resolved_by_combining?: boolean
+}
+
+export interface Reveal {
+  study_id: string
+  results: { marker: MarkerName; value: ProvenancedValue }[]
 }
 
 export interface Profile {
