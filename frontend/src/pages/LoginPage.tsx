@@ -172,19 +172,19 @@ export function LoginPage() {
             {/* Login Form */}
             <form onSubmit={onSubmit} className="space-y-5">
               
-              {/* Floating-Label Email Input with Deep Crimson-Red Tint Base */}
+              {/* Floating-Label Username / ID Input with Deep Crimson-Red Tint Base */}
               <div className="w-full">
                 <div className="relative group">
                   <input
-                    type="email"
+                    type="text"
                     required
-                    placeholder="doctor@hospital.org"
+                    placeholder="doctor"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="peer w-full rounded-xl px-4 py-4 pt-6 pb-2 text-base md:text-sm bg-[#2b1115] border border-red-900/60 text-white placeholder-transparent focus:outline-none focus:border-red-500 focus:bg-[#36141a] transition-all duration-200 shadow-inner"
                   />
                   <label className="absolute left-4 top-2 text-[10px] font-bold uppercase tracking-wider text-red-400/80 transition-all duration-200 peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-placeholder-shown:text-red-300/60 peer-placeholder-shown:font-medium peer-placeholder-shown:normal-case peer-placeholder-shown:tracking-normal peer-focus:top-2 peer-focus:text-[10px] peer-focus:font-bold peer-focus:uppercase peer-focus:tracking-wider peer-focus:text-red-400 pointer-events-none">
-                    Clinical Email
+                    Username / Clinical ID
                   </label>
                 </div>
               </div>
