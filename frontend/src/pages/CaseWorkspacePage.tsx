@@ -50,7 +50,7 @@ export function CaseWorkspacePage() {
   }, [caseId])
 
   // Renders the case's volumes in one projection, or why they can't be shown
-  const mriStage = (mode: SliceMode, style?: CSSProperties) => {
+  const mriStage = (mode: SliceMode, style?: CSSProperties, showCrosshair: boolean = true) => {
     if (mri.error) return <div className="p-4"><ErrorNotice error={mri.error} /></div>
     if (mri.volumes.length === 0) {
       return (
@@ -61,7 +61,12 @@ export function CaseWorkspacePage() {
     }
     return (
       <div className={`h-full w-full ${mri.loading ? "opacity-60" : ""}`} style={style}>
-        <RealNiiVueViewport volumes={mri.volumes} sliceType={mode} overlayOpacity={showTumor ? 0.45 : 0} />
+        <RealNiiVueViewport
+          volumes={mri.volumes}
+          sliceType={mode}
+          overlayOpacity={showTumor ? 0.45 : 0}
+          showCrosshair={showCrosshair}
+        />
       </div>
     )
   }
@@ -236,7 +241,7 @@ export function CaseWorkspacePage() {
       </div>
 
       <div className="relative flex-1 overflow-hidden bg-black">
-        {mriStage(selectedPlane)}
+        {mriStage(selectedPlane, undefined, false)}
       </div>
 
       <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">

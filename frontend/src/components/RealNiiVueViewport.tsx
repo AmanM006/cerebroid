@@ -42,11 +42,14 @@ export function RealNiiVueViewport({
   volumes,
   sliceType="multiplanar",
   overlayOpacity=0.45,
+  showCrosshair=true,
 }: {
   volumes: LoadedVolume[]
   sliceType?: SliceMode
   /** Opacity of the second volume (the tumor segmentation); 0 hides it. */
   overlayOpacity?: number
+  /** Whether to show the crosshair coordinate lines */
+  showCrosshair?: boolean
 }) {
   const canvasRef=useRef<HTMLCanvasElement>(null)
   const nvRef=useRef<Niivue | null>(null)
@@ -121,11 +124,11 @@ export function RealNiiVueViewport({
     const nv=nvRef.current
     if (!nv || state!=="ready") return
     applySliceType(nv, sliceType)
-    // In 3D volume rendering, crosshair lines obstruct the anatomy; in 2D slices they help locate voxels
+    // In 3D volume rendering or when disabled, crosshair lines are hidden
     nv.opts.show3Dcrosshair=false
-    nv.setCrosshairWidth(sliceType==="render3d" ? 0 : 1)
+    nv.setCrosshairWidth(!showCrosshair || sliceType==="render3d" ? 0 : 1)
     nv.drawScene()
-  }, [sliceType, state])
+  }, [sliceType, state, showCrosshair])
 
   useEffect(()=>{
     const overlay=nvRef.current?.volumes[1]
