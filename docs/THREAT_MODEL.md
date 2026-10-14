@@ -59,6 +59,12 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | R | A prediction that can't be traced or reproduced | Response carries model sha256 per marker, feature-table sha256, input hash and request ID | `test_profile_is_reproducible` |
 | I | A guessed value presented as a prediction | Markers without a deployed set, or whose output fails validation, are `unavailable` with `provenance: missing` | `test_profile_predicts_deployed_markers_and_reports_the_rest_unavailable` |
 
+### `GET /api/v1/studies/{id}/volumes`, `GET /api/v1/studies/{id}/volume/{sequence}`
+- **Spoofing / Elevation:** bearer token required; the study is resolved through `get_accessible_study`, so another user's upload returns 404 (`test_foreign_upload_volume_is_hidden`).
+- **Tampering / path traversal:** `sequence` must be one of a fixed enum; the directory comes from the server-side `source_patient_id`, which must match `UCSF-PDGM-NNNN`, and the resolved path must stay under `artifacts/volumes/` (`test_unknown_sequence_is_rejected`, `test_malformed_patient_id_never_reaches_the_filesystem`).
+- **Information disclosure:** the download file name is the sequence only, never the patient id; responses are `Cache-Control: private`. Volumes are skull-stripped public UCSF-PDGM scans (CC BY 4.0).
+- **Denial of service:** files are streamed from disk, not read into memory; only committed demo volumes are served.
+
 ### Model artifact loading (startup)
 | STRIDE | Risk | Mitigation | Test |
 |---|---|---|---|

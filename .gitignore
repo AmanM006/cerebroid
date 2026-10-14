@@ -31,6 +31,8 @@ ml/raw/
 *.nii
 *.nii.gz
 !ops/**/*.nii.gz
+# Demo-case volumes served by the viewer (UCSF-PDGM, CC BY 4.0).
+!artifacts/volumes/**/*.nii.gz
 
 # --- ml caches / large local artifacts not meant for git ---
 ml/.cache/
@@ -44,3 +46,9 @@ Thumbs.db
 
 # --- logs ---
 *.log
+
+# --- local dev databases & scratch seeds ---
+*.db
+*.sql
+generate_seed.py
+generate_demo_cases.py

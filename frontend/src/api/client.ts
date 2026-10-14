@@ -9,7 +9,9 @@
  * - Every failure becomes an ApiError carrying the server's error_code and
  *   request_id, so a user can report the exact request that failed.
  */
-import type { Case, CaseList, ErrorBody, MarkerName, Profile, Readiness, Reveal, TokenResponse, User } from "./types"
+import type {
+  Case, CaseList, ErrorBody, MarkerName, MriSequence, Profile, Readiness, Reveal, TokenResponse, User, Volumes,
+} from "./types"
 
 export class ApiError extends Error {
   readonly status: number
@@ -115,6 +117,11 @@ export const api={
 
   /** The dataset's true lab results, for held-out demo cases only. */
   reveal: (id: string)=>getJson<Reveal>(`/api/v1/studies/${encodeURIComponent(id)}/reveal`),
+
+  /** MRI volumes stored for a study; the viewer loads them with volume(). */
+  listVolumes: (id: string)=>getJson<Volumes>(`/api/v1/studies/${encodeURIComponent(id)}/volumes`),
+  volume: (id: string, sequence: MriSequence)=>
+    api.getBytes(`/api/v1/studies/${encodeURIComponent(id)}/volume/${sequence}`),
 
   /** /ready answers 503 while not ready, which is information here, not an error. */
   async readiness(): Promise<Readiness> {

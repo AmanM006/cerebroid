@@ -17,6 +17,7 @@ from app.core.logging import configure_logging
 from app.core.middleware import RequestIDMiddleware
 from app.domain.feature_store import load_feature_store
 from app.domain.registry import load_registry
+from app.domain.volume_store import VolumeStore
 
 
 @asynccontextmanager
@@ -24,6 +25,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings=get_settings()
     app.state.registry=load_registry(settings.artifacts_root, settings.markers_config_path)
     app.state.feature_store=load_feature_store(settings.feature_table_path)
+    app.state.volume_store=VolumeStore(settings.volumes_root)
     yield
 
 

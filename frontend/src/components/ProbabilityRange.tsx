@@ -1,9 +1,4 @@
-/**
- * The spread of P(positive class) across the model panel: a band from the lowest
- * to the highest model, a tick at the median, and the 50% decision line. A band,
- * not a single number, so the display never looks more precise than the panel is.
- */
-const pct=(p: number)=>`${Math.round(p*100)}%`
+const pct = (p: number) => `${Math.round(p * 100)}%`
 
 export function ProbabilityRange({ min, median, max, positiveLabel }: {
   min: number
@@ -13,15 +8,20 @@ export function ProbabilityRange({ min, median, max, positiveLabel }: {
 }) {
   return (
     <div>
-      <div className="relative h-2.5 rounded-full bg-slate-800" role="img"
-        aria-label={`Probability ${positiveLabel}: ${pct(min)} to ${pct(max)}, median ${pct(median)}`}>
-        <div className="absolute inset-y-0 w-px bg-slate-500" style={{ left: "50%" }} />
-        <div className="absolute inset-y-0 rounded-full bg-sky-600/60"
-          style={{ left: `${min*100}%`, width: `${Math.max((max-min)*100, 1)}%` }} />
-        <div className="absolute -inset-y-0.5 w-0.5 rounded bg-sky-200" style={{ left: `${median*100}%` }} />
+      <div
+        className="relative h-2 rounded-full bg-[#181624] border border-[#262335]"
+        role="img"
+        aria-label={`Probability ${positiveLabel}: ${pct(min)} to ${pct(max)}, median ${pct(median)}`}
+      >
+        <div className="absolute inset-y-0 w-px bg-[#3b364e]" style={{ left: "50%" }} />
+        <div
+          className="absolute inset-y-0 rounded-full bg-slate-400/50"
+          style={{ left: `${min * 100}%`, width: `${Math.max((max - min) * 100, 1.5)}%` }}
+        />
+        <div className="absolute -inset-y-0.5 w-1 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.7)]" style={{ left: `${median * 100}%` }} />
       </div>
-      <p className="mt-1 text-xs text-slate-400">
-        P({positiveLabel}) {pct(min)}–{pct(max)} · median {pct(median)}
+      <p className="mt-1.5 font-mono text-[10.5px] text-[#8c889e]">
+        P({positiveLabel}) {pct(min)}–{pct(max)} · median <span className="text-white font-semibold">{pct(median)}</span>
       </p>
     </div>
   )

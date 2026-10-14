@@ -12,6 +12,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from app.db.models import Role, StudyKind, StudyStatus
 from app.domain.contracts import Marker, Provenance, ProvenancedValue, StabilityVerdict
+from app.domain.volume_store import Sequence
 
 
 class _Request(BaseModel):
@@ -114,3 +115,10 @@ class CaseList(_Response):
     total: int
     limit: int
     offset: int
+
+
+class VolumesOut(_Response):
+    """Which MRI volumes the viewer can load for a study."""
+
+    study_id: uuid.UUID
+    sequences: list[Sequence]

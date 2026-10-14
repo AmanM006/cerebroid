@@ -109,6 +109,13 @@ export interface Profile {
   latency_ms: number
 }
 
+export type MriSequence="t1" | "t1c" | "t2" | "flair" | "seg"
+
+export interface Volumes {
+  study_id: string
+  sequences: MriSequence[]
+}
+
 export interface ErrorBody {
   error_code: string
   message: string
