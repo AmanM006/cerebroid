@@ -113,6 +113,61 @@ export interface Profile {
   latency_ms: number
 }
 
+export interface EvidenceItem {
+  evidence_id: string
+  group: string
+  label: string
+  direction: "toward_positive" | "toward_negative"
+  supports_call: boolean
+  /** Mean absolute change in probability across the model set. */
+  weight: number
+  /** Fraction of models whose effect points the same way. */
+  agreement: number | null
+  n_columns: number
+  provenance: Provenance
+}
+
+export interface Evidence {
+  study_id: string
+  marker: MarkerName
+  variant: string
+  call: string
+  low_signal: boolean
+  method: string
+  reference: ProvenancedValue
+  /** Mean pairwise rank correlation of the models' explanations. */
+  explanation_agreement: number | null
+  items: EvidenceItem[]
+  model_version: string
+  request_id: string | null
+  latency_ms: number
+}
+
+export type DoubtLevel="low" | "medium" | "high" | "unknown"
+
+export interface DoubtComponent {
+  source: "multiplicity" | "ambiguity" | "data_sparsity" | "missing_inputs" | "model_skill"
+  level: DoubtLevel
+  value: number | null
+  detail: string
+  action: string
+  provenance: Provenance
+}
+
+export interface Doubt {
+  study_id: string
+  marker: MarkerName
+  variant: string
+  call: string
+  verdict: Verdict
+  primary_source: string | null
+  recommended_action: string
+  components: DoubtComponent[]
+  model_version: string
+  request_id: string | null
+  latency_ms: number
+}
+
 export type MriSequence="t1" | "t1c" | "t2" | "flair" | "seg"
 
 export interface Volumes {

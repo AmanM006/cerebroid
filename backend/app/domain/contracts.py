@@ -263,9 +263,10 @@ class SetPrediction(_Contract):
 class EvidenceItem(_Contract):
     """One group of inputs and how it pushed a marker's prediction.
 
-    weight is the mean absolute grouped-SHAP contribution across the model
-    set; agreement is how consistently set members rank this group (None when
-    only one model contributed).
+    weight is the mean absolute change in P(positive) across the model set when
+    the group is reset to the training-cohort median (domain/explain.py);
+    agreement is the fraction of set members whose effect points the same way
+    (None when only one model contributed).
     """
 
     evidence_id: str=Field(min_length=1)

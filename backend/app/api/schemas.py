@@ -90,6 +90,58 @@ class MarkerProfileOut(_Response):
     low_signal: bool=False
 
 
+class EvidenceItemOut(_Response):
+    """One evidence group for one marker; provenance is required (CLAUDE.md §4.4)."""
+
+    evidence_id: str
+    group: str
+    label: str
+    direction: Literal["toward_positive", "toward_negative"]
+    supports_call: bool
+    weight: float
+    agreement: float | None
+    n_columns: int
+    provenance: Provenance
+
+
+class EvidenceOut(_Response):
+    study_id: uuid.UUID
+    marker: Marker
+    variant: str
+    call: str
+    low_signal: bool
+    method: str
+    reference: ProvenancedValue
+    explanation_agreement: float | None
+    items: list[EvidenceItemOut]
+    model_version: str
+    request_id: str | None
+    latency_ms: float
+
+
+class DoubtComponentOut(_Response):
+    source: Literal["multiplicity", "ambiguity", "data_sparsity", "missing_inputs", "model_skill"]
+    level: Literal["low", "medium", "high", "unknown"]
+    value: float | None
+    detail: str
+    action: str
+    provenance: Provenance
+
+
+class DoubtOut(_Response):
+    study_id: uuid.UUID
+    marker: Marker
+    variant: str
+    call: str
+    verdict: StabilityVerdict
+    primary_source: str | None
+    recommended_action: str
+    components: list[DoubtComponentOut]
+    model_version: str
+    request_id: str | None
+    latency_ms: float
+
+
 class ProfileOut(_Response):
     study_id: uuid.UUID
     inputs: ProfileInputs

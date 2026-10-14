@@ -30,6 +30,7 @@ export function CaseWorkspacePage() {
 
   // Drag-and-Drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
+  const [dragTargetIndex, setDragTargetIndex] = useState<number | null>(null)
 
   // 2D Controls
   const [selectedPlane, setSelectedPlane] = useState<Plane2D>("sagittal")
@@ -114,9 +115,18 @@ export function CaseWorkspacePage() {
     e.dataTransfer.effectAllowed = "move"
   }
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+  const handleDragOver = (e: DragEvent<HTMLDivElement>, index: number) => {
     e.preventDefault()
     e.dataTransfer.dropEffect = "move"
+    if (dragTargetIndex !== index) {
+      setDragTargetIndex(index)
+    }
+  }
+
+  const handleDragLeave = (_e: DragEvent<HTMLDivElement>, index: number) => {
+    if (dragTargetIndex === index) {
+      setDragTargetIndex(null)
+    }
   }
 
   const handleDrop = (e: DragEvent<HTMLDivElement>, targetIndex: number) => {
@@ -125,6 +135,7 @@ export function CaseWorkspacePage() {
       swapBlocks(draggedIndex, targetIndex)
     }
     setDraggedIndex(null)
+    setDragTargetIndex(null)
   }
 
   // Component 1: 3D GPU Viewport
@@ -133,8 +144,6 @@ export function CaseWorkspacePage() {
       key="3d_viewport"
       draggable
       onDragStart={(e) => handleDragStart(e, index)}
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
       <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
@@ -189,8 +198,6 @@ export function CaseWorkspacePage() {
       key="2d_slice"
       draggable
       onDragStart={(e) => handleDragStart(e, index)}
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
       <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
@@ -245,8 +252,6 @@ export function CaseWorkspacePage() {
       key="molecular_profile"
       draggable
       onDragStart={(e) => handleDragStart(e, index)}
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
       <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
@@ -279,8 +284,6 @@ export function CaseWorkspacePage() {
       key="evidence_doubt"
       draggable
       onDragStart={(e) => handleDragStart(e, index)}
-      onDragOver={handleDragOver}
-      onDrop={(e) => handleDrop(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
       <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
@@ -328,16 +331,49 @@ export function CaseWorkspacePage() {
   )
 
   const renderBlock = (blockId: BlockId, index: number) => {
+    let content = null
     switch (blockId) {
       case "3d_viewport":
-        return render3DViewport(index)
+        content = render3DViewport(index)
+        break
       case "2d_slice":
-        return render2DSlice(index)
+        content = render2DSlice(index)
+        break
       case "molecular_profile":
-        return renderMolecularProfile(index)
+        content = renderMolecularProfile(index)
+        break
       case "evidence_doubt":
-        return renderEvidenceDoubt(index)
+        content = renderEvidenceDoubt(index)
+        break
     }
+
+    const isBeingDragged = draggedIndex === index
+    const isDropTarget = dragTargetIndex === index && draggedIndex !== null && draggedIndex !== index
+
+    return (
+      <div
+        key={`slot-${index}-${blockId}`}
+        onDragOver={(e) => handleDragOver(e, index)}
+        onDragLeave={(e) => handleDragLeave(e, index)}
+        onDrop={(e) => handleDrop(e, index)}
+        className={`relative h-full w-full rounded-2xl transition-all duration-200 ${
+          isBeingDragged
+            ? "border-2 border-dashed border-cyan-500/50 bg-[#0a1018]/40 opacity-40 scale-[0.98]"
+            : isDropTarget
+            ? "border-2 border-dashed border-cyan-400 bg-cyan-950/20 shadow-[0_0_20px_rgba(6,182,212,0.25)] scale-[1.01]"
+            : "border border-neutral-850/80 bg-transparent"
+        }`}
+      >
+        {isDropTarget && (
+          <div className="pointer-events-none absolute inset-0 z-30 flex flex-col items-center justify-center rounded-2xl bg-cyan-950/40 backdrop-blur-[2px] border-2 border-dashed border-cyan-400">
+            <span className="font-mono text-xs font-bold text-cyan-300 uppercase tracking-widest bg-black/80 px-3 py-1 rounded-lg border border-cyan-500/50">
+              ⇄ Drop to Swap Here
+            </span>
+          </div>
+        )}
+        <div className="h-full w-full">{content}</div>
+      </div>
+    )
   }
 
   return (

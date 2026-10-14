@@ -257,3 +257,77 @@ def test_low_signal_set_is_flagged_instead_of_trusted(tmp_path, client, make_use
     assert idh["low_signal"] is True
     assert idh["skill"]==pytest.approx(1-0.5/0.505, abs=1e-4)
     assert idh["resolved_by_combining"] is False
+
+
+def test_evidence_explains_the_same_set_as_the_profile(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    headers=login(client, "alice")
+    profile=client.get(f"/api/v1/studies/{study.id}/profile", headers=headers).json()
+    idh=next(m for m in profile["markers"] if m["marker"]=="IDH")
+
+    r=client.get(f"/api/v1/studies/{study.id}/evidence", params={"marker": "IDH"}, headers=headers)
+    assert r.status_code==200
+    body=r.json()
+    assert body["call"]==idh["call"] and body["model_version"]==idh["model_version"]
+    assert body["reference"]["provenance"]=="reference_cohort"
+    assert body["items"], "a patient that differs from the cohort median has at least one effect"
+    weights=[i["weight"] for i in body["items"]]
+    assert weights==sorted(weights, reverse=True)
+    for item in body["items"]:
+        assert item["provenance"]=="model_inferred"
+        assert item["supports_call"]==((item["direction"]=="toward_positive")==(body["call"]=="mutant"))
+
+
+def test_evidence_for_a_known_marker_is_refused(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    r=client.get(
+        f"/api/v1/studies/{study.id}/evidence", params={"marker": "IDH", "known": "IDH:1"},
+        headers=login(client, "alice"),
+    )
+    assert r.status_code==409
+    assert r.json()["error_code"]=="MARKER_ALREADY_KNOWN"
+
+
+def test_evidence_for_an_undeployed_marker_is_a_clear_conflict(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    url=f"/api/v1/studies/{study.id}/evidence"
+    r=client.get(url, params={"marker": "MGMT"}, headers=login(client, "alice"))
+    assert r.status_code==409
+    assert r.json()["error_code"]=="MODEL_NOT_AVAILABLE"
+
+
+def test_other_users_study_evidence_is_not_found(client, make_user, make_study, deployed):
+    owner=make_user("owner")
+    make_user("mallory")
+    study=make_study(kind=StudyKind.UPLOAD, owner=owner)
+    url=f"/api/v1/studies/{study.id}/evidence"
+    r=client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory"))
+    assert r.status_code==404
+
+
+def test_doubt_breaks_down_the_same_call_as_the_profile(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    headers=login(client, "alice")
+    profile=client.get(f"/api/v1/studies/{study.id}/profile", headers=headers).json()
+    idh=next(m for m in profile["markers"] if m["marker"]=="IDH")
+
+    r=client.get(f"/api/v1/studies/{study.id}/doubt", params={"marker": "IDH"}, headers=headers)
+    assert r.status_code==200
+    body=r.json()
+    assert body["call"]==idh["call"] and body["verdict"]==idh["verdict"]
+    sources={c["source"] for c in body["components"]}
+    assert sources=={"multiplicity", "ambiguity", "data_sparsity", "missing_inputs", "model_skill"}
+    assert all(c["provenance"] for c in body["components"])
+    assert body["recommended_action"]
+
+
+def test_other_users_study_doubt_is_not_found(client, make_user, make_study, deployed):
+    owner=make_user("owner")
+    make_user("mallory")
+    study=make_study(kind=StudyKind.UPLOAD, owner=owner)
+    url=f"/api/v1/studies/{study.id}/doubt"
+    assert client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory")).status_code==404

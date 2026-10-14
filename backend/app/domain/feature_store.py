@@ -16,6 +16,7 @@ import pandas as pd
 import structlog
 
 from app.domain.contracts import FeatureVector, Marker, Sex, parse_feature_name
+from app.domain.doubt import CohortReference
 
 logger=structlog.get_logger("feature_store")
 
@@ -33,6 +34,8 @@ class FeatureStore:
     rows: dict[str, dict]=field(default_factory=dict)
     # sha256 of the feature table file: identifies the exact features behind a prediction.
     version: str | None=None
+    # Training-split patients, for "is this tumor unlike the training data?" (doubt.py).
+    reference: CohortReference | None=None
 
     def has(self, patient_id: str | None) -> bool:
         return patient_id is not None and patient_id in self.rows
@@ -72,5 +75,7 @@ def load_feature_store(path: Path) -> FeatureStore:
         raise ValueError("feature table needs a unique patient_id column")
     version="sha256:"+hashlib.sha256(path.read_bytes()).hexdigest()
     rows={str(r["patient_id"]): r for r in table.to_dict(orient="records")}
-    logger.info("feature_table_loaded", patients=len(rows), version=version)
-    return FeatureStore(rows=rows, version=version)
+    train={p: r for p, r in rows.items() if r.get("split")=="train"}
+    reference=CohortReference(train) if len(train)>5 else None
+    logger.info("feature_table_loaded", patients=len(rows), train=len(train), version=version)
+    return FeatureStore(rows=rows, version=version, reference=reference)
