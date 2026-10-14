@@ -311,6 +311,14 @@ Stretch (only if all DoD met): MONAI pretrained BraTS segmentation for uploads w
 
 **Branch & merge protocol:** feature branches `feat/ml-*` and `feat/app-*` off `main`; each member pushes a meaningful commit at least every 120 minutes; merge to `main` with normal merge commits (no squash, no force-push) at every phase boundary and before every deadline; whoever merges runs the test suite first.
 
+**Agent coordination channel.** Track APP's agent (Claude Code) and Track ML's agent (Antigravity) coordinate through GitHub, never through side channels:
+- Where: the conversation of the open pull request for the relevant feature branch. If no PR is open, an issue titled `Integration`.
+- Tag every message `[APP→ML]` or `[ML→APP]`. Number requests; reply by number.
+- Every status claim carries evidence: a commit SHA, a CI run, a log excerpt or a printed count. No "done"/"running" without it.
+- At the start of each session, read unanswered messages addressed to your track before doing anything else.
+- A message is posted only after the human owner of that account approves it.
+- Contract changes (`contracts.py`, CLAUDE.md §4.5) are proposed in the thread and approved by the integration owner before code changes.
+
 **Sleep:** stagger ~3-hour sleep windows (one member awake at all times, e.g. ML sleeps ~01:00–04:00, APP ~04:30–07:30) so a commit lands every 120 minutes and nothing stalls before Judging R1.
 
 ---
