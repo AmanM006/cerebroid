@@ -1,0 +1,306 @@
+[
+  {
+    "patient": "UCSF-PDGM-0018",
+    "seq": "t1.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2722.03,
+    "md5": "b481edf0b5e19658fd88a3f14177e079"
+  },
+  {
+    "patient": "UCSF-PDGM-0018",
+    "seq": "t1c.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 12912.39,
+    "md5": "472d0630f7b9b8e6c667c4dd02596c91"
+  },
+  {
+    "patient": "UCSF-PDGM-0018",
+    "seq": "t2.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2916.11,
+    "md5": "dbf607f0523d8ef63717f183193a256d"
+  },
+  {
+    "patient": "UCSF-PDGM-0018",
+    "seq": "flair.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2952.58,
+    "md5": "ae99aea981647c5a053d016ccf81c03a"
+  },
+  {
+    "patient": "UCSF-PDGM-0018",
+    "seq": "seg.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 4.0,
+    "md5": "56f0821c6bb3df8a5aa41765419634b7",
+    "unique": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  {
+    "patient": "UCSF-PDGM-0026",
+    "seq": "t1.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2161.22,
+    "md5": "fd75d28031dd32a0d0dd6f2723c01bc7"
+  },
+  {
+    "patient": "UCSF-PDGM-0026",
+    "seq": "t1c.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 13760.04,
+    "md5": "594aaa18a330584393734b13b241e50b"
+  },
+  {
+    "patient": "UCSF-PDGM-0026",
+    "seq": "t2.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2724.84,
+    "md5": "24d9468bfa80bf80346dce91340832d0"
+  },
+  {
+    "patient": "UCSF-PDGM-0026",
+    "seq": "flair.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2267.18,
+    "md5": "8ef432aa02040020b2f1eff65d316b13"
+  },
+  {
+    "patient": "UCSF-PDGM-0026",
+    "seq": "seg.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 4.0,
+    "md5": "8b122f6a5c900acf3a32b2677785e63a",
+    "unique": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  {
+    "patient": "UCSF-PDGM-0061",
+    "seq": "t1.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1497.59,
+    "md5": "2eac5372c16b5dd0b15ef424d9498bb8"
+  },
+  {
+    "patient": "UCSF-PDGM-0061",
+    "seq": "t1c.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 11563.02,
+    "md5": "a2a4071381d1ecc9127f94daa79e333d"
+  },
+  {
+    "patient": "UCSF-PDGM-0061",
+    "seq": "t2.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1852.91,
+    "md5": "2fc79a732c51a37b3b089c1ba57e8458"
+  },
+  {
+    "patient": "UCSF-PDGM-0061",
+    "seq": "flair.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2999.77,
+    "md5": "8788eb3c57d2defbe484c5ec94415812"
+  },
+  {
+    "patient": "UCSF-PDGM-0061",
+    "seq": "seg.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 4.0,
+    "md5": "e5fa2bf573a277faab14a128f51a8db4",
+    "unique": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  {
+    "patient": "UCSF-PDGM-0073",
+    "seq": "t1.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 1984.31,
+    "md5": "b45d91e04e2a39e6a1655250c3db736e"
+  },
+  {
+    "patient": "UCSF-PDGM-0073",
+    "seq": "t1c.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 10647.14,
+    "md5": "955a6eb330dab95b4312fd7863e9ba86"
+  },
+  {
+    "patient": "UCSF-PDGM-0073",
+    "seq": "t2.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2294.6,
+    "md5": "6ec94c01f356c9d52a15c6fdcc307d73"
+  },
+  {
+    "patient": "UCSF-PDGM-0073",
+    "seq": "flair.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2671.26,
+    "md5": "5d8009aef4a5bf23dd9527c0a9254fc0"
+  },
+  {
+    "patient": "UCSF-PDGM-0073",
+    "seq": "seg.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 4.0,
+    "md5": "ac80fda8be073f72c84f306994fc8148",
+    "unique": [
+      0,
+      1,
+      2,
+      4
+    ]
+  },
+  {
+    "patient": "UCSF-PDGM-0232",
+    "seq": "t1.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 3715.56,
+    "md5": "f202129935ac2b8c10c8089b0049f1d0"
+  },
+  {
+    "patient": "UCSF-PDGM-0232",
+    "seq": "t1c.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 10323.69,
+    "md5": "72ea26809299f7ca695188050c23ee26"
+  },
+  {
+    "patient": "UCSF-PDGM-0232",
+    "seq": "t2.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2617.62,
+    "md5": "9a2559ad2c3ca7331fb6beeceb5b2631"
+  },
+  {
+    "patient": "UCSF-PDGM-0232",
+    "seq": "flair.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2659.76,
+    "md5": "b68f1313b2bd9c06b34ef253ffa6883a"
+  },
+  {
+    "patient": "UCSF-PDGM-0232",
+    "seq": "seg.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2.0,
+    "md5": "fc53f8a7a1ace8a12288cc0d49245c55",
+    "unique": [
+      0,
+      2
+    ]
+  },
+  {
+    "patient": "UCSF-PDGM-0243",
+    "seq": "t1.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 4397.19,
+    "md5": "60c0be3090c203743afdd0e9f03c3229"
+  },
+  {
+    "patient": "UCSF-PDGM-0243",
+    "seq": "t1c.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 12032.8,
+    "md5": "b2ebbfe8d260b9a8289d415fda297dd1"
+  },
+  {
+    "patient": "UCSF-PDGM-0243",
+    "seq": "t2.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 3662.49,
+    "md5": "1dc1e01ace3cbce1e1da54ab414b6071"
+  },
+  {
+    "patient": "UCSF-PDGM-0243",
+    "seq": "flair.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 2477.31,
+    "md5": "36e219954e7c24e8dd1b56badd035912"
+  },
+  {
+    "patient": "UCSF-PDGM-0243",
+    "seq": "seg.nii.gz",
+    "shape": "(240, 240, 155)",
+    "dtype": "float64",
+    "min": 0.0,
+    "max": 4.0,
+    "md5": "fac71c16832cb5128be2a21e770ac9ff",
+    "unique": [
+      0,
+      1,
+      2,
+      4
+    ]
+  }
+]
