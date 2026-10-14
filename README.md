@@ -40,9 +40,7 @@ docs/       threat model, data provenance, model card, ADRs
 ## 5. Dependencies & third-party resources
 | Resource | Use | License |
 |---|---|---|
-| UCSF-PDGM (TCIA) | Clinical metadata and molecular labels | CC BY 4.0 |
-| BraTS 2021 training set | Co-registered MRI volumes + tumor segmentations | BraTS 2021 data terms |
-| BraTS↔TCIA ID crosswalk (TCIA) | Joining imaging to clinical records | TCIA terms |
+| UCSF-PDGM (TCIA) | Clinical metadata, molecular labels, skull-stripped MRI volumes and tumor segmentations | CC BY 4.0 |
 | Python packages (`backend/requirements.txt`) | Backend runtime | MIT / BSD / Apache-2.0 |
 
 Full data provenance: [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md).
