@@ -173,6 +173,30 @@ class TippingOut(_Response):
     latency_ms: float
 
 
+class ClaimOut(_Response):
+    """One templated statement; provenance and evidence_ids are required (CLAUDE.md §4.4)."""
+
+    text: str
+    evidence_ids: list[str]=Field(min_length=1)
+    provenance: Provenance
+
+
+class FalsificationOut(_Response):
+    study_id: uuid.UUID
+    marker: Marker
+    variant: str
+    call: str
+    verdict: StabilityVerdict
+    supporting: list[ClaimOut]
+    contradicting: list[ClaimOut]
+    competing: ClaimOut
+    overturn: list[ClaimOut]
+    confirmatory_test: str
+    model_version: str
+    request_id: str | None
+    latency_ms: float
+
+
 class ProfileOut(_Response):
     study_id: uuid.UUID
     view: Literal["fused", "imaging_only", "clinical_only"]

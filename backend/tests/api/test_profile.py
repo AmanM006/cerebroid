@@ -385,3 +385,34 @@ def test_other_users_study_tipping_is_not_found(client, make_user, make_study, d
     study=make_study(kind=StudyKind.UPLOAD, owner=owner)
     url=f"/api/v1/studies/{study.id}/tipping"
     assert client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory")).status_code==404
+
+
+def test_falsification_links_every_claim_to_evidence(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    headers=login(client, "alice")
+    r=client.get(f"/api/v1/studies/{study.id}/falsification", params={"marker": "IDH"}, headers=headers)
+    assert r.status_code==200
+    body=r.json()
+    url=f"/api/v1/studies/{study.id}/evidence"
+    evidence=client.get(url, params={"marker": "IDH"}, headers=headers).json()
+    known_ids={i["evidence_id"] for i in evidence["items"]}
+    claims=body["supporting"]+body["contradicting"]
+    assert claims, "a patient unlike the cohort median has evidence on at least one side"
+    for claim in claims:
+        assert claim["evidence_ids"] and set(claim["evidence_ids"])<=known_ids
+        assert claim["provenance"]=="model_inferred"
+    assert body["competing"]["evidence_ids"]==["IDH:fused:set"]
+    other="wildtype" if body["call"]=="mutant" else "mutant"
+    assert other in body["competing"]["text"]
+    for claim in body["overturn"]:
+        assert claim["evidence_ids"][0].startswith("IDH:fused:tipping:")
+    assert "IDH1" in body["confirmatory_test"]
+
+
+def test_other_users_study_falsification_is_not_found(client, make_user, make_study, deployed):
+    owner=make_user("owner")
+    make_user("mallory")
+    study=make_study(kind=StudyKind.UPLOAD, owner=owner)
+    url=f"/api/v1/studies/{study.id}/falsification"
+    assert client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory")).status_code==404

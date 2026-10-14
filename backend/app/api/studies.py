@@ -27,6 +27,8 @@ from app.api.schemas import (
     DoubtOut,
     EvidenceItemOut,
     EvidenceOut,
+    ClaimOut,
+    FalsificationOut,
     TippingItemOut,
     TippingOut,
     TrueResultOut,
@@ -37,6 +39,7 @@ from app.db.models import Study, StudyKind
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue
 from app.domain.doubt import decompose, primary
 from app.domain.explain import explain_set
+from app.domain.falsification import Claim, build_falsification
 from app.domain.tipping import find_tipping_points
 from app.domain.feature_store import FeatureStore
 from app.domain.profile import MarkerResult, build_profile, known_label
@@ -412,6 +415,46 @@ def get_tipping(
             )
             for t in points
         ],
+        model_version=prediction.model_version,
+        request_id=getattr(request.state, "request_id", None),
+        latency_ms=round((time.perf_counter()-started)*1000, 2),
+    )
+
+
+def _claim(claim: Claim) -> ClaimOut:
+    return ClaimOut(text=claim.text, evidence_ids=claim.evidence_ids, provenance=claim.provenance)
+
+
+@router.get("/{study_id}/falsification")
+def get_falsification(
+    request: Request,
+    marker: Marker,
+    known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
+    study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
+    registry: MarkerRegistry=Depends(get_registry),
+    store: FeatureStore=Depends(get_feature_store),
+) -> FalsificationOut:
+    """The case for and against this marker's call, and what would overturn it."""
+    started=time.perf_counter()
+    predictor, vector=_marker_inputs(marker, known, study, registry, store)
+    prediction=predictor.predict_set(vector)
+    explanation=explain_set(predictor, vector)
+    tipping=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
+    labels={e.group: e.label for e in explanation.effects}
+    panel=build_falsification(marker, predictor.variant, prediction, explanation, labels, tipping)
+    audit(f"falsification.read:{marker.value}", str(study.id), prediction.model_version)
+    return FalsificationOut(
+        study_id=study.id,
+        marker=marker,
+        variant=predictor.variant,
+        call=prediction.call,
+        verdict=prediction.verdict,
+        supporting=[_claim(c) for c in panel.supporting],
+        contradicting=[_claim(c) for c in panel.contradicting],
+        competing=_claim(panel.competing),
+        overturn=[_claim(c) for c in panel.overturn],
+        confirmatory_test=panel.confirmatory_test,
         model_version=prediction.model_version,
         request_id=getattr(request.state, "request_id", None),
         latency_ms=round((time.perf_counter()-started)*1000, 2),
