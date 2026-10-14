@@ -3,6 +3,19 @@ import { api } from "../api/client"
 import type { MarkerName, NextMeasurements } from "../api/types"
 import { ErrorNotice } from "./ErrorNotice"
 
+type Test=NextMeasurements["tests"][number]
+
+/** Plain-language reason for the top suggestion, from the computed narrowing. */
+function whyFirst(test: Test, candidates: number): string {
+  const worst=test.remaining_worst_case
+  if (worst!=null && worst<candidates) {
+    return worst===1
+      ? `It decides between the ${candidates} possible tumor types.`
+      : `It narrows ${candidates} possible tumor types to at most ${worst}.`
+  }
+  return test.settled ? "Confirms a call the models already agree on." : "The models can't settle this marker from the MRI."
+}
+
 /**
  * Which WHO CNS5 tumor categories are still possible, and the one lab test that
  * would narrow them most. A decision-support heuristic, labelled as such.
@@ -50,10 +63,11 @@ export function NextStepPanel({
       {first && (
         <div className="space-y-1.5">
           <p className="text-[10px] uppercase tracking-wider text-neutral-500">Most useful next test</p>
-          <p className="rounded-xl border border-cyan-900/60 bg-cyan-950/20 px-3 py-2 text-xs text-cyan-100">
-            <span className="font-bold">{first.marker}</span> · {first.test}
-          </p>
-          <p className="text-[10px] text-neutral-500">{first.reason}</p>
+          <div className="rounded-xl border border-cyan-900/60 bg-cyan-950/20 px-3 py-2">
+            <p className="text-sm font-bold text-cyan-100">Test {first.marker} first</p>
+            <p className="text-[11px] text-cyan-200/80">{whyFirst(first, plan.candidate_categories.length)}</p>
+            <p className="mt-1 text-[10px] text-neutral-400">{first.test}</p>
+          </div>
         </div>
       )}
 
