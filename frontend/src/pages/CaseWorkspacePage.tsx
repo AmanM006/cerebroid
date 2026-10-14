@@ -33,8 +33,6 @@ export function CaseWorkspacePage() {
 
   // 2D Controls
   const [selectedPlane, setSelectedPlane] = useState<Plane2D>("sagittal")
-  const [contrast, setContrast] = useState(115)
-  const [brightness, setBrightness] = useState(105)
 
   // 3D Controls
   const [mri3dMode, setMri3dMode] = useState<"multiplanar" | "render3d" | "axial" | "sagittal">("multiplanar")
@@ -231,34 +229,11 @@ export function CaseWorkspacePage() {
       </div>
 
       <div className="relative flex-1 overflow-hidden bg-black">
-        {mriStage(selectedPlane, { filter: `contrast(${contrast}%) brightness(${brightness}%)` })}
+        {mriStage(selectedPlane)}
       </div>
 
       <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-1">
-            <span className="text-neutral-500">Contrast:</span>
-            <input
-              type="range"
-              min="70"
-              max="160"
-              value={contrast}
-              onChange={(e) => setContrast(Number(e.target.value))}
-              className="h-1 w-14 cursor-pointer accent-cyan-400"
-            />
-          </label>
-          <label className="flex items-center gap-1">
-            <span className="text-neutral-500">Bright:</span>
-            <input
-              type="range"
-              min="70"
-              max="150"
-              value={brightness}
-              onChange={(e) => setBrightness(Number(e.target.value))}
-              className="h-1 w-14 cursor-pointer accent-cyan-400"
-            />
-          </label>
-        </div>
+        <span className="text-cyan-400">Interactive NiiVue {selectedPlane.toUpperCase()} cross-section</span>
         <span className="text-neutral-500">{mri.current ? SEQUENCE_LABELS[mri.current] : "—"}</span>
       </div>
     </div>
