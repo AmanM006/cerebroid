@@ -10,8 +10,8 @@ from typing import Literal
 
 import structlog
 
-from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, SetPrediction
-from app.domain.registry import MarkerRegistry, ModelOutputError
+from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, SetPrediction, StabilityVerdict
+from app.domain.registry import IMAGING_ONLY, MarkerRegistry, ModelOutputError
 
 logger=structlog.get_logger("profile")
 
@@ -24,6 +24,16 @@ class MarkerResult:
     variant: str | None=None
     prediction: SetPrediction | None=None
     reason: str | None=None
+    imaging_only: SetPrediction | None=None
+
+    @property
+    def resolved_by_combining(self) -> bool:
+        """MRI alone could not decide, but MRI + patient context is Stable."""
+        return (
+            self.prediction is not None and self.imaging_only is not None
+            and self.prediction.verdict==StabilityVerdict.STABLE
+            and self.imaging_only.verdict!=StabilityVerdict.STABLE
+        )
 
 
 def known_label(marker: Marker, value: int) -> str:
@@ -45,11 +55,21 @@ def build_profile(registry: MarkerRegistry, vector: FeatureVector) -> list[Marke
             continue
         try:
             prediction=predictor.predict_set(vector)
-        except ModelOutputError as exc:
+        except (ModelOutputError, ValueError) as exc:
             logger.error("model_output_invalid", marker=marker.value, detail=str(exc))
             results.append(MarkerResult(marker, "unavailable", reason="model output failed validation"))
             continue
+        imaging_only=None
+        imaging_predictor=registry.get(marker, IMAGING_ONLY)
+        if imaging_predictor is not None:
+            try:
+                imaging_only=imaging_predictor.predict_set(vector)
+            except (ModelOutputError, ValueError) as exc:
+                logger.error(
+                    "model_output_invalid", marker=marker.value, variant=IMAGING_ONLY, detail=str(exc),
+                )
         results.append(MarkerResult(
-            marker, "predicted", call=prediction.call, variant=predictor.variant, prediction=prediction,
+            marker, "predicted", call=prediction.call, variant=predictor.variant,
+            prediction=prediction, imaging_only=imaging_only,
         ))
     return results

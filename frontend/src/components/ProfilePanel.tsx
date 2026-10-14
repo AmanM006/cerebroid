@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { api, ApiError } from "../api/client"
-import type { Profile, Readiness } from "../api/types"
+import type { MarkerName, Profile, ProvenancedValue, Readiness } from "../api/types"
 import { ErrorNotice } from "./ErrorNotice"
 import { KnownResultsForm, type KnownResults } from "./KnownResultsForm"
 import { MarkerCard } from "./MarkerCard"
@@ -30,6 +30,15 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
       cancelled=true
     }
   }, [key, studyId, known])
+
+  const [truth, setTruth]=useState<{ studyId: string; values: Partial<Record<MarkerName, ProvenancedValue>> } | null>(null)
+  const [revealError, setRevealError]=useState<unknown>(null)
+
+  function reveal() {
+    api.reveal(studyId)
+      .then((r)=>setTruth({ studyId, values: Object.fromEntries(r.results.map((x)=>[x.marker, x.value])) }))
+      .catch(setRevealError)
+  }
 
   const loading=result?.key!==key
   const profile=result?.profile ?? null
@@ -62,7 +71,16 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
 
       {profile && (
         <div className={`space-y-2 ${loading ? "opacity-60" : ""}`}>
-          {profile.markers.map((m)=><MarkerCard key={m.marker} marker={m} />)}
+          {profile.markers.map((m)=>(
+            <MarkerCard key={m.marker} marker={m} truth={truth?.studyId===studyId ? truth.values[m.marker] : undefined} />
+          ))}
+          {truth?.studyId!==studyId && (
+            <button onClick={reveal}
+              className="w-full rounded-md border border-slate-700 px-3 py-1.5 text-sm hover:bg-slate-800">
+              Reveal true result
+            </button>
+          )}
+          {revealError!==null && <ErrorNotice error={revealError} />}
 
           <div className="space-y-1 pt-1 text-xs text-slate-400">
             <p className="flex items-center gap-1.5">

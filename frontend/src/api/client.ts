@@ -9,7 +9,7 @@
  * - Every failure becomes an ApiError carrying the server's error_code and
  *   request_id, so a user can report the exact request that failed.
  */
-import type { Case, CaseList, ErrorBody, MarkerName, Profile, Readiness, TokenResponse, User } from "./types"
+import type { Case, CaseList, ErrorBody, MarkerName, Profile, Readiness, Reveal, TokenResponse, User } from "./types"
 
 export class ApiError extends Error {
   readonly status: number
@@ -112,6 +112,9 @@ export const api={
     const query=params.size>0 ? `?${params}` : ""
     return getJson<Profile>(`/api/v1/studies/${encodeURIComponent(id)}/profile${query}`)
   },
+
+  /** The dataset's true lab results, for held-out demo cases only. */
+  reveal: (id: string)=>getJson<Reveal>(`/api/v1/studies/${encodeURIComponent(id)}/reveal`),
 
   /** /ready answers 503 while not ready, which is information here, not an error. */
   async readiness(): Promise<Readiness> {

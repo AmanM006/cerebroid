@@ -80,6 +80,9 @@ class MarkerProfileOut(_Response):
     prob_max: float | None=None
     model_version: str | None=None
     reason: str | None=None
+    imaging_only_call: str | None=None
+    imaging_only_verdict: StabilityVerdict | None=None
+    resolved_by_combining: bool=False
 
 
 class ProfileOut(_Response):
@@ -92,6 +95,18 @@ class ProfileOut(_Response):
     input_hash: str
     request_id: str | None
     latency_ms: float
+
+
+class TrueResultOut(_Response):
+    marker: Marker
+    value: ProvenancedValue
+
+
+class RevealOut(_Response):
+    """The dataset's lab results for a held-out demo case, for checking predictions."""
+
+    study_id: uuid.UUID
+    results: list[TrueResultOut]
 
 
 class CaseList(_Response):
