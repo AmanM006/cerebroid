@@ -97,10 +97,10 @@ export function LandingPage() {
             </span>
           </a>
 
-          {/* Clean Minimalist White Glass Rectangular Login Button */}
+          {/* Clean Minimalist White Glass Rectangular Login Button with Subtle Curved Edge */}
           <a
             href="/viewer"
-            className="inline-flex items-center justify-center px-7 py-2.5 rounded-none bg-white hover:bg-neutral-100 text-black font-bold text-sm tracking-wider uppercase shadow-[0_4px_24px_rgba(255,255,255,0.15)] hover:shadow-[0_6px_30px_rgba(255,255,255,0.3)] border border-white active:scale-95 transition-all duration-200 cursor-pointer"
+            className="inline-flex items-center justify-center px-7 py-2.5 rounded-lg bg-white hover:bg-neutral-100 text-black font-bold text-sm tracking-wider uppercase shadow-[0_4px_24px_rgba(255,255,255,0.15)] hover:shadow-[0_6px_30px_rgba(255,255,255,0.3)] border border-white active:scale-95 transition-all duration-200 cursor-pointer"
           >
             Login
           </a>
