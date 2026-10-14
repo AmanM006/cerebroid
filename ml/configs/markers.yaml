@@ -1,0 +1,11 @@
+# One entry per marker plugin. artifact_dir is relative to artifacts/.
+# Each directory holds meta.json + models.joblib, both listed with their sha256 in artifacts/manifest.json.
+markers:
+  - marker: IDH
+    artifact_dir: models/idh
+  - marker: 1p19q
+    artifact_dir: models/1p19q
+  - marker: MGMT
+    artifact_dir: models/mgmt
+  - marker: GRADE
+    artifact_dir: models/grade

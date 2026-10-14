@@ -50,6 +50,17 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | D | Unbounded list queries | `limit` 1–100, `offset` ≤10,000 | `test_pagination_bounds_are_enforced` |
 | I | Patient values without provenance | Age/sex returned as `ProvenancedValue` | `test_case_values_carry_provenance` |
 
+### Model artifact loading (startup)
+| STRIDE | Risk | Mitigation | Test |
+|---|---|---|---|
+| T / E | Tampered or swapped `models.joblib` executing code when unpickled | sha256 of every file checked against the committed `manifest.json` before unpickling; unlisted or mismatched files are never loaded | `test_tampered_artifact_is_never_unpickled` |
+| T | Tampered `meta.json` (e.g. lowered decision threshold) | Same sha256 check | `test_tampered_meta_is_rejected` |
+| T | Manifest path escaping `artifacts/` | Resolved paths must stay inside the artifacts directory | `test_manifest_entry_outside_artifacts_dir_is_rejected` |
+| T | Metadata naming leaked clinical inputs (e.g. `who_grade`) | Feature columns validated against the shared naming convention | `test_invalid_meta_is_rejected` |
+| D | One broken marker taking down the API | Each marker loads independently; failures are reported per marker in `/ready` | `test_one_broken_marker_does_not_block_the_others` |
+| T | A model emitting NaN/out-of-range probabilities shown as a result | Every probability checked to be finite and within [0, 1]; otherwise an error, never a value | `test_model_returning_nan_at_prediction_time_raises` |
+| E | API process modifying its own code or models at runtime | Files in the image are root-owned and read-only to the non-root `vbx` user | manual check in container |
+
 ### Global (all routes)
 | STRIDE | Risk | Mitigation |
 |---|---|---|
