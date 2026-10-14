@@ -266,3 +266,5 @@ Every error response has the shape `{error_code, message, request_id}`.
 | `VOLUME_NOT_AVAILABLE` | The study has no stored volume for that sequence |
 | `HTTP_ERROR` | Generic HTTP error (404, 405, ...) |
 | `INTERNAL_ERROR` | Unexpected server error (details only in server logs) |
+
+<!-- pipeline sync: 2026-10-14T22:53:19.068468 -->
