@@ -28,6 +28,9 @@ LIMITATIONS=[
     "Only 15 1p/19q co-deleted patients in the cohort, so 1p/19q estimates have wide uncertainty.",
     "MGMT methylation is barely predictable from these MRI features; the model card's held-out AUC shows it.",
     "Features are radiomics-style statistics computed with SciPy/scikit-image, not pyradiomics.",
+    "First-order intensity features use raw scanner values (one institution); a stress test shows they shift "
+    "with scanner gain, while noise and shading changed no calls. Brain-normalized features (v2) exist.",
+    "Calls depend on the tumor segmentation; one-voxel outline errors changed a few stress-test calls.",
     "Explanations (evidence, tipping points) describe model sensitivity, not biological cause.",
     "Adults (18+) only; paediatric gliomas were excluded from training.",
 ]
