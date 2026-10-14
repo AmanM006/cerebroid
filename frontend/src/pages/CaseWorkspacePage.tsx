@@ -266,13 +266,12 @@ export function CaseWorkspacePage() {
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
           <span className="font-semibold text-white group-hover:text-cyan-300">
-            Molecular Profile (Multiplicity)
+            Tumor markers
           </span>
           <span className="text-[9px] text-neutral-500 rounded bg-[#181818] px-1 py-0.2 border border-neutral-800">
             [Drag / Swap]
           </span>
         </div>
-        <span className="text-[10px] text-emerald-400">WHO 2021 CNS</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -428,10 +427,10 @@ export function CaseWorkspacePage() {
             <div className="flex items-center gap-2 font-mono">
               <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-white">
-                Molecular Biomarker & Clinical Evidence Analysis
+                Tumor profile
               </h2>
-              <span className="rounded bg-[#161616] border border-neutral-800 px-2 py-0.5 text-[10px] text-neutral-400">
-                WHO 2021 CNS Taxonomy · Platt Calibrated Multiplicity
+              <span className="text-[11px] text-neutral-500">
+                Predicted from the MRI, age and sex · each result is checked by a panel of equally good models
               </span>
             </div>
             <a

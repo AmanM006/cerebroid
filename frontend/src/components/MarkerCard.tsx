@@ -9,6 +9,13 @@ import { ProvenanceBadge } from "./ProvenanceBadge"
 import { VerdictBadge } from "./VerdictBadge"
 
 // The card stays glanceable (call, badge, probability band); explanations live behind "Details".
+// One plain sentence per verdict, shown under the call so the badge never needs decoding.
+const VERDICT_MEANING: Record<string, string> = {
+  STABLE: "The panel of models agrees",
+  CONTESTED: "The models disagree",
+  ARBITRARY: "The models are split close to 50/50",
+}
+
 const TABS = [
   { id: "why", label: "Why" },
   { id: "doubt", label: "Uncertainty" },
@@ -44,7 +51,14 @@ export function MarkerCard({
       <header className="flex items-start justify-between gap-2">
         <div>
           <h3 className="text-[11px] font-mono uppercase tracking-wider text-[#8c889e]">{labels.title}</h3>
-          <p className="mt-0.5 text-lg font-bold text-white capitalize">{marker.call ?? "No call"}</p>
+          <p className={`mt-0.5 text-lg font-bold capitalize ${marker.low_signal ? "text-[#716c87]" : "text-white"}`}>
+            {marker.call ?? "No call"}
+          </p>
+          {marker.status === "predicted" && (
+            <p className="font-mono text-[10px] text-[#716c87]">
+              {marker.low_signal ? "MRI can't tell for this marker" : marker.verdict ? VERDICT_MEANING[marker.verdict] : ""}
+            </p>
+          )}
         </div>
         <div className="flex flex-col items-end gap-1">
           {marker.low_signal ? (
@@ -65,6 +79,9 @@ export function MarkerCard({
             median={marker.prob_median!}
             max={marker.prob_max!}
             positiveLabel={labels.positive}
+            negativeLabel={labels.negative}
+            call={marker.call}
+            muted={marker.low_signal}
           />
           {(needsTissue || marker.resolved_by_combining) && (
             <div className="flex flex-wrap gap-1.5 font-mono text-[10.5px]">
