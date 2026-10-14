@@ -204,6 +204,10 @@ pre-operative scan per patient, split/fold rules, models load in the API environ
 held-out patients; skipped while those files are absent).
 
 ## Model artifacts
+[ml/notebooks/02_training_multiplicity.ipynb](ml/notebooks/02_training_multiplicity.ipynb) documents the model sets: their
+cross-validated losses and skill, held-out AUCs of every variant, out-of-fold predictions on the training patients, the
+verdict cut-offs and the 1p/19q threshold evaluated on them. Every table is computed when it runs.
+
 [ml/notebooks/03_inference_demo.ipynb](ml/notebooks/03_inference_demo.ipynb) is the committed, executed demonstration of the trained
 models: the deployed sets, inference on held-out patients (every model's vote, verdict and call next to the true result), a
 known lab result re-scoring the other markers, evidence, tipping points, doubt, held-out metrics and "resolved by
@@ -251,7 +255,9 @@ pip-audit -r requirements.txt
 - **Tumor outline errors.** Features are measured inside the segmentation; shifting or shrinking it by one voxel
   changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC yet.
 - Brute-force protection is per-account lockout (5 failures → 15 minutes); there is no per-IP rate limiting.
-  Anyone who knows a username can therefore lock that account for 15 minutes.
+  Anyone who knows a username can therefore lock that account for 15 minutes. The synthetic test accounts
+  (`evaluator`, `reviewer`) are exempt: their passwords are published here, so locking them would only let anyone
+  lock evaluators out.
 - The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
 - Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
   out; the user signs in again.

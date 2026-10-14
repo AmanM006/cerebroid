@@ -158,3 +158,14 @@ def test_password_is_stored_as_argon2id(make_user, db):
     stored=db.get(User, user.id)
     assert stored.password_hash.startswith("$argon2id$")
     assert TEST_PASSWORD not in stored.password_hash
+
+
+def test_synthetic_test_accounts_are_never_locked(client, make_user, db):
+    """Their passwords are public, so lockout would only let anyone lock evaluators out."""
+    user=make_user("evaluator")
+    user.is_synthetic=True
+    db.commit()
+    for _ in range(8):
+        client.post("/api/v1/auth/login", json={"username": "evaluator", "password": "wrong-password-123"})
+    ok=client.post("/api/v1/auth/login", json={"username": "evaluator", "password": TEST_PASSWORD})
+    assert ok.status_code==200

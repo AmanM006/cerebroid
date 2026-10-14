@@ -25,7 +25,8 @@ DISCLAIMER=(
 )
 LIMITATIONS=[
     "Trained and tested on one public cohort (UCSF-PDGM, one institution); performance elsewhere is unknown.",
-    "Only 15 1p/19q co-deleted patients in the cohort, so 1p/19q estimates have wide uncertainty.",
+    "Only 15 1p/19q co-deleted patients in the cohort (13 of 323 training patients, 4.0%), so calibrated "
+    "probabilities stay below the 0.5 call threshold: good ranking (AUC 0.90) but no positive calls yet.",
     "MGMT methylation is barely predictable from these MRI features; the model card's held-out AUC shows it.",
     "Features are radiomics-style statistics computed with SciPy/scikit-image, not pyradiomics.",
     "First-order intensity features use raw scanner values (one institution); a stress test shows they shift "
