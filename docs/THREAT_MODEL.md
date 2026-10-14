@@ -5,7 +5,7 @@ Updated every build layer. Every mitigated attack listed here gets a regression 
 
 Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure · **D**oS · **E**levation
 
-## Current endpoints (Layer 0)
+## Endpoints
 
 ### `GET /health`
 | STRIDE | Risk | Mitigation |
@@ -26,7 +26,7 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | R | No way to trace which request produced which log line / error, across process restarts or multiple replicas | Request-ID middleware (`backend/app/core/middleware.py`) generates/propagates `X-Request-Id`, bound into every structlog line for that request. |
 | T | CORS misconfiguration allowing arbitrary origins to call authenticated routes once auth exists | `CORS_ORIGINS` is an explicit env-driven allowlist (`app/core/config.py`), not `*`. |
 
-## Not yet applicable (tracked for the layer that introduces them)
+## Planned controls (added with the corresponding features)
 - **Auth (Layer 3):** credential stuffing, token replay, IDOR on `/cases`, `/studies/*` — argon2id,
   short-lived JWT + rotating refresh with reuse detection, per-route ownership/role dependency.
 - **Upload pipeline (Layer 7):** gzip bombs, oversized/malformed NIfTI, path traversal via filenames,

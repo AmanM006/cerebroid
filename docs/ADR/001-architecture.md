@@ -17,7 +17,7 @@ a branch literally named `fix`. We need a stack and layout that:
 
 ## Decision
 - **Stack:** Python 3.11 + FastAPI + Pydantic v2 + SQLAlchemy 2/Alembic + PostgreSQL for the backend;
-  React + Vite + TS + Tailwind + NiiVue for the frontend (not yet scaffolded); Docker Compose for local
+  React + Vite + TS + Tailwind + NiiVue for the frontend; Docker Compose for local
   dev and the primary delivery method. Full rationale already fixed in CLAUDE.md §4 — this ADR records
   that we're building to that spec, not re-deciding it.
 - **Repo layout:** exactly the tree in CLAUDE.md §4.2 (`ml/`, `backend/`, `frontend/`, `artifacts/`,
