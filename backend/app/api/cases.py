@@ -37,6 +37,6 @@ def list_cases(
     return CaseList(items=[_to_case_out(s) for s in studies], total=total, limit=limit, offset=offset)
 
 
-@router.get("/{case_id}")
+@router.get("/{study_id}")
 def get_case(study: Study=Depends(get_accessible_study)) -> CaseOut:
     return _to_case_out(study)

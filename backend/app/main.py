@@ -10,11 +10,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, cases, health
+from app.api import auth, cases, health, studies
 from app.core.config import get_settings
 from app.core.errors import register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestIDMiddleware
+from app.domain.feature_store import load_feature_store
 from app.domain.registry import load_registry
 
 
@@ -22,6 +23,7 @@ from app.domain.registry import load_registry
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings=get_settings()
     app.state.registry=load_registry(settings.artifacts_root, settings.markers_config_path)
+    app.state.feature_store=load_feature_store(settings.feature_table_path)
     yield
 
 
@@ -45,6 +47,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(cases.router)
+    app.include_router(studies.router)
 
     return app
 

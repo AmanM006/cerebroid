@@ -12,7 +12,7 @@ from collections.abc import Callable
 
 import jwt
 import structlog
-from fastapi import Depends, status
+from fastapi import Depends, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import Select, or_, select
 from sqlalchemy.orm import Session
@@ -21,6 +21,8 @@ from app.core.errors import AppError, not_found, unauthorized
 from app.core.security import decode_access_token
 from app.db.models import Role, Study, StudyKind, User
 from app.db.session import get_db
+from app.domain.feature_store import FeatureStore
+from app.domain.registry import MarkerRegistry
 
 logger=structlog.get_logger("authz")
 
@@ -60,12 +62,20 @@ def accessible_studies(user: User) -> Select[tuple[Study]]:
 
 
 def get_accessible_study(
-    case_id: uuid.UUID,
+    study_id: uuid.UUID,
     user: User=Depends(get_current_user),
     db: Session=Depends(get_db),
 ) -> Study:
-    study=db.scalar(accessible_studies(user).where(Study.id==case_id))
+    study=db.scalar(accessible_studies(user).where(Study.id==study_id))
     if study is None:
-        logger.info("study_access_denied_or_missing", study_id=str(case_id))
+        logger.info("study_access_denied_or_missing", study_id=str(study_id))
         raise not_found()
     return study
+
+
+def get_registry(request: Request) -> MarkerRegistry:
+    return request.app.state.registry
+
+
+def get_feature_store(request: Request) -> FeatureStore:
+    return request.app.state.feature_store
