@@ -13,8 +13,10 @@ import sys
 
 from sqlalchemy import select
 
+from app.core.config import get_settings
 from app.core.security import hash_password
-from app.db.models import Role, User
+from app.db.models import Role, Study, StudyKind, StudyStatus, User
+from app.domain.feature_store import load_feature_store
 from app.db.session import get_session_factory
 
 MIN_PASSWORD_LENGTH=12
@@ -38,6 +40,30 @@ def create_user(username: str, role: Role, synthetic: bool) -> None:
     print(f"Created {role.value} {username!r}.")
 
 
+def add_demo_case(patient_id: str) -> None:
+    """Registers a public-dataset patient as a demo case; clinical fields come from its feature-table row."""
+    store=load_feature_store(get_settings().feature_table_path)
+    if not store.has(patient_id):
+        sys.exit(f"{patient_id!r} is not in the feature table.")
+    row=store.rows[patient_id]
+    biopsy=row.get("prior_biopsy")
+    with get_session_factory()() as db:
+        if db.scalar(select(Study).where(Study.source_patient_id==patient_id)):
+            sys.exit(f"{patient_id!r} is already a demo case.")
+        study=Study(
+            kind=StudyKind.DEMO,
+            label=patient_id,
+            age=int(round(row["age"])),
+            sex="M" if int(row["sex"])==1 else "F",
+            prior_biopsy=None if biopsy is None or biopsy!=biopsy else bool(biopsy),
+            source_patient_id=patient_id,
+            status=StudyStatus.READY,
+        )
+        db.add(study)
+        db.commit()
+        print(f"Added demo case {patient_id} as study {study.id}.")
+
+
 def main() -> None:
     parser=argparse.ArgumentParser(prog="python -m app.cli")
     commands=parser.add_subparsers(dest="command", required=True)
@@ -47,9 +73,14 @@ def main() -> None:
     create.add_argument("--role", required=True, choices=[r.value for r in Role])
     create.add_argument("--synthetic", action="store_true", help="mark as a synthetic demo/test account")
 
+    demo=commands.add_parser("add-demo-case")
+    demo.add_argument("--patient-id", required=True, help="e.g. UCSF-PDGM-0004")
+
     args=parser.parse_args()
     if args.command=="create-user":
         create_user(args.username, Role(args.role), args.synthetic)
+    elif args.command=="add-demo-case":
+        add_demo_case(args.patient_id)
 
 
 if __name__=="__main__":

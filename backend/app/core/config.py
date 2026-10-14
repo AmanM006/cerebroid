@@ -49,6 +49,10 @@ class Settings(BaseSettings):
         return self.repo_root/"artifacts"
 
     @property
+    def feature_table_path(self) -> Path:
+        return self.artifacts_root/"features"/"features.parquet"
+
+    @property
     def markers_config_path(self) -> Path:
         return self.repo_root/"ml"/"configs"/"markers.yaml"
 
