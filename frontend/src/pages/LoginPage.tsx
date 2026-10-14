@@ -1,14 +1,13 @@
 import { useState, type FormEvent } from "react"
-import { Navigate, Link } from "react-router-dom"
+import { Navigate } from "react-router-dom"
 import { useAuth } from "../auth/AuthContext"
 import { ErrorNotice } from "../components/ErrorNotice"
 import { HoloCard } from "../components/HoloCard"
 
 export function LoginPage() {
   const { user, login } = useAuth()
-  const [username, setUsername] = useState("doctor")
-  const [password, setPassword] = useState("Clinician@1234")
-  const [rememberMe, setRememberMe] = useState(false)
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<unknown>(null)
 
@@ -91,22 +90,6 @@ export function LoginPage() {
               </div>
             </div>
 
-            {/* Remember me & Forgot password */}
-            <div className="flex items-center justify-between text-xs text-[#8c889e] pt-1">
-              <label className="flex items-center gap-2 cursor-pointer select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="h-3.5 w-3.5 rounded border-[#232030] bg-[#14121d] text-slate-300 focus:ring-0 focus:ring-offset-0 cursor-pointer"
-                />
-                <span>Remember me</span>
-              </label>
-              <Link to="/preview" className="text-slate-300 hover:text-white transition-colors underline underline-offset-2">
-                Forgot password?
-              </Link>
-            </div>
-
             {error !== null && (
               <div className="rounded-xl border border-rose-500/30 bg-rose-950/30 p-2.5 text-xs text-rose-300">
                 <ErrorNotice error={error} />
@@ -123,12 +106,9 @@ export function LoginPage() {
             </button>
           </form>
 
-          <div className="mt-8 border-t border-[#1f1d2b] pt-4 text-center text-xs text-[#8c889e]">
-            <span>Don't have an account? </span>
-            <Link to="/preview" className="font-semibold text-slate-200 hover:underline underline-offset-2">
-              Sign up
-            </Link>
-          </div>
+          <p className="mt-8 border-t border-[#1f1d2b] pt-4 text-center text-xs text-[#8c889e]">
+            Accounts are issued by the team. Evaluators: use the test account listed in the README.
+          </p>
         </div>
       </div>
 
