@@ -206,6 +206,8 @@ class SetMarkerPredictor:
                 row[column]=float(features.age)
             elif column=="sex":
                 row[column]=SEX_ENCODING[features.sex]
+            elif column=="prior_biopsy":
+                row[column]=math.nan if features.prior_biopsy is None else float(features.prior_biopsy)
             elif (known:=known_marker_of(column)) is not None:
                 if known not in features.known_markers:
                     label=variant_label(self.marker, self.variant)

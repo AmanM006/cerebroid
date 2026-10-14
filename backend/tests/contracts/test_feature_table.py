@@ -16,6 +16,7 @@ FEATURE_TABLE=get_settings().artifacts_root/"features"/"features.parquet"
 
 ADMIN_COLUMNS={"patient_id", "split", "fold"}
 CLINICAL_COLUMNS={"age", "sex"}
+OPTIONAL_CLINICAL_COLUMNS={"prior_biopsy"}
 TARGET_COLUMNS={"idh", "codeletion_1p19q", "mgmt", "who_grade"}
 LEAKAGE_WORDS=(
     "resection", "treatment", "survival", "vital", "index", "post_op", "postop", "diagnosis", "pathology",
@@ -30,7 +31,8 @@ def table() -> pd.DataFrame:
 
 
 def _feature_columns(table: pd.DataFrame) -> list[str]:
-    return [c for c in table.columns if c not in ADMIN_COLUMNS|CLINICAL_COLUMNS|TARGET_COLUMNS]
+    non_features=ADMIN_COLUMNS|CLINICAL_COLUMNS|OPTIONAL_CLINICAL_COLUMNS|TARGET_COLUMNS
+    return [c for c in table.columns if c not in non_features]
 
 
 def test_required_columns_present(table):
@@ -81,6 +83,8 @@ def test_clinical_inputs_in_range(table):
     assert table["age"].between(18, 100).all(), "age outside 18-100"
     assert set(table["sex"].dropna().astype(int))<={0, 1}, "sex must be 0 (F) / 1 (M)"
     assert table[["age", "sex"]].notna().all().all(), "age/sex may not be missing"
+    if "prior_biopsy" in table:
+        assert set(table["prior_biopsy"].dropna())<={0, 1}, "prior_biopsy must be 0/1, NaN when unrecorded"
 
 
 def test_target_encodings(table):

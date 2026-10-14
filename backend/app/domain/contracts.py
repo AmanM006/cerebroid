@@ -123,7 +123,7 @@ def parse_feature_name(name: str) -> FeatureName:
 
 
 # Model input columns for the clinical inputs. Models see sex as a number.
-CLINICAL_COLUMNS=("age", "sex")
+CLINICAL_COLUMNS=("age", "sex", "prior_biopsy")  # prior_biopsy: 1.0 yes, 0.0 no, NaN unrecorded
 SEX_ENCODING: dict[Sex, float]={Sex.MALE: 1.0, Sex.FEMALE: 0.0}
 
 # A marker result the clinician already has from the lab is a model input named
@@ -178,6 +178,7 @@ class FeatureVector(_Contract):
     study_id: str=Field(min_length=1, max_length=64)
     age: int=Field(ge=18, le=100)
     sex: Sex
+    prior_biopsy: bool | None=None  # biopsy before this MRI (history); None = not recorded
     features: dict[str, float | None]
     known_markers: dict[Marker, Literal[0, 1]]=Field(default_factory=dict)
 
