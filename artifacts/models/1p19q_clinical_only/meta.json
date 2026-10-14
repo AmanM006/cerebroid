@@ -1,0 +1,81 @@
+{
+  "marker": "1p19q",
+  "variant": "clinical_only",
+  "given": [],
+  "feature_columns": [
+    "age",
+    "sex"
+  ],
+  "feature_medians": {
+    "age": 59.0,
+    "sex": 1.0
+  },
+  "decision_threshold": 0.5,
+  "verdict_thresholds": {
+    "stable_min_agreement": 0.85,
+    "stable_max_iqr": 0.2,
+    "arbitrary_max_agreement": 0.6
+  },
+  "epsilon": 0.03,
+  "models": [
+    {
+      "model_id": "logreg_c1.0_l11.0",
+      "family": "logreg",
+      "cv_log_loss": 0.1615
+    },
+    {
+      "model_id": "logreg_c1.0_l10.5",
+      "family": "logreg",
+      "cv_log_loss": 0.1618
+    },
+    {
+      "model_id": "logreg_c5.0_l10.0",
+      "family": "logreg",
+      "cv_log_loss": 0.1622
+    },
+    {
+      "model_id": "logreg_c0.1_l11.0",
+      "family": "logreg",
+      "cv_log_loss": 0.1625
+    },
+    {
+      "model_id": "logreg_c5.0_l11.0",
+      "family": "logreg",
+      "cv_log_loss": 0.1625
+    },
+    {
+      "model_id": "logreg_c1.0_l10.0",
+      "family": "logreg",
+      "cv_log_loss": 0.1633
+    },
+    {
+      "model_id": "logreg_c0.01_l10.0",
+      "family": "logreg",
+      "cv_log_loss": 0.1641
+    },
+    {
+      "model_id": "logreg_c5.0_l10.5",
+      "family": "logreg",
+      "cv_log_loss": 0.1645
+    },
+    {
+      "model_id": "logreg_c0.1_l10.5",
+      "family": "logreg",
+      "cv_log_loss": 0.1647
+    },
+    {
+      "model_id": "logreg_c0.1_l10.0",
+      "family": "logreg",
+      "cv_log_loss": 0.1655
+    }
+  ],
+  "library_versions": {
+    "numpy": "2.4.6",
+    "pandas": "3.0.6",
+    "scikit-learn": "1.9.1",
+    "scipy": "1.17.1",
+    "joblib": "1.6.0",
+    "lightgbm": "4.7.0"
+  },
+  "baseline_log_loss": 0.1691
+}

@@ -201,6 +201,33 @@ class FalsificationOut(_Response):
     latency_ms: float
 
 
+class MarkerStateOut(_Response):
+    marker: Marker
+    value: str | None
+    settled: bool
+    from_lab: bool
+    reason: str
+    provenance: Provenance
+
+
+class TestSuggestionOut(_Response):
+    marker: Marker
+    test: str
+    settled: bool
+    remaining_worst_case: int | None
+    reason: str
+
+
+class NextMeasurementsOut(_Response):
+    study_id: uuid.UUID
+    input_hash: str
+    label: Literal["decision-support heuristic"]
+    marker_states: list[MarkerStateOut]
+    candidate_categories: list[str]
+    tests: list[TestSuggestionOut]
+    request_id: str | None
+
+
 class ProfileOut(_Response):
     study_id: uuid.UUID
     view: Literal["fused", "imaging_only", "clinical_only"]

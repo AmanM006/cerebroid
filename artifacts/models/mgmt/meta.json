@@ -71,7 +71,6 @@
     "missing__ed",
     "missing__et",
     "missing__ncr",
-    "prior_biopsy",
     "sex",
     "shape__ed__shape__Elongation",
     "shape__ed__shape__Flatness",
@@ -344,7 +343,6 @@
     "missing__ed": 0.0,
     "missing__et": 0.0,
     "missing__ncr": 0.0,
-    "prior_biopsy": 0.0,
     "sex": 1.0,
     "shape__ed__shape__Elongation": 0.9362099992793894,
     "shape__ed__shape__Flatness": 0.734764251727643,
@@ -557,124 +555,124 @@
   "epsilon": 0.03,
   "models": [
     {
-      "model_id": "logreg-4",
+      "model_id": "lgbm_bag_3",
+      "family": "lightgbm",
+      "cv_log_loss": 0.5787
+    },
+    {
+      "model_id": "logreg_bag_7",
+      "family": "logreg",
+      "cv_log_loss": 0.5788
+    },
+    {
+      "model_id": "lgbm_bag_4",
+      "family": "lightgbm",
+      "cv_log_loss": 0.5793
+    },
+    {
+      "model_id": "logreg_bag_5",
       "family": "logreg",
       "cv_log_loss": 0.5796
     },
     {
-      "model_id": "lgbm-8",
+      "model_id": "logreg_bag_0",
+      "family": "logreg",
+      "cv_log_loss": 0.5798
+    },
+    {
+      "model_id": "logreg_bag_1",
+      "family": "logreg",
+      "cv_log_loss": 0.5802
+    },
+    {
+      "model_id": "extratrees_bag_3",
+      "family": "extratrees",
+      "cv_log_loss": 0.5803
+    },
+    {
+      "model_id": "logreg_bag_4",
+      "family": "logreg",
+      "cv_log_loss": 0.5806
+    },
+    {
+      "model_id": "extratrees_bag_2",
+      "family": "extratrees",
+      "cv_log_loss": 0.5808
+    },
+    {
+      "model_id": "lgbm_bag_5",
       "family": "lightgbm",
-      "cv_log_loss": 0.5799
-    },
-    {
-      "model_id": "extratrees-3",
-      "family": "extratrees",
-      "cv_log_loss": 0.5803
-    },
-    {
-      "model_id": "extratrees-6",
-      "family": "extratrees",
-      "cv_log_loss": 0.5803
-    },
-    {
-      "model_id": "extratrees-7",
-      "family": "extratrees",
-      "cv_log_loss": 0.5804
-    },
-    {
-      "model_id": "logreg-1",
-      "family": "logreg",
-      "cv_log_loss": 0.5805
-    },
-    {
-      "model_id": "logreg-8",
-      "family": "logreg",
       "cv_log_loss": 0.581
     },
     {
-      "model_id": "extratrees-5",
+      "model_id": "extratrees_bag_0",
       "family": "extratrees",
-      "cv_log_loss": 0.581
-    },
-    {
-      "model_id": "logreg-6",
-      "family": "logreg",
       "cv_log_loss": 0.5811
     },
     {
-      "model_id": "extratrees-1",
-      "family": "extratrees",
-      "cv_log_loss": 0.5812
-    },
-    {
-      "model_id": "logreg-3",
-      "family": "logreg",
-      "cv_log_loss": 0.5812
-    },
-    {
-      "model_id": "logreg-2",
-      "family": "logreg",
-      "cv_log_loss": 0.5812
-    },
-    {
-      "model_id": "extratrees-8",
+      "model_id": "extratrees_bag_4",
       "family": "extratrees",
       "cv_log_loss": 0.5813
     },
     {
-      "model_id": "extratrees-2",
+      "model_id": "logreg_bag_3",
+      "family": "logreg",
+      "cv_log_loss": 0.5814
+    },
+    {
+      "model_id": "logreg_bag_6",
+      "family": "logreg",
+      "cv_log_loss": 0.5814
+    },
+    {
+      "model_id": "lgbm_bag_8",
+      "family": "lightgbm",
+      "cv_log_loss": 0.5818
+    },
+    {
+      "model_id": "extratrees_bag_5",
       "family": "extratrees",
-      "cv_log_loss": 0.5815
+      "cv_log_loss": 0.5821
     },
     {
-      "model_id": "extratrees-4",
-      "family": "extratrees",
-      "cv_log_loss": 0.5817
+      "model_id": "lgbm_bag_0",
+      "family": "lightgbm",
+      "cv_log_loss": 0.5822
     },
     {
-      "model_id": "lgbm-4",
+      "model_id": "lgbm_bag_7",
       "family": "lightgbm",
       "cv_log_loss": 0.5823
     },
     {
-      "model_id": "lgbm-7",
+      "model_id": "lgbm_bag_6",
       "family": "lightgbm",
-      "cv_log_loss": 0.5823
+      "cv_log_loss": 0.5824
     },
     {
-      "model_id": "lgbm-1",
-      "family": "lightgbm",
-      "cv_log_loss": 0.5823
-    },
-    {
-      "model_id": "lgbm-3",
-      "family": "lightgbm",
+      "model_id": "logreg_bag_2",
+      "family": "logreg",
       "cv_log_loss": 0.5827
     },
     {
-      "model_id": "logreg-7",
-      "family": "logreg",
-      "cv_log_loss": 0.5831
-    },
-    {
-      "model_id": "lgbm-2",
+      "model_id": "lgbm_bag_9",
       "family": "lightgbm",
-      "cv_log_loss": 0.5831
+      "cv_log_loss": 0.5828
     },
     {
-      "model_id": "logreg-5",
-      "family": "logreg",
-      "cv_log_loss": 0.5832
+      "model_id": "extratrees_bag_1",
+      "family": "extratrees",
+      "cv_log_loss": 0.5828
     },
     {
-      "model_id": "lgbm-6",
+      "model_id": "lgbm_bag_1",
       "family": "lightgbm",
-      "cv_log_loss": 0.5835
+      "cv_log_loss": 0.5836
     },
     {
-      "model_id": "lgbm-5",
+      "model_id": "lgbm_bag_2",
       "family": "lightgbm",
-      "cv_log_loss": 0.5838
+      "cv_log_loss": 0.5836
     }
   ],
   "library_versions": {
@@ -684,5 +682,6 @@
     "scipy": "1.17.1",
     "joblib": "1.6.0",
     "lightgbm": "4.7.0"
-  }
+  },
+  "baseline_log_loss": 0.581
 }

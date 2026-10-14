@@ -9,30 +9,30 @@
       "n_test": 99,
       "n_positive": 20,
       "n_models": 5,
-      "model_version": "sha256:e7d16aa20996450d500a364e9497a996f9e4d8829c950619828a287abe951ae5",
+      "model_version": "sha256:7597d8b4cf318d14fa398096858d00f6d1200e701c6baa7dfc7931d5b01c0fc4",
       "auc": 0.9772,
-      "balanced_accuracy": 0.85,
+      "balanced_accuracy": 0.8687,
       "by_verdict": {
         "STABLE": {
-          "n": 95,
-          "error_rate": 0.0526
+          "n": 90,
+          "error_rate": 0.0222
         },
         "CONTESTED": {
-          "n": 2,
-          "error_rate": 0.5
+          "n": 7,
+          "error_rate": 0.4286
         },
         "ARBITRARY": {
           "n": 2,
-          "error_rate": 0.0
+          "error_rate": 0.5
         }
       },
       "auc_ci95": [
-        0.9451,
-        0.9984
+        0.9411,
+        0.9986
       ],
       "balanced_accuracy_ci95": [
-        0.75,
-        0.9444
+        0.7639,
+        0.9567
       ]
     },
     {
@@ -41,8 +41,8 @@
       "n_test": 80,
       "n_positive": 2,
       "n_models": 5,
-      "model_version": "sha256:d31cf1b541fd5bef358d9484a1b6ab7035c39038ee5b13587790e1e3b6e79e3a",
-      "auc": 0.9423,
+      "model_version": "sha256:51d36575e0f5897cd21293b6e855335241607f8ff1f59a95d6883e76084c5354",
+      "auc": 0.8974,
       "balanced_accuracy": 0.5,
       "by_verdict": {
         "STABLE": {
@@ -59,7 +59,7 @@
         }
       },
       "auc_ci95": [
-        0.8411,
+        0.7722,
         1.0
       ],
       "balanced_accuracy_ci95": [
@@ -73,8 +73,8 @@
       "n_test": 84,
       "n_positive": 59,
       "n_models": 24,
-      "model_version": "sha256:1824c272b7293f8ada1049a1438ece5d883784fdd7675a157af303c02ce39928",
-      "auc": 0.5092,
+      "model_version": "sha256:a7b499029a7869f57e7986576c589aed48b7c088064dfd0c590f88f2e2cf82d9",
+      "auc": 0.5525,
       "balanced_accuracy": 0.5,
       "by_verdict": {
         "STABLE": {
@@ -91,8 +91,8 @@
         }
       },
       "auc_ci95": [
-        0.3544,
-        0.6549
+        0.3991,
+        0.7009
       ],
       "balanced_accuracy_ci95": [
         0.5,
@@ -105,17 +105,49 @@
       "n_test": 99,
       "n_positive": 78,
       "n_models": 5,
-      "model_version": "sha256:d28a71b931a03ac42051408acb9fe3ccf186b6c984b99bbe107106bbb25bd4b5",
-      "auc": 0.9963,
-      "balanced_accuracy": 0.881,
+      "model_version": "sha256:430d602566b16a1acb78e1005dee6080c140fd9d65e60b89f45deaa07e4b971e",
+      "auc": 0.9988,
+      "balanced_accuracy": 0.9048,
       "by_verdict": {
         "STABLE": {
-          "n": 95,
-          "error_rate": 0.0105
+          "n": 90,
+          "error_rate": 0.0111
         },
         "CONTESTED": {
-          "n": 3,
+          "n": 7,
+          "error_rate": 0.1429
+        },
+        "ARBITRARY": {
+          "n": 2,
           "error_rate": 1.0
+        }
+      },
+      "auc_ci95": [
+        0.9943,
+        1.0
+      ],
+      "balanced_accuracy_ci95": [
+        0.8156,
+        0.9773
+      ]
+    },
+    {
+      "marker": "IDH",
+      "variant": "imaging_only",
+      "n_test": 99,
+      "n_positive": 20,
+      "n_models": 5,
+      "model_version": "sha256:e91d8a5810cb26b18557f32ad7463c3afe63ad6759224db4e11ff1b29ff12621",
+      "auc": 0.9633,
+      "balanced_accuracy": 0.7873,
+      "by_verdict": {
+        "STABLE": {
+          "n": 93,
+          "error_rate": 0.0645
+        },
+        "CONTESTED": {
+          "n": 5,
+          "error_rate": 0.6
         },
         "ARBITRARY": {
           "n": 1,
@@ -123,12 +155,332 @@
         }
       },
       "auc_ci95": [
-        0.9858,
+        0.925,
+        0.9888
+      ],
+      "balanced_accuracy_ci95": [
+        0.6703,
+        0.8881
+      ]
+    },
+    {
+      "marker": "1p19q",
+      "variant": "imaging_only",
+      "n_test": 80,
+      "n_positive": 2,
+      "n_models": 5,
+      "model_version": "sha256:fd26fd44294843fdb02b04c4053015bcb8156f70f8ca30ac1a521b0e1276dd78",
+      "auc": 0.9038,
+      "balanced_accuracy": 0.5,
+      "by_verdict": {
+        "STABLE": {
+          "n": 80,
+          "error_rate": 0.025
+        },
+        "CONTESTED": {
+          "n": 0,
+          "error_rate": null
+        },
+        "ARBITRARY": {
+          "n": 0,
+          "error_rate": null
+        }
+      },
+      "auc_ci95": [
+        0.7975,
+        0.9873
+      ],
+      "balanced_accuracy_ci95": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "marker": "MGMT",
+      "variant": "imaging_only",
+      "n_test": 84,
+      "n_positive": 59,
+      "n_models": 24,
+      "model_version": "sha256:2625e43a86a6b9a8abe53fc6d4636114aa6a673b6a2a8cdf5c2cb935b943e508",
+      "auc": 0.5797,
+      "balanced_accuracy": 0.5,
+      "by_verdict": {
+        "STABLE": {
+          "n": 84,
+          "error_rate": 0.2976
+        },
+        "CONTESTED": {
+          "n": 0,
+          "error_rate": null
+        },
+        "ARBITRARY": {
+          "n": 0,
+          "error_rate": null
+        }
+      },
+      "auc_ci95": [
+        0.4262,
+        0.7197
+      ],
+      "balanced_accuracy_ci95": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "marker": "GRADE",
+      "variant": "imaging_only",
+      "n_test": 99,
+      "n_positive": 78,
+      "n_models": 5,
+      "model_version": "sha256:2f4e88367bfd3e34724f334119e4dabcc796c19abe6a3c7c543da19f79b2a9ed",
+      "auc": 0.9963,
+      "balanced_accuracy": 0.881,
+      "by_verdict": {
+        "STABLE": {
+          "n": 92,
+          "error_rate": 0.0217
+        },
+        "CONTESTED": {
+          "n": 5,
+          "error_rate": 0.2
+        },
+        "ARBITRARY": {
+          "n": 2,
+          "error_rate": 1.0
+        }
+      },
+      "auc_ci95": [
+        0.9872,
         1.0
       ],
       "balanced_accuracy_ci95": [
         0.7826,
         0.9688
+      ]
+    },
+    {
+      "marker": "1p19q",
+      "variant": "fused_given_idh",
+      "n_test": 80,
+      "n_positive": 2,
+      "n_models": 6,
+      "model_version": "sha256:fabd042763b19bd647bfd51c6ef546c0b9de762ea4b4011b67d798562a956946",
+      "auc": 0.9744,
+      "balanced_accuracy": 0.5,
+      "by_verdict": {
+        "STABLE": {
+          "n": 80,
+          "error_rate": 0.025
+        },
+        "CONTESTED": {
+          "n": 0,
+          "error_rate": null
+        },
+        "ARBITRARY": {
+          "n": 0,
+          "error_rate": null
+        }
+      },
+      "auc_ci95": [
+        0.9303,
+        1.0
+      ],
+      "balanced_accuracy_ci95": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "marker": "MGMT",
+      "variant": "fused_given_idh",
+      "n_test": 84,
+      "n_positive": 59,
+      "n_models": 24,
+      "model_version": "sha256:b28bf143116bb133aa76d7269c2c1bfcfb403433146dbd022d47e2f6aee5db13",
+      "auc": 0.6258,
+      "balanced_accuracy": 0.5,
+      "by_verdict": {
+        "STABLE": {
+          "n": 84,
+          "error_rate": 0.2976
+        },
+        "CONTESTED": {
+          "n": 0,
+          "error_rate": null
+        },
+        "ARBITRARY": {
+          "n": 0,
+          "error_rate": null
+        }
+      },
+      "auc_ci95": [
+        0.48,
+        0.7559
+      ],
+      "balanced_accuracy_ci95": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "marker": "GRADE",
+      "variant": "fused_given_idh",
+      "n_test": 99,
+      "n_positive": 78,
+      "n_models": 5,
+      "model_version": "sha256:2608297d27cfbaf507401775fc1ff9cdd3922e12c2107730ac2b7984a6cea94d",
+      "auc": 0.9957,
+      "balanced_accuracy": 0.9222,
+      "by_verdict": {
+        "STABLE": {
+          "n": 97,
+          "error_rate": 0.0309
+        },
+        "CONTESTED": {
+          "n": 1,
+          "error_rate": 0.0
+        },
+        "ARBITRARY": {
+          "n": 1,
+          "error_rate": 1.0
+        }
+      },
+      "auc_ci95": [
+        0.9842,
+        1.0
+      ],
+      "balanced_accuracy_ci95": [
+        0.8465,
+        0.9938
+      ]
+    },
+    {
+      "marker": "IDH",
+      "variant": "clinical_only",
+      "n_test": 99,
+      "n_positive": 20,
+      "n_models": 11,
+      "model_version": "sha256:473d1ca4d8fcd4bf4dfe91caefd4f212a8c4fcb94778bf33b71e639c74b25ded",
+      "auc": 0.9139,
+      "balanced_accuracy": 0.7373,
+      "by_verdict": {
+        "STABLE": {
+          "n": 98,
+          "error_rate": 0.1224
+        },
+        "CONTESTED": {
+          "n": 0,
+          "error_rate": null
+        },
+        "ARBITRARY": {
+          "n": 1,
+          "error_rate": 0.0
+        }
+      },
+      "auc_ci95": [
+        0.8336,
+        0.9753
+      ],
+      "balanced_accuracy_ci95": [
+        0.625,
+        0.8488
+      ]
+    },
+    {
+      "marker": "1p19q",
+      "variant": "clinical_only",
+      "n_test": 80,
+      "n_positive": 2,
+      "n_models": 10,
+      "model_version": "sha256:8e9af0ee3f9f323353901dea4d33b24d15748638d07a02b096e9cc7d5a658e18",
+      "auc": 0.6667,
+      "balanced_accuracy": 0.5,
+      "by_verdict": {
+        "STABLE": {
+          "n": 80,
+          "error_rate": 0.025
+        },
+        "CONTESTED": {
+          "n": 0,
+          "error_rate": null
+        },
+        "ARBITRARY": {
+          "n": 0,
+          "error_rate": null
+        }
+      },
+      "auc_ci95": [
+        0.5063,
+        0.8101
+      ],
+      "balanced_accuracy_ci95": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "marker": "MGMT",
+      "variant": "clinical_only",
+      "n_test": 84,
+      "n_positive": 59,
+      "n_models": 18,
+      "model_version": "sha256:385dae37a46117c512e27e2019a4137253db3cc6e92b0e452644345d305e4b3a",
+      "auc": 0.4969,
+      "balanced_accuracy": 0.5,
+      "by_verdict": {
+        "STABLE": {
+          "n": 84,
+          "error_rate": 0.2976
+        },
+        "CONTESTED": {
+          "n": 0,
+          "error_rate": null
+        },
+        "ARBITRARY": {
+          "n": 0,
+          "error_rate": null
+        }
+      },
+      "auc_ci95": [
+        0.3539,
+        0.6365
+      ],
+      "balanced_accuracy_ci95": [
+        0.5,
+        0.5
+      ]
+    },
+    {
+      "marker": "GRADE",
+      "variant": "clinical_only",
+      "n_test": 99,
+      "n_positive": 78,
+      "n_models": 10,
+      "model_version": "sha256:a3161b272b75f39bb2abebd5008a9a2699b2b54249bc4e093d14f16608afc488",
+      "auc": 0.7546,
+      "balanced_accuracy": 0.63,
+      "by_verdict": {
+        "STABLE": {
+          "n": 95,
+          "error_rate": 0.1684
+        },
+        "CONTESTED": {
+          "n": 4,
+          "error_rate": 0.25
+        },
+        "ARBITRARY": {
+          "n": 0,
+          "error_rate": null
+        }
+      },
+      "auc_ci95": [
+        0.6191,
+        0.878
+      ],
+      "balanced_accuracy_ci95": [
+        0.5329,
+        0.7326
       ]
     }
   ]
