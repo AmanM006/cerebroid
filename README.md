@@ -19,7 +19,8 @@ Research decision-support prototype. Not a diagnostic device.
 
 ## 3. Architecture & stack
 - **Backend:** Python 3.11, FastAPI, Pydantic v2, SQLAlchemy 2 + Alembic, PostgreSQL
-- **ML:** pandas, numpy, scikit-learn, LightGBM, SHAP, pyradiomics, SimpleITK, nibabel, joblib, pandera
+- **ML:** pandas, numpy, scikit-learn, LightGBM, SHAP, SimpleITK, scipy, scikit-image (radiomics-style feature extraction), nibabel, joblib, pandera
+
 - **Frontend:** React + Vite + TypeScript + Tailwind, NiiVue (3D/2D MRI viewer)
 - **Ops:** Docker + docker compose, GitHub Actions CI, Nginx
 - **Quality & security:** pytest, ruff, mypy, bandit, gitleaks, pip-audit

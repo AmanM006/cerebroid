@@ -22,6 +22,7 @@ frontend/.vite/
 
 # --- jupyter ---
 .ipynb_checkpoints/
+kernel-metadata.json
 
 # --- bulk research data (never committed; see docs/DATA_PROVENANCE.md) ---
 data/
