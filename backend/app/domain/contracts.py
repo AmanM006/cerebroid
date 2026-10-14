@@ -48,10 +48,14 @@ class Sex(str, Enum):
 
 
 class Sequence(str, Enum):
+    """MRI inputs. The first four show anatomy; ADC and ASL show tissue physiology."""
+
     T1="t1"
     T1CE="t1ce"
     T2="t2"
     FLAIR="flair"
+    ADC="adc"  # diffusion: how densely packed the cells are
+    ASL="asl"  # perfusion: how much blood reaches the tissue
 
 
 class Region(str, Enum):
