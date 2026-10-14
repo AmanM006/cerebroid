@@ -8,6 +8,6 @@ Key rules:
 3. No AI co-author trailers in git commits.
 4. Conventional Commits (`ml:`, `docs:`, `feat:`, `test:`).
 5. Never fabricate data, metrics, or numbers.
-6. No placeholder/TODO text in committed files.
+6. No placeholder or TODO text in committed files; judges read every commit.
 7. Verify against `backend/app/domain/contracts.py` before changing data or model interfaces.
-
+8. At the start of each session, read unanswered `[APP→ML]` messages on the open PR and reply by number with evidence.
