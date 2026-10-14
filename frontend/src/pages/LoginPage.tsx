@@ -70,7 +70,7 @@ export function LoginPage() {
 
   return (
     // Outermost canvas background is slightly brighter charcoal (#1a1a1e)
-    <div className="flex items-center justify-center min-h-screen w-full bg-[#1a1a1e] font-sans p-0 md:p-5 selection:bg-red-500/30">
+    <div className="flex items-center justify-center min-h-screen w-full bg-[#1a1a1e] font-sans p-0 md:p-5 selection:bg-neutral-800 selection:text-white">
       
       {/* Outer Card with Exact Mes26 Dark Palette #0a0a0a */}
       <div className="relative w-full h-[100dvh] md:w-[96vw] md:max-w-[1600px] md:h-[92vh] bg-[#0a0a0a] md:rounded-[30px] overflow-hidden flex flex-col lg:flex-row shadow-[0_25px_70px_rgba(0,0,0,0.6)] md:border border-white/5">

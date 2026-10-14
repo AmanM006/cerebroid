@@ -11,6 +11,11 @@ body {
   overflow-x: hidden;
 }
 
+::selection {
+  background-color: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
 h1, h2, h3, h4, .font-heading {
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
 }
