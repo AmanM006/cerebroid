@@ -97,19 +97,28 @@ Missing labels stay `NaN`; targets are never imputed.
 | test | 12 | 10 | 77 |
 | train | 44 | 33 | 318 |
 
+## Clinical inputs (pre-operative)
+
+- `age`: Patient age at scan (years, 18–100)
+- `sex`: Biological sex (1=Male, 0=Female)
+- `prior_biopsy`: Stereotactic biopsy performed prior to MRI scan (1.0=Yes, 0.0=No, NaN=unrecorded)
+  - Yes: 68 patients (13.8%)
+  - No: 426 patients (86.2%)
+  - Unrecorded: 0 patients
+
 ---
 
 ## Feature table
 
 - **File:** `artifacts/features/features.parquet`
-- **sha256:** `b02d36e03ab82311fa713b83c799b6da2575b68d445796cadffc89d2618aa9e5`
+- **sha256:** `85e3b9883e3e5af5b36493cd407fbbffedd04a5544139bdf515e0c99a322e0bb`
 - **Rows:** 494
-- **Columns:** 277
+- **Columns:** 278
 - **Column naming convention:**
   - Radiomics: `{sequence}__{region}__{featureclass}__{feature}` (e.g. `t1ce__et__glcm__Contrast`)
   - Shape (extracted once per region): `shape__{region}__shape__{feature}`
   - Descriptors: `desc__{name}`
-  - Clinical inputs: `age`, `sex`
+  - Clinical inputs: `age`, `sex`, `prior_biopsy`
   - Targets: `idh`, `codeletion_1p19q`, `mgmt`, `who_grade`
   - Admin: `patient_id`, `split`, `fold`
   - Flags: `missing__{region}`

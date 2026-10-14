@@ -39,6 +39,7 @@ _ALLOWED_PREFIXES = (
     "missing__",
     "age",
     "sex",
+    "prior_biopsy",
     "patient_id",
     "split",
     "fold",
@@ -124,6 +125,12 @@ CORE_SCHEMA = DataFrameSchema(
             checks=[Check.isin([0, 1])],
             nullable=False,
             description="Biological sex encoded as 0=F, 1=M; input feature",
+        ),
+        "prior_biopsy": Column(
+            pa.Float64,
+            checks=[Check.isin([0.0, 1.0])],
+            nullable=True,
+            description="Biopsy prior to imaging: 1.0=Y, 0.0=N, NaN=unrecorded; clinical input",
         ),
         # --- targets (nullable: missing labels are allowed) ---
         "idh": Column(
