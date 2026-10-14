@@ -116,8 +116,6 @@ export function RealNiiVueViewport({
     return ()=>{
       cancelled=true
       ro.disconnect()
-      const gl=canvas.getContext("webgl2")
-      gl?.getExtension("WEBGL_lose_context")?.loseContext()
     }
   }, [volumes])
 

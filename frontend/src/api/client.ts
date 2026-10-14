@@ -26,7 +26,7 @@ export class ApiError extends Error {
   }
 }
 
-let accessToken: string | null=null
+let accessToken: string | null = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("vbx_access_token") : null
 let refreshInFlight: Promise<boolean> | null=null
 let onSessionExpired: (()=>void) | null=null
 
@@ -48,9 +48,12 @@ async function _doRefresh(): Promise<boolean> {
     const response=await fetch("/api/v1/auth/refresh", { method: "POST", credentials: "same-origin" })
     if (!response.ok) {
       accessToken=null
+      sessionStorage.removeItem("vbx_access_token")
       return false
     }
-    accessToken=((await response.json()) as TokenResponse).access_token
+    const token = ((await response.json()) as TokenResponse).access_token
+    accessToken=token
+    sessionStorage.setItem("vbx_access_token", token)
     return true
   } finally {
     refreshInFlight=null
@@ -93,12 +96,21 @@ export const api={
       credentials: "same-origin",
     })
     if (!response.ok) throw await toApiError(response)
-    accessToken=((await response.json()) as TokenResponse).access_token
+    const token = ((await response.json()) as TokenResponse).access_token
+    accessToken=token
+    sessionStorage.setItem("vbx_access_token", token)
     return api.me()
   },
 
-  /** Restores a session from the refresh cookie after a page reload. */
+  /** Restores a session from memory/storage or the refresh cookie after a page reload. */
   async resume(): Promise<User | null> {
+    if (accessToken) {
+      try {
+        return await api.me()
+      } catch {
+        // Access token in storage might be expired, try refreshing
+      }
+    }
     return (await refreshAccessToken()) ? api.me() : null
   },
 
@@ -107,6 +119,7 @@ export const api={
       await fetch("/api/v1/auth/logout", { method: "POST", credentials: "same-origin" })
     } finally {
       accessToken=null
+      sessionStorage.removeItem("vbx_access_token")
     }
   },
 
