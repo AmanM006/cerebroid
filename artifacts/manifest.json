@@ -61,7 +61,9 @@
     "volumes/UCSF-PDGM-0243/seg.nii.gz": "4c039b5d200cf333a9077657bc3a829b629a150903d0ffdb28a6530610bb3cdc",
     "volumes/UCSF-PDGM-0243/t1.nii.gz": "c59ba4aca761d2c1bb48403bfde07f4be2f04af7aff3f681fb645ec2f0994164",
     "volumes/UCSF-PDGM-0243/t1c.nii.gz": "1fa4bbf37a91ae8060bf0b9bc0f8201078a8ba8cf5ea9a43e07282e138ad1c33",
-    "volumes/UCSF-PDGM-0243/t2.nii.gz": "884791e13de9e75da05e59cf67f54eb1253a4e57d2a19c0ebd7936839d70de69"
+    "volumes/UCSF-PDGM-0243/t2.nii.gz": "884791e13de9e75da05e59cf67f54eb1253a4e57d2a19c0ebd7936839d70de69",
+    "metrics/heldout.json": "a0544580be916a2e037dcba45540fcb28d35e11c3b82d0ec066d33e7cb537ed5",
+    "volumes/volume_stats.json": "e5abff2386cc96bbb4241dae4cee8e3c9b939f2baa68b83ec89c9ea19e475c33"
   },
   "library_versions": {
     "numpy": "2.4.6",
