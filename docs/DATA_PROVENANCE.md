@@ -111,13 +111,15 @@ To be filled from notebook output.
 
 ---
 
-## Radiomics config
+## Feature extraction implementation
 
-- **File:** `ml/configs/radiomics.yaml`
-- **sha256:** to be filled from notebook output (`provenance.json`)
-- **pyradiomics version:** to be filled
-- **SimpleITK version:** to be filled
-- **numpy version:** to be filled
+- **Method:** VBX implementation of radiomics-style features (SciPy / scikit-image / SimpleITK)
+- **Features extracted:**
+  - 3D morphological shape features (surface area, sphericity, compactness, elongation, flatness via marching cubes & regionprops)
+  - First-order intensity statistics (mean, variance, skewness, kurtosis, percentiles, entropy, energy)
+  - Multi-slice Gray-Level Co-occurrence Matrix (GLCM: contrast, correlation, energy, homogeneity, dissimilarity via scikit-image `graycomatrix` & `graycoprops`)
+- **Config:** `ml/configs/radiomics.yaml` (specifies extraction parameters and binning)
+
 
 ---
 
