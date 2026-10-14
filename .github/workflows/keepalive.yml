@@ -1,0 +1,19 @@
+# Free hosting sleeps after 15 idle minutes; this keeps the public deployment awake
+# during the event so evaluators never wait for a cold start. Set the repository
+# variable VBX_PUBLIC_URL (Settings > Secrets and variables > Actions > Variables).
+name: keepalive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    if: ${{ vars.VBX_PUBLIC_URL != '' }}
+    steps:
+      - name: Ping /health
+        run: curl --fail --silent --show-error --max-time 90 "${{ vars.VBX_PUBLIC_URL }}/health"

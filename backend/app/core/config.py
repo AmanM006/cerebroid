@@ -30,8 +30,21 @@ class Settings(BaseSettings):
     # Repository root (holds artifacts/ and ml/configs/). The container mirrors the repo layout.
     repo_root: Path=Field(default_factory=lambda: Path(__file__).resolve().parents[3])
 
+    # Built frontend (frontend/dist) to serve from the API itself, for single-service hosting.
+    # Unset in docker compose, where nginx serves the frontend.
+    frontend_dist: Path | None=None
+
     login_max_failed_attempts: int=Field(default=5, ge=1)
     login_lockout_minutes: int=Field(default=15, ge=1)
+
+    @field_validator("database_url")
+    @classmethod
+    def _psycopg_driver(cls, value: str) -> str:
+        """Hosts hand out postgres:// or postgresql:// URLs; SQLAlchemy needs the psycopg 3 driver named."""
+        for prefix in ("postgres://", "postgresql://"):
+            if value.startswith(prefix):
+                return "postgresql+psycopg://"+value[len(prefix):]
+        return value
 
     @field_validator("jwt_secret_key")
     @classmethod

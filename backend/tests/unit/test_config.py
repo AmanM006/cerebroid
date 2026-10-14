@@ -17,3 +17,9 @@ def test_short_jwt_secret_is_rejected():
 def test_access_token_lifetime_capped_at_15_minutes():
     with pytest.raises(ValidationError):
         Settings(jwt_secret_key="x"*40, jwt_access_token_ttl_minutes=60)
+
+
+@pytest.mark.parametrize("url", ["postgres://u:p@h:5432/db", "postgresql://u:p@h:5432/db"])
+def test_host_database_urls_get_the_psycopg_driver(monkeypatch, url):
+    monkeypatch.setenv("DATABASE_URL", url)
+    assert Settings().database_url=="postgresql+psycopg://u:p@h:5432/db"  # type: ignore[call-arg]
