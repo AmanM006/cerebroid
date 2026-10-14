@@ -87,8 +87,9 @@ export function RealNiiVueViewport({
           if (cancelled) return
           const volume=nv.volumes[i]
           if (volume) {
-            volume.colormap=i===0 ? colormapRef.current : (v.colormap ?? "gray")
-            volume.opacity=v.opacity ?? 1
+            const cmap=i===0 ? colormapRef.current : (v.colormap ?? "warm")
+            nv.setColorMap(volume.id, cmap)
+            nv.setOpacity(i, v.opacity ?? 1)
           }
         }
         nv.updateGLVolume()
