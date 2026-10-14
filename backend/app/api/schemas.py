@@ -106,6 +106,7 @@ class EvidenceItemOut(_Response):
 
 class EvidenceOut(_Response):
     study_id: uuid.UUID
+    input_hash: str
     marker: Marker
     variant: str
     call: str
@@ -130,6 +131,7 @@ class DoubtComponentOut(_Response):
 
 class DoubtOut(_Response):
     study_id: uuid.UUID
+    input_hash: str
     marker: Marker
     variant: str
     call: str
@@ -163,6 +165,7 @@ class TippingItemOut(_Response):
 
 class TippingOut(_Response):
     study_id: uuid.UUID
+    input_hash: str
     marker: Marker
     variant: str
     call: str
@@ -183,6 +186,7 @@ class ClaimOut(_Response):
 
 class FalsificationOut(_Response):
     study_id: uuid.UUID
+    input_hash: str
     marker: Marker
     variant: str
     call: str
@@ -241,3 +245,34 @@ class AuditVerifyOut(_Response):
     entries: int
     first_invalid_seq: int | None
     head_hash: str
+
+
+class ModelSetCardOut(_Response):
+    marker: Marker
+    variant: str
+    model_version: str
+    n_models: int
+    families: list[str]
+    epsilon: float
+    best_cv_log_loss: float
+    baseline_log_loss: float | None
+    skill: float | None
+    low_signal: bool
+    verdict_thresholds: dict[str, float]
+    feature_count: int
+    library_versions: dict[str, str]
+    # Test-split results from ml/pipeline/evaluate.py, shown only for the exact deployed model file.
+    held_out: dict | None
+    held_out_stale: bool
+
+
+class ModelCardOut(_Response):
+    intended_use: str
+    disclaimer: str
+    data_source: str
+    cohort: dict[str, int]
+    feature_pipeline_version: str | None
+    held_out_patients: int | None
+    model_sets: list[ModelSetCardOut]
+    limitations: list[str]
+    request_id: str | None

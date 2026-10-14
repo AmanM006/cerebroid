@@ -131,6 +131,7 @@ docker compose exec api python -m app.cli create-user --username evaluator --rol
 | `GET /api/v1/studies/{id}/doubt?marker=IDH` | Bearer | Why that marker's call is uncertain, split into model disagreement, closeness to the decision boundary, distance from the training patients, missing inputs and weak imaging signal; each rated low/medium/high with the action it calls for. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/tipping?marker=IDH` | Bearer | For each clinician-verifiable input (age, tumor volume, enhancing and necrotic share, edema-to-core ratio): the nearest plausible value that flips the majority call, and the call across the whole plausible range. Model sensitivity, not cause. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/falsification?marker=IDH` | Bearer | The case for and against the call (strongest input groups each way), the competing call with its model votes, what change to a verifiable input would overturn it, and the lab test that settles it. Every sentence is a fixed template over computed results and lists its evidence IDs. Accepts `known=`. |
+| `GET /api/v1/model-card` | Bearer | Intended use, data source and cohort counts, limitations, and per deployed model set: size, families, CV loss, skill, verdict thresholds, library versions and held-out test metrics (AUC with 95% CI, error rate per verdict). Metrics are shown only for the exact model file they were computed on. |
 | `GET /api/v1/audit/verify` | Bearer (reviewer) | Recomputes the hash-chained audit log; returns whether it is intact, the entry count and the first tampered entry. Every profile, evidence, doubt, tipping, falsification, reveal and volume read is recorded with IDs only. |
 | `GET /api/v1/studies/{id}/volumes` | Bearer | MRI sequences stored for the study (`t1`, `t1c`, `t2`, `flair`, `seg`) |
 | `GET /api/v1/studies/{id}/volume/{sequence}` | Bearer | One compressed NIfTI volume for the viewer; same access rule as the case itself |
@@ -191,6 +192,11 @@ pre-operative scan per patient, split/fold rules, models load in the API environ
 held-out patients; skipped while those files are absent).
 
 ## Model artifacts
+Held-out metrics are computed by [ml/pipeline/evaluate.py](ml/pipeline/evaluate.py) on the 99 test-split patients and written to
+`artifacts/metrics/heldout.json` (rerun it after every model update; the model card hides metrics whose model file changed):
+```bash
+backend/.venv/Scripts/python ml/pipeline/evaluate.py   # Linux/macOS: backend/.venv/bin/python
+```
 Trained model sets live in `artifacts/models/<marker>/` and are listed with their sha256 in
 `artifacts/manifest.json`. At startup the API loads each marker listed in `ml/configs/markers.yaml`, refuses any
 file whose hash doesn't match the manifest (before unpickling it), validates its metadata, and runs a warm-up

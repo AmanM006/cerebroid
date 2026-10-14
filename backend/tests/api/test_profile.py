@@ -416,3 +416,33 @@ def test_other_users_study_falsification_is_not_found(client, make_user, make_st
     study=make_study(kind=StudyKind.UPLOAD, owner=owner)
     url=f"/api/v1/studies/{study.id}/falsification"
     assert client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory")).status_code==404
+
+
+def test_every_model_response_carries_the_same_input_hash(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    headers=login(client, "alice")
+    base=f"/api/v1/studies/{study.id}"
+    expected=client.get(f"{base}/profile", headers=headers).json()["input_hash"]
+    for path in ("evidence", "doubt", "tipping", "falsification"):
+        body=client.get(f"{base}/{path}", params={"marker": "IDH"}, headers=headers).json()
+        assert body["input_hash"]==expected, path
+
+
+def test_model_card_describes_each_deployed_set(client, make_user, deployed):
+    make_user("alice")
+    r=client.get("/api/v1/model-card", headers=login(client, "alice"))
+    assert r.status_code==200
+    body=r.json()
+    assert "Not a diagnostic device" in body["disclaimer"]
+    assert body["limitations"]
+    sets={(s["marker"], s["variant"]): s for s in body["model_sets"]}
+    assert set(sets)=={("IDH", "fused"), ("IDH", "imaging_only"), ("1p19q", "fused_given_idh")}
+    idh=sets[("IDH", "fused")]
+    assert idh["n_models"]==3 and idh["model_version"].startswith("sha256:")
+    # Held-out numbers belong to the committed model files, never to these test models.
+    assert idh["held_out"] is None
+
+
+def test_model_card_requires_authentication(client, deployed):
+    assert client.get("/api/v1/model-card").status_code==401
