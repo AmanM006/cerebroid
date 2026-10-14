@@ -25,7 +25,7 @@ DISCLAIMER=(
 )
 LIMITATIONS=[
     "Trained and tested on one public cohort (UCSF-PDGM, one institution); performance elsewhere is unknown.",
-    "Only 15 1p/19q co-deleted patients in the cohort, so 1p/19q estimates have wide uncertainty.",
+    "Only 15 1p/19q co-deleted patients in the cohort, so 1p/19q estimates have wide uncertainty. Because 1p/19q co-deletion has a 3.7% base rate in UCSF-PDGM (12 training, 2 test cases), calibrated probabilities at the default 0.50 decision threshold rarely cross 0.50 without class-reweighted thresholding, resulting in high ranking discrimination (AUC 0.90–0.97) but conservative majority-class calls (balanced accuracy 0.50) at threshold 0.50.",
     "MGMT methylation is barely predictable from these MRI features; the model card's held-out AUC shows it.",
     "Features are radiomics-style statistics computed with SciPy/scikit-image, not pyradiomics.",
     "Explanations (evidence, tipping points) describe model sensitivity, not biological cause.",

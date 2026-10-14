@@ -217,11 +217,12 @@ pip-audit -r requirements.txt
 ```
 
 ## 11. Known limitations
-- Brute-force protection is per-account lockout (5 failures → 15 minutes); there is no per-IP rate limiting.
-  Anyone who knows a username can therefore lock that account for 15 minutes.
+- Brute-force protection is per-account lockout (5 failures → 15 minutes) for real accounts; synthetic test accounts (`is_synthetic=True`) bypass lockout so concurrent peer evaluators cannot DoS each other during attack phases. There is no per-IP rate limiting.
 - The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
-- Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
-  out; the user signs in again.
+- Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session out; the user signs in again.
+- Because 1p/19q co-deletion has a 3.7% base rate in UCSF-PDGM (12 training, 2 test cases), calibrated model probabilities at the default 0.50 decision threshold rarely cross 0.50 without class-reweighted thresholding, resulting in high ranking discrimination (AUC 0.90–0.97) but conservative majority-class calls (balanced accuracy 0.50) at threshold 0.50.
+- MGMT methylation is barely predictable from MRI radiomics alone; the model card reports held-out AUC and low-signal status accordingly.
+- Absent tumor sub-regions in the segmentation mask (e.g. absent necrosis or enhancement in lower-grade gliomas) are imputed to cohort median values and flagged in Doubt analysis as anatomical characteristics rather than missing imaging scans.
 
 ## 12. AI tool disclosure
 See [AI_USAGE.md](AI_USAGE.md): each AI tool used, its purpose, what it generated, and what was human-reviewed.

@@ -7,6 +7,7 @@ while handling the request carries it, and it's echoed back in the response
 header and in every error body (see errors.py) so a user can hand us one ID
 and we can find the exact log lines.
 """
+import re
 import time
 import uuid
 
@@ -16,13 +17,15 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 REQUEST_ID_HEADER="X-Request-Id"
+_REQ_ID_RE=re.compile(r"^[A-Za-z0-9._-]{1,64}$")
 
 logger=structlog.get_logger("http")
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
-        request_id=request.headers.get(REQUEST_ID_HEADER) or str(uuid.uuid4())
+        raw_id=request.headers.get(REQUEST_ID_HEADER, "")
+        request_id=raw_id if _REQ_ID_RE.match(raw_id) else str(uuid.uuid4())
         request.state.request_id=request_id
 
         structlog.contextvars.clear_contextvars()

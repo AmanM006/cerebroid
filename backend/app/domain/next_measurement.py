@@ -93,6 +93,10 @@ def plan(results: list[MarkerResult]) -> Plan:
     states=[marker_state(r) for r in results]
     settled={s.marker: s.value for s in states if s.settled and s.value is not None}
     candidates=[c for c in CATEGORIES if _consistent(c, settled)]
+    if not candidates:
+        # Settled calls or known lab inputs conflict with canonical WHO CNS5 combinations.
+        # Fall back to all categories so confirmatory testing can resolve discordance.
+        candidates=list(CATEGORIES)
 
     tests=[]
     for state in states:

@@ -155,14 +155,24 @@ def decompose(
             provenance=Provenance.REFERENCE_COHORT,
         ))
 
+    REGION_NAMES={"et": "enhancing tumor (et)", "ncr": "necrotic core (ncr)", "ed": "edema (ed)"}
     missing=vector.missing_inputs()
-    sequences_missing=[m for m in missing if m in {"t1", "t1ce", "t2", "flair"}]
+    sequences_missing=[m for m in missing if m in {"t1", "t1ce", "t2", "flair", "adc", "asl"}]
+    regions_missing=[REGION_NAMES.get(m, m) for m in missing if m in REGION_NAMES]
     level="high" if sequences_missing else "medium" if missing else "low"
+    if sequences_missing:
+        detail=f"Missing: {', '.join(missing)}."
+        action=f"Supply the missing input ({', '.join(sequences_missing)}) and re-run."
+    elif regions_missing:
+        detail=f"Absent tumor sub-region in mask: {', '.join(regions_missing)} (features imputed to cohort median)."
+        action="Verify segmentation mask; absence of necrosis or enhancement may reflect tumor biology rather than missing data."
+    else:
+        detail="All expected MRI inputs are present."
+        action="No action needed."
     components.append(DoubtComponent(
         source="missing_inputs", level=level, value=float(len(missing)),
-        detail=f"Missing: {', '.join(missing)}." if missing else "All expected MRI inputs are present.",
-        action=f"Supply the missing input ({', '.join(missing)}) and re-run." if missing
-        else "No action needed.",
+        detail=detail,
+        action=action,
         provenance=Provenance.MISSING if missing else Provenance.CLINICAL_INPUT,
     ))
 

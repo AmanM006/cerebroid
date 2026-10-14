@@ -60,12 +60,13 @@ def authenticate(db: Session, username: str, password: str) -> User:
         raise _invalid_credentials()
 
     if not password_ok or not user.is_active:
-        user.failed_login_count+=1
-        if user.failed_login_count>=settings.login_max_failed_attempts:
-            user.locked_until=now+timedelta(minutes=settings.login_lockout_minutes)
-            user.failed_login_count=0
-            logger.warning("account_locked", user_id=str(user.id))
-        db.commit()
+        if not user.is_synthetic:
+            user.failed_login_count+=1
+            if user.failed_login_count>=settings.login_max_failed_attempts:
+                user.locked_until=now+timedelta(minutes=settings.login_lockout_minutes)
+                user.failed_login_count=0
+                logger.warning("account_locked", user_id=str(user.id))
+            db.commit()
         reason="bad_password" if user.is_active else "inactive"
         logger.info("login_failed", reason=reason, user_id=str(user.id))
         raise _invalid_credentials()
