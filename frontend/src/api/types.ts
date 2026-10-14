@@ -85,6 +85,10 @@ export interface MarkerProfile {
   imaging_only_call?: string | null
   imaging_only_verdict?: Verdict | null
   resolved_by_combining?: boolean
+  /** Relative CV log-loss gain of the model set over guessing the base rate. */
+  skill?: number | null
+  /** The set barely beats the base rate: its agreement is not evidence. */
+  low_signal?: boolean
 }
 
 export interface Reveal {

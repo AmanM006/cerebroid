@@ -198,13 +198,15 @@ artifacts/models/<idh|1p19q|mgmt|grade>/
                                      calibration live inside each estimator (e.g. an sklearn Pipeline).
   meta.json                          {marker, feature_columns, feature_medians, decision_threshold,
                                       verdict_thresholds: {stable_min_agreement, stable_max_iqr, arbitrary_max_agreement},
-                                      epsilon, models: [{model_id, family, cv_log_loss}], library_versions}
+                                      epsilon, models: [{model_id, family, cv_log_loss}], library_versions,
+                                      baseline_log_loss}
 ```
 - `feature_columns`: ordered model inputs; `age`, `sex` (M=1.0, F=0.0) and convention-named features only (`contracts.py`). Missing values arrive as NaN.
 - `feature_medians`: training-cohort median per column (exactly the same keys); used for the startup warm-up prediction.
 - `models` in `meta.json` lists the set members in the same order as `models.joblib`.
 - Positive class per marker: IDH mutant, 1p/19q codeleted, MGMT methylated, GRADE grade 4 (vs 2–3).
 - Verdict: ARBITRARY if agreement ≤ `arbitrary_max_agreement`; STABLE if agreement ≥ `stable_min_agreement` and IQR of set probabilities ≤ `stable_max_iqr`; otherwise CONTESTED. Thresholds are chosen on CV data.
+- `baseline_log_loss`: CV out-of-fold log-loss of predicting the training-fold base rate for everyone, computed with the same folds as `cv_log_loss`. The API reports `skill` = 1 − best `cv_log_loss` / `baseline_log_loss` and flags `low_signal` when skill < 0.05: such a set's models agree only because they all echo the prior, so the UI shows "No reliable signal" instead of a verdict.
 - **Train with exactly the versions pinned in `backend/requirements.txt`** (numpy, pandas, scikit-learn, scipy, joblib, lightgbm); pickles are version-sensitive.
 - Every file under `artifacts/models/` must appear in `manifest.json` with its sha256; anything unlisted or mismatched is never unpickled.
 - **Variants.** A marker may ship several sets, each in its own directory with its own `meta.json` (`variant`, `given`) and an entry in `ml/configs/markers.yaml` (`marker`, `variant`, `artifact_dir`):

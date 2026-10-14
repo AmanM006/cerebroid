@@ -49,6 +49,10 @@ MODELS_FILE="models.joblib"
 FUSED="fused"
 IMAGING_ONLY="imaging_only"
 CLINICAL_ONLY="clinical_only"
+
+# A set whose best CV log-loss is less than 5% better than always predicting the training
+# base rate has no usable signal: its models agree only because they all echo the prior.
+MIN_SKILL=0.05
 _VARIANT_RE=re.compile(r"^(fused|imaging_only|clinical_only|fused_given_[a-z0-9_]+)$")
 
 
@@ -90,6 +94,16 @@ class MarkerMeta(_Strict):
     epsilon: float=Field(ge=0.0)
     models: list[ModelInfo]=Field(min_length=1)
     library_versions: dict[str, str]
+    # CV log-loss of predicting the training base rate for everyone (no inputs at all).
+    baseline_log_loss: float | None=Field(default=None, gt=0.0)
+
+    @property
+    def skill(self) -> float | None:
+        """Relative log-loss improvement of the best set member over the base-rate baseline."""
+        if self.baseline_log_loss is None:
+            return None
+        best=min(m.cv_log_loss for m in self.models)
+        return 1.0-best/self.baseline_log_loss
 
     @field_validator("feature_columns")
     @classmethod
@@ -195,6 +209,12 @@ class SetMarkerPredictor:
     @property
     def variant(self) -> str:
         return self.meta.variant
+
+    @property
+    def low_signal(self) -> bool:
+        """True when the set barely beats guessing the base rate, so agreement means nothing."""
+        skill=self.meta.skill
+        return skill is not None and skill<MIN_SKILL
 
     def required_inputs(self) -> set[str]:
         return set(self.meta.feature_columns)

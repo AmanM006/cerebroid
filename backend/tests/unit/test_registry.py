@@ -232,3 +232,16 @@ def test_repo_markers_config_is_valid():
     import yaml
     config=MarkersConfig.model_validate(yaml.safe_load(get_settings().markers_config_path.read_text()))
     assert {e.marker for e in config.markers}==set(Marker)
+
+
+@pytest.mark.parametrize(("baseline", "low"), [(None, False), (0.51, True), (0.70, False)])
+def test_low_signal_when_set_barely_beats_the_base_rate(tmp_path, baseline, low):
+    """Models that all echo the prior agree perfectly; skill exposes that they carry no evidence."""
+    root=tmp_path/"artifacts"
+    _write_marker(root, "models/idh", _train_set(), _meta(baseline_log_loss=baseline))
+    _write_manifest(root)
+    predictor=load_registry(root, _write_config(tmp_path, {"IDH": "models/idh"})).get(Marker.IDH)
+    assert predictor is not None
+    assert predictor.low_signal is low
+    if baseline is not None:
+        assert predictor.meta.skill==pytest.approx(1-0.5/baseline)

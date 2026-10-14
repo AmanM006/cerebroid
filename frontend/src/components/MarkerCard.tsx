@@ -16,7 +16,13 @@ export function MarkerCard({ marker, truth }: { marker: MarkerProfile; truth?: P
           <p className="mt-0.5 text-sm font-bold text-white capitalize">{marker.call ?? "No call"}</p>
         </div>
         <div className="flex flex-col items-end gap-1">
-          {marker.verdict && <VerdictBadge verdict={marker.verdict} />}
+          {marker.low_signal ? (
+            <span className="inline-flex items-center gap-1 rounded border border-slate-600 bg-slate-900/60 px-1.5 py-0.5 text-xs font-medium text-slate-300"
+              title="The models barely beat guessing from how common each result is, so their agreement is not evidence">
+              <span aria-hidden="true">∅</span>
+              No reliable signal
+            </span>
+          ) : marker.verdict && <VerdictBadge verdict={marker.verdict} />}
           <ProvenanceBadge provenance={marker.provenance} />
         </div>
       </header>
@@ -47,7 +53,13 @@ export function MarkerCard({ marker, truth }: { marker: MarkerProfile; truth?: P
               MRI alone: {marker.imaging_only_call} · {marker.imaging_only_verdict.toLowerCase()}
             </p>
           )}
-          {marker.verdict && marker.verdict !== "STABLE" && (
+          {marker.low_signal && marker.skill != null && (
+            <p className="rounded-lg border border-amber-800/50 bg-amber-950/25 px-2 py-1 font-mono text-[10.5px] text-amber-200">
+              ⚑ MRI carries almost no signal for this marker (only {Math.max(0, Math.round(marker.skill * 100))}% better
+              than guessing from how common each result is). The call reflects the cohort average: confirm with tissue testing.
+            </p>
+          )}
+          {!marker.low_signal && marker.verdict && marker.verdict !== "STABLE" && (
             <p className="rounded-lg border border-amber-800/50 bg-amber-950/25 px-2 py-1 font-mono text-[10.5px] text-amber-200">
               ⚑ Imaging evidence inconclusive: confirm with tissue testing.
             </p>

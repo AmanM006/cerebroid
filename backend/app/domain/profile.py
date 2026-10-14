@@ -25,12 +25,15 @@ class MarkerResult:
     prediction: SetPrediction | None=None
     reason: str | None=None
     imaging_only: SetPrediction | None=None
+    skill: float | None=None
+    low_signal: bool=False
 
     @property
     def resolved_by_combining(self) -> bool:
         """MRI alone could not decide, but MRI + patient context is Stable."""
         return (
-            self.prediction is not None and self.imaging_only is not None
+            not self.low_signal
+            and self.prediction is not None and self.imaging_only is not None
             and self.prediction.verdict==StabilityVerdict.STABLE
             and self.imaging_only.verdict!=StabilityVerdict.STABLE
         )
@@ -71,5 +74,6 @@ def build_profile(registry: MarkerRegistry, vector: FeatureVector) -> list[Marke
         results.append(MarkerResult(
             marker, "predicted", call=prediction.call, variant=predictor.variant,
             prediction=prediction, imaging_only=imaging_only,
+            skill=predictor.meta.skill, low_signal=predictor.low_signal,
         ))
     return results
