@@ -1,0 +1,2 @@
+# Artifacts are hashed byte for byte in artifacts/manifest.json, so git must never rewrite their line endings.
+artifacts/** -text
