@@ -86,6 +86,8 @@ def _marker_out(result: MarkerResult) -> MarkerProfileOut:
         imaging_only_call=result.imaging_only.call if result.imaging_only else None,
         imaging_only_verdict=result.imaging_only.verdict if result.imaging_only else None,
         resolved_by_combining=result.resolved_by_combining,
+        skill=None if result.skill is None else round(result.skill, 4),
+        low_signal=result.low_signal,
     )
 
 

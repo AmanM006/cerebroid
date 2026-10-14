@@ -237,3 +237,23 @@ def test_reveal_is_refused_for_uploads_and_hidden_across_users(client, make_user
     own_reveal=client.get(f"/api/v1/studies/{own.id}/reveal", headers=headers)
     assert own_reveal.json()["error_code"]=="NO_GROUND_TRUTH"
     assert client.get(f"/api/v1/studies/{foreign.id}/reveal", headers=headers).status_code==404
+
+
+def test_low_signal_set_is_flagged_instead_of_trusted(tmp_path, client, make_user, demo_study):
+    """A set no better than the base rate is reported as low_signal, never resolved by combining."""
+    root=tmp_path/"artifacts"
+    _write_marker(root, "models/idh", _train_set(), _meta(baseline_log_loss=0.505))
+    _write_manifest(root)
+    (root/"features").mkdir()
+    table_path=root/"features"/"features.parquet"
+    _table().to_parquet(table_path)
+    client.app.state.registry=load_registry(root, _config(tmp_path, [("IDH", "fused", "models/idh")]))
+    client.app.state.feature_store=load_feature_store(table_path)
+
+    make_user("alice")
+    study=demo_study()
+    r=client.get(f"/api/v1/studies/{study.id}/profile", headers=login(client, "alice"))
+    idh=next(m for m in r.json()["markers"] if m["marker"]=="IDH")
+    assert idh["low_signal"] is True
+    assert idh["skill"]==pytest.approx(1-0.5/0.505, abs=1e-4)
+    assert idh["resolved_by_combining"] is False

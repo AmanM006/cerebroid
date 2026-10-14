@@ -84,6 +84,10 @@ class MarkerProfileOut(_Response):
     imaging_only_call: str | None=None
     imaging_only_verdict: StabilityVerdict | None=None
     resolved_by_combining: bool=False
+    # Relative CV log-loss gain over guessing the base rate; low_signal means the
+    # verdict reflects agreement on the prior, not evidence, so tissue testing is needed.
+    skill: float | None=None
+    low_signal: bool=False
 
 
 class ProfileOut(_Response):

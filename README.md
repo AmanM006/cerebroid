@@ -191,6 +191,11 @@ Trained model sets live in `artifacts/models/<marker>/` and are listed with thei
 file whose hash doesn't match the manifest (before unpickling it), validates its metadata, and runs a warm-up
 prediction. `/ready` shows the result per marker: `loaded`, `missing`, `integrity_error` or `invalid`. The full
 format is specified in [CLAUDE.md](CLAUDE.md) §4.5.
+
+Agreement among models is only meaningful when the models have learned something. Each set's `meta.json` records
+`baseline_log_loss`, the cross-validated loss of always predicting the base rate. The profile reports
+`skill` (relative improvement of the best model over that baseline) and `low_signal` when skill is below 5%; the UI
+then shows "No reliable signal" instead of a stability verdict and recommends tissue testing.
 Lint and security checks (also run in CI):
 ```bash
 ruff check .
