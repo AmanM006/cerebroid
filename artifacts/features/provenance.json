@@ -1,0 +1,13 @@
+{
+  "feature_table_sha256": "b02d36e03ab82311fa713b83c799b6da2575b68d445796cadffc89d2618aa9e5",
+  "feature_table_rows": 494,
+  "feature_table_cols": 277,
+  "n_raw_csv": 501,
+  "n_followup_dropped": 0,
+  "n_after_dedup": 501,
+  "n_missing_vol": 6,
+  "n_pediatric_dropped": 1,
+  "n_final_cohort": 494,
+  "n_train": 395,
+  "n_test": 99
+}
