@@ -119,6 +119,29 @@ class EvidenceOut(_Response):
     latency_ms: float
 
 
+class DoubtComponentOut(_Response):
+    source: Literal["multiplicity", "ambiguity", "data_sparsity", "missing_inputs", "model_skill"]
+    level: Literal["low", "medium", "high", "unknown"]
+    value: float | None
+    detail: str
+    action: str
+    provenance: Provenance
+
+
+class DoubtOut(_Response):
+    study_id: uuid.UUID
+    marker: Marker
+    variant: str
+    call: str
+    verdict: StabilityVerdict
+    primary_source: str | None
+    recommended_action: str
+    components: list[DoubtComponentOut]
+    model_version: str
+    request_id: str | None
+    latency_ms: float
+
+
 class ProfileOut(_Response):
     study_id: uuid.UUID
     inputs: ProfileInputs

@@ -14,6 +14,8 @@ from app.api.schemas import (
     ProfileInputs,
     ProfileOut,
     RevealOut,
+    DoubtComponentOut,
+    DoubtOut,
     EvidenceItemOut,
     EvidenceOut,
     TrueResultOut,
@@ -21,11 +23,12 @@ from app.api.schemas import (
 )
 from app.core.errors import AppError
 from app.db.models import Study, StudyKind
-from app.domain.contracts import Marker, Provenance, ProvenancedValue
+from app.domain.contracts import FeatureVector, Marker, Provenance, ProvenancedValue
+from app.domain.doubt import decompose, primary
 from app.domain.explain import explain_set
 from app.domain.feature_store import FeatureStore
 from app.domain.profile import MarkerResult, build_profile, known_label
-from app.domain.registry import MarkerRegistry, variant_label
+from app.domain.registry import MarkerRegistry, SetMarkerPredictor, variant_label
 from app.domain.volume_store import Sequence, VolumeStore
 
 router=APIRouter(prefix="/api/v1/studies", tags=["studies"])
@@ -211,24 +214,10 @@ def get_volume(
     )
 
 
-_EVIDENCE_METHOD=(
-    "Grouped perturbation: each group of inputs is reset to the training-cohort median and every model "
-    "in the set is re-run; the change in probability is that group's effect. It measures model "
-    "sensitivity, not cause."
-)
-
-
-@router.get("/{study_id}/evidence")
-def get_evidence(
-    request: Request,
-    marker: Marker,
-    known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
-    study: Study=Depends(get_accessible_study),
-    registry: MarkerRegistry=Depends(get_registry),
-    store: FeatureStore=Depends(get_feature_store),
-) -> EvidenceOut:
-    """Which input groups drove this marker's call, using the same model set as /profile."""
-    started=time.perf_counter()
+def _marker_inputs(
+    marker: Marker, known: list[str], study: Study, registry: MarkerRegistry, store: FeatureStore,
+) -> tuple[SetMarkerPredictor, FeatureVector]:
+    """The model set /profile would use for this marker, and the patient's inputs to it."""
     known_markers=_parse_known(known)
     if marker in known_markers:
         raise AppError(
@@ -253,6 +242,28 @@ def get_evidence(
         prior_biopsy=study.prior_biopsy,
         known_markers=known_markers,
     )
+    return predictor, vector
+
+
+_EVIDENCE_METHOD=(
+    "Grouped perturbation: each group of inputs is reset to the training-cohort median and every model "
+    "in the set is re-run; the change in probability is that group's effect. It measures model "
+    "sensitivity, not cause."
+)
+
+
+@router.get("/{study_id}/evidence")
+def get_evidence(
+    request: Request,
+    marker: Marker,
+    known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
+    study: Study=Depends(get_accessible_study),
+    registry: MarkerRegistry=Depends(get_registry),
+    store: FeatureStore=Depends(get_feature_store),
+) -> EvidenceOut:
+    """Which input groups drove this marker's call, using the same model set as /profile."""
+    started=time.perf_counter()
+    predictor, vector=_marker_inputs(marker, known, study, registry, store)
     prediction=predictor.predict_set(vector)
     explanation=explain_set(predictor, vector)
     sizes={e.group: (e.label, e.n_columns) for e in explanation.effects}
@@ -280,6 +291,46 @@ def get_evidence(
                 provenance=item.provenance,
             )
             for item in explanation.items
+        ],
+        model_version=prediction.model_version,
+        request_id=getattr(request.state, "request_id", None),
+        latency_ms=round((time.perf_counter()-started)*1000, 2),
+    )
+
+
+@router.get("/{study_id}/doubt")
+def get_doubt(
+    request: Request,
+    marker: Marker,
+    known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
+    study: Study=Depends(get_accessible_study),
+    registry: MarkerRegistry=Depends(get_registry),
+    store: FeatureStore=Depends(get_feature_store),
+) -> DoubtOut:
+    """Why this marker's call is uncertain, split by source, each with the action it calls for."""
+    started=time.perf_counter()
+    predictor, vector=_marker_inputs(marker, known, study, registry, store)
+    prediction=predictor.predict_set(vector)
+    components=decompose(
+        prediction, predictor.low_signal, predictor.meta.skill, vector, store.reference,
+        study.source_patient_id,
+    )
+    worst=primary(components)
+    return DoubtOut(
+        study_id=study.id,
+        marker=marker,
+        variant=predictor.variant,
+        call=prediction.call,
+        verdict=prediction.verdict,
+        primary_source=None if worst is None else worst.source,
+        recommended_action=worst.action if worst is not None
+        else "No strong source of doubt: the imaging call is as reliable as this model set gets.",
+        components=[
+            DoubtComponentOut(
+                source=c.source, level=c.level, value=c.value, detail=c.detail, action=c.action,
+                provenance=c.provenance,
+            )
+            for c in components
         ],
         model_version=prediction.model_version,
         request_id=getattr(request.state, "request_id", None),

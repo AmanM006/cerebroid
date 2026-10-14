@@ -128,6 +128,7 @@ docker compose exec api python -m app.cli create-user --username evaluator --rol
 | `GET /api/v1/studies/{id}/profile` | Bearer | Molecular profile: per marker the call, probability range across the model set, stability verdict, model version and provenance. Optional `known=IDH:1` (repeatable) for lab results already known. |
 | `GET /api/v1/studies/{id}/reveal` | Bearer | Demo cases only: the dataset's true lab results (`provenance: measured`), for checking predictions. Never used by `/profile`. |
 | `GET /api/v1/studies/{id}/evidence?marker=IDH` | Bearer | Which input groups drove that marker's call (grouped perturbation against the training-cohort median), whether each supports or contradicts the call, and how much the models agree on why. Accepts the same `known=` values as `/profile`. |
+| `GET /api/v1/studies/{id}/doubt?marker=IDH` | Bearer | Why that marker's call is uncertain, split into model disagreement, closeness to the decision boundary, distance from the training patients, missing inputs and weak imaging signal; each rated low/medium/high with the action it calls for. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/volumes` | Bearer | MRI sequences stored for the study (`t1`, `t1c`, `t2`, `flair`, `seg`) |
 | `GET /api/v1/studies/{id}/volume/{sequence}` | Bearer | One compressed NIfTI volume for the viewer; same access rule as the case itself |
 
