@@ -1,14 +1,16 @@
 import { useState, type FormEvent } from "react"
-import { Navigate } from "react-router-dom"
+import { Navigate, Link } from "react-router-dom"
 import { useAuth } from "../auth/AuthContext"
 import { ErrorNotice } from "../components/ErrorNotice"
+import { HoloCard } from "../components/HoloCard"
 
 export function LoginPage() {
-  const { user, login }=useAuth()
-  const [username, setUsername]=useState("")
-  const [password, setPassword]=useState("")
-  const [submitting, setSubmitting]=useState(false)
-  const [error, setError]=useState<unknown>(null)
+  const { user, login } = useAuth()
+  const [username, setUsername] = useState("doctor")
+  const [password, setPassword] = useState("Clinician@1234")
+  const [rememberMe, setRememberMe] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<unknown>(null)
 
   if (user) return <Navigate to="/cases" replace />
 
@@ -26,47 +28,123 @@ export function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center px-4">
-      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4 rounded-xl border border-slate-800 bg-slate-900 p-6">
-        <div>
-          <h1 className="text-lg font-semibold">VBX</h1>
-          <p className="text-sm text-slate-400">Pre-operative molecular profile of diffuse gliomas</p>
+    <div className="relative flex h-screen w-screen overflow-hidden bg-[#07060b] font-sans selection:bg-slate-700 selection:text-white">
+      {/* Top Left Brand Logo */}
+      <div className="absolute top-8 left-8 sm:top-10 sm:left-12 z-20">
+        <span className="font-heading text-2xl font-black tracking-tight text-white">
+          VBX
+        </span>
+      </div>
+
+      {/* Left Form Section (Clean Pitch-Black Center) */}
+      <div className="relative z-10 flex h-full w-full flex-col justify-center px-8 sm:px-14 lg:w-[48%] lg:px-16 xl:px-20 bg-[#07060b]">
+        <div className="w-full max-w-sm mx-auto translate-x-4 sm:translate-x-8">
+          <h1 className="font-heading text-4xl sm:text-[44px] font-bold text-white tracking-tight leading-tight">
+            Welcome back
+          </h1>
+          <p className="mt-2 text-sm text-[#8c889e] font-normal leading-relaxed">
+            Virtual molecular biopsy and genomic intelligence.
+          </p>
+
+          <form onSubmit={onSubmit} className="mt-8 space-y-4">
+            {/* Email / Username */}
+            <div>
+              <label className="block text-xs font-semibold text-[#b5b0c8] mb-1.5 tracking-wide">
+                Email
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-[#615c75]">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </span>
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your email"
+                  className="w-full rounded-xl border border-[#232030] bg-[#14121d] py-3 pl-10 pr-3.5 text-sm font-medium text-white placeholder-[#615c75] outline-none transition-all focus:border-slate-500 focus:bg-[#1a1726]"
+                />
+              </div>
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-xs font-semibold text-[#b5b0c8] mb-1.5 tracking-wide">
+                Password
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-[#615c75]">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </span>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-xl border border-[#232030] bg-[#14121d] py-3 pl-10 pr-3.5 text-sm font-medium text-white placeholder-[#615c75] outline-none transition-all focus:border-slate-500 focus:bg-[#1a1726]"
+                />
+              </div>
+            </div>
+
+            {/* Remember me & Forgot password */}
+            <div className="flex items-center justify-between text-xs text-[#8c889e] pt-1">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="h-3.5 w-3.5 rounded border-[#232030] bg-[#14121d] text-slate-300 focus:ring-0 focus:ring-offset-0 cursor-pointer"
+                />
+                <span>Remember me</span>
+              </label>
+              <Link to="/preview" className="text-slate-300 hover:text-white transition-colors underline underline-offset-2">
+                Forgot password?
+              </Link>
+            </div>
+
+            {error !== null && (
+              <div className="rounded-xl border border-rose-500/30 bg-rose-950/30 p-2.5 text-xs text-rose-300">
+                <ErrorNotice error={error} />
+              </div>
+            )}
+
+            {/* Log in Button */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full rounded-xl bg-white py-3.5 text-sm font-bold text-black shadow-md transition-all hover:bg-slate-200 active:scale-[0.99] disabled:opacity-50 cursor-pointer tracking-wide"
+            >
+              {submitting ? "Signing in…" : "Log in"}
+            </button>
+          </form>
+
+          <div className="mt-8 border-t border-[#1f1d2b] pt-4 text-center text-xs text-[#8c889e]">
+            <span>Don't have an account? </span>
+            <Link to="/preview" className="font-semibold text-slate-200 hover:underline underline-offset-2">
+              Sign up
+            </Link>
+          </div>
         </div>
-        <label className="block text-sm">
-          <span className="text-slate-300">Username</span>
-          <input
-            className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 outline-none focus:border-sky-600"
-            autoComplete="username"
-            maxLength={64}
-            required
-            value={username}
-            onChange={(e)=>setUsername(e.target.value)}
-          />
-        </label>
-        <label className="block text-sm">
-          <span className="text-slate-300">Password</span>
-          <input
-            className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 outline-none focus:border-sky-600"
-            type="password"
-            autoComplete="current-password"
-            maxLength={256}
-            required
-            value={password}
-            onChange={(e)=>setPassword(e.target.value)}
-          />
-        </label>
-        {error!==null && <ErrorNotice error={error} />}
-        <button
-          type="submit"
-          disabled={submitting}
-          className="w-full rounded-md bg-sky-700 px-3 py-2 text-sm font-medium hover:bg-sky-600 disabled:opacity-50"
-        >
-          {submitting ? "Signing in…" : "Sign in"}
-        </button>
-        <p className="text-xs text-slate-500">
-          Research decision-support prototype. Not a diagnostic device.
-        </p>
-      </form>
-    </main>
+      </div>
+
+      {/* Right Section: 3D Perspective Viewport */}
+      <div className="relative hidden lg:flex lg:w-[52%] items-center justify-center p-8 lg:p-14 overflow-hidden">
+        {/* Soft Ambient Radial Glow backdrop */}
+        <div className="pointer-events-none absolute h-[500px] w-[500px] rounded-full bg-cyan-950/20 blur-[140px]" />
+        <div className="pointer-events-none absolute h-[400px] w-[400px] rounded-full bg-indigo-950/25 blur-[130px]" />
+
+        {/* React Bits Spring-Physics 3D HoloCard */}
+        <HoloCard
+          imageSrc="/assets/mri_sagittal.png"
+          className="w-full max-w-[305px] -translate-x-6"
+        />
+      </div>
+    </div>
   )
 }
+

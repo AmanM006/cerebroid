@@ -44,3 +44,9 @@ Thumbs.db
 
 # --- logs ---
 *.log
+
+# --- local dev databases & scratch seeds ---
+*.db
+*.sql
+generate_seed.py
+generate_demo_cases.py

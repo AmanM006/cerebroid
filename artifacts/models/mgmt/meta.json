@@ -1,0 +1,47 @@
+{
+  "marker": "MGMT",
+  "variant": "fused",
+  "feature_columns": [
+    "age",
+    "sex",
+    "t1ce__et__glcm__Contrast",
+    "desc__enhancing_fraction",
+    "t1__et__firstorder__Entropy",
+    "shape__et__shape__VoxelVolume"
+  ],
+  "feature_medians": {
+    "age": 61.0,
+    "sex": 0.0,
+    "t1ce__et__glcm__Contrast": 0.276875883034521,
+    "desc__enhancing_fraction": 0.21529341951621034,
+    "t1__et__firstorder__Entropy": 4.88995821098973,
+    "shape__et__shape__VoxelVolume": 18553.0
+  },
+  "decision_threshold": 0.5,
+  "verdict_thresholds": {
+    "stable_min_agreement": 0.85,
+    "stable_max_iqr": 0.22,
+    "arbitrary_max_agreement": 0.6
+  },
+  "epsilon": 0.03,
+  "models": [
+    {
+      "model_id": "logreg-balanced",
+      "family": "logreg",
+      "cv_log_loss": 0.42
+    },
+    {
+      "model_id": "logreg-c05",
+      "family": "logreg",
+      "cv_log_loss": 0.44
+    },
+    {
+      "model_id": "extratrees-d4",
+      "family": "extratrees",
+      "cv_log_loss": 0.43
+    }
+  ],
+  "library_versions": {
+    "scikit-learn": "1.9.1"
+  }
+}
