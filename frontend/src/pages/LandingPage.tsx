@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import { ArrowDown } from "lucide-react"
 import Lenis from "lenis"
 import { NovaCell3DScene } from "../components/NovaCell3DScene"
@@ -97,13 +98,13 @@ export function LandingPage() {
             </span>
           </a>
 
-          {/* Clean Minimalist White Glass Rectangular Login Button with Subtle Curved Edge */}
-          <a
-            href="/viewer"
-            className="inline-flex items-center justify-center px-7 py-2.5 rounded-lg bg-white hover:bg-neutral-100 text-black font-bold text-sm tracking-wider uppercase shadow-[0_4px_24px_rgba(255,255,255,0.15)] hover:shadow-[0_6px_30px_rgba(255,255,255,0.3)] border border-white active:scale-95 transition-all duration-200 cursor-pointer"
+          {/* Compact Crisp Rectangular Login Button linking to /login */}
+          <Link
+            to="/login"
+            className="inline-flex items-center justify-center px-4 py-1.5 rounded-none bg-white hover:bg-neutral-100 text-black font-bold text-xs tracking-wider uppercase shadow-[0_2px_12px_rgba(255,255,255,0.15)] hover:shadow-[0_4px_16px_rgba(255,255,255,0.25)] border border-white active:scale-95 transition-all duration-200 cursor-pointer"
           >
             Login
-          </a>
+          </Link>
         </header>
 
         {/* HERO CONTENT: Full 100vh layout with headline on bottom left and CircularText pushed all the way to bottom right */}
