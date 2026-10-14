@@ -118,6 +118,17 @@ def parse_feature_name(name: str) -> FeatureName:
     raise ValueError(f"feature name does not follow the naming convention: {name!r}")
 
 
+# Model input columns for the clinical inputs. Models see sex as a number.
+CLINICAL_COLUMNS=("age", "sex")
+SEX_ENCODING: dict[Sex, float]={Sex.MALE: 1.0, Sex.FEMALE: 0.0}
+
+
+def validate_model_column(name: str) -> None:
+    """A trained model may use the clinical columns plus any convention-named feature."""
+    if name not in CLINICAL_COLUMNS:
+        parse_feature_name(name)
+
+
 # --- core contract models ------------------------------------------------------
 
 class _Contract(BaseModel):

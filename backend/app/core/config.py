@@ -4,6 +4,7 @@ Kept as a single pydantic-settings object so every module reads config the
 same way instead of calling os.environ directly all over the codebase.
 """
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -26,6 +27,9 @@ class Settings(BaseSettings):
     jwt_access_token_ttl_minutes: int=Field(default=15, ge=1, le=15)
     jwt_refresh_token_ttl_days: int=Field(default=7, ge=1, le=30)
 
+    # Repository root (holds artifacts/ and ml/configs/). The container mirrors the repo layout.
+    repo_root: Path=Field(default_factory=lambda: Path(__file__).resolve().parents[3])
+
     login_max_failed_attempts: int=Field(default=5, ge=1)
     login_lockout_minutes: int=Field(default=15, ge=1)
 
@@ -39,6 +43,14 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def artifacts_root(self) -> Path:
+        return self.repo_root/"artifacts"
+
+    @property
+    def markers_config_path(self) -> Path:
+        return self.repo_root/"ml"/"configs"/"markers.yaml"
 
     @property
     def is_production(self) -> bool:

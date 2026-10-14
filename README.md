@@ -93,7 +93,7 @@ Roles: `clinician`, `reviewer`. Add `--synthetic` for demo/test accounts.
 | Method & path | Auth | Purpose |
 |---|---|---|
 | `GET /health` | none | Liveness |
-| `GET /ready` | none | Readiness (database reachable) |
+| `GET /ready` | none | Readiness: database reachable and every marker's model set loaded, sha256-verified and warmed up; per-marker status included |
 | `POST /api/v1/auth/login` | none | Username + password → access token (body) + refresh token (HttpOnly cookie) |
 | `POST /api/v1/auth/refresh` | refresh cookie | Rotates the refresh token, returns a new access token |
 | `POST /api/v1/auth/logout` | refresh cookie | Revokes the session |
@@ -150,7 +150,14 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 Suites: `tests/api` (auth flow, health), `tests/security` (forged/expired tokens, IDOR on cases),
-`tests/unit` (shared contracts, config validation).
+`tests/unit` (shared contracts, config validation, model registry and artifact integrity, stability verdicts).
+
+## Model artifacts
+Trained model sets live in `artifacts/models/<marker>/` and are listed with their sha256 in
+`artifacts/manifest.json`. At startup the API loads each marker listed in `ml/configs/markers.yaml`, refuses any
+file whose hash doesn't match the manifest (before unpickling it), validates its metadata, and runs a warm-up
+prediction. `/ready` shows the result per marker: `loaded`, `missing`, `integrity_error` or `invalid`. The full
+format is specified in [CLAUDE.md](CLAUDE.md) §4.5.
 Lint and security checks (also run in CI):
 ```bash
 ruff check .
@@ -160,7 +167,6 @@ pip-audit -r requirements.txt
 ```
 
 ## 11. Known limitations
-- `/ready` verifies database connectivity only.
 - Brute-force protection is per-account lockout (5 failures → 15 minutes); there is no per-IP rate limiting.
   Anyone who knows a username can therefore lock that account for 15 minutes.
 - The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
@@ -174,7 +180,9 @@ See [AI_USAGE.md](AI_USAGE.md): each AI tool used, its purpose, what it generate
 None.
 
 ## 14. Dockerfiles & container commands
-- [backend/Dockerfile](backend/Dockerfile): `python:3.11-slim`, runs as a non-root user.
+- [backend/Dockerfile](backend/Dockerfile): `python:3.11-slim`, runs as a non-root user that cannot modify the
+  application code or model files. Built from the repo root; [.dockerignore](.dockerignore) is an allowlist, so
+  `.env`, `.git` and local environments never enter the image.
 - [docker-compose.yml](docker-compose.yml): `api` (FastAPI) + `db` (PostgreSQL 16).
 
 ```bash
