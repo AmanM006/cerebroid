@@ -3,22 +3,20 @@ import { api } from "../api/client"
 import type { Claim, Falsification, MarkerName } from "../api/types"
 import { ErrorNotice } from "./ErrorNotice"
 
-function ClaimList({ title, claims, tone, empty }: { title: string; claims: Claim[]; tone: string; empty: string }) {
+const SHOWN=2
+
+/** One short line per claim; the full templated sentence and its evidence IDs are in the tooltip. */
+function ClaimList({ title, claims, tone }: { title: string; claims: Claim[]; tone: string }) {
+  if (claims.length===0) return null
   return (
-    <div className="space-y-1">
-      <p className={`font-mono text-[10px] font-bold uppercase tracking-wider ${tone}`}>{title}</p>
-      {claims.length===0 ? (
-        <p className="font-mono text-[10px] text-[#615c75]">{empty}</p>
-      ) : (
-        <ul className="space-y-1">
-          {claims.map((c)=>(
-            <li key={c.evidence_ids.join(",")} className="font-mono text-[10.5px] text-[#c9c5d8]"
-              title={`Evidence: ${c.evidence_ids.join(", ")}`}>
-              • {c.text}
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+      <span className={`text-[10px] uppercase tracking-wider ${tone}`}>{title}</span>
+      {claims.slice(0, SHOWN).map((c, i)=>(
+        <span key={c.evidence_ids.join(",")} className="text-[#c9c5d8]" title={`${c.text}
+Evidence: ${c.evidence_ids.join(", ")}`}>
+          {c.short}{i<Math.min(claims.length, SHOWN)-1 ? "," : ""}
+        </span>
+      ))}
     </div>
   )
 }
@@ -52,17 +50,12 @@ export function FalsificationView({
   if (!panel) return null
 
   return (
-    <div className="space-y-2.5">
-      <ClaimList title={`For ${panel.call}`} claims={panel.supporting} tone="text-emerald-300"
-        empty="No input group pushes toward this call." />
-      <ClaimList title="Against" claims={panel.contradicting} tone="text-rose-300"
-        empty="No input group pushes against this call." />
-      <ClaimList title="Competing call" claims={[panel.competing]} tone="text-amber-300" empty="" />
-      <ClaimList title="What would overturn it" claims={panel.overturn} tone="text-cyan-300"
-        empty="No plausible change to age or the tumor measurements flips this call." />
-      <p className="rounded-lg border border-[#2a2638] bg-[#14121d] px-2 py-1 font-mono text-[10.5px] text-[#c9c5d8]">
-        Settled by: {panel.confirmatory_test}
-      </p>
+    <div className="space-y-1.5 font-mono text-[11px]">
+      <ClaimList title="For" claims={panel.supporting} tone="text-emerald-300" />
+      <ClaimList title="Against" claims={panel.contradicting} tone="text-rose-300" />
+      <ClaimList title="Alternative" claims={[panel.competing]} tone="text-amber-300" />
+      <ClaimList title="Would overturn" claims={panel.overturn} tone="text-cyan-300" />
+      <p className="text-[10.5px] text-[#8c889e]">Settled by: <span className="text-[#c9c5d8]">{panel.confirmatory_test}</span></p>
     </div>
   )
 }

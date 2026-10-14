@@ -179,6 +179,7 @@ class TippingOut(_Response):
 class ClaimOut(_Response):
     """One templated statement; provenance and evidence_ids are required (CLAUDE.md §4.4)."""
 
+    short: str
     text: str
     evidence_ids: list[str]=Field(min_length=1)
     provenance: Provenance

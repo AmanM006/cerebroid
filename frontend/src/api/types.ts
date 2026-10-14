@@ -159,6 +159,8 @@ export interface NextMeasurements {
 }
 
 export interface Claim {
+  /** A few words for the card; text is the full templated sentence. */
+  short: string
   text: string
   evidence_ids: string[]
   provenance: Provenance

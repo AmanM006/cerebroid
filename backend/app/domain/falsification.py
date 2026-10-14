@@ -24,6 +24,7 @@ CONFIRMATORY_TEST: dict[Marker, str]={
 
 @dataclass(frozen=True)
 class Claim:
+    short: str
     text: str
     evidence_ids: list[str]
     provenance: Provenance
@@ -75,12 +76,16 @@ def build_falsification(
         )
         if item.agreement is not None:
             sentence+=f"; {round(item.agreement*100)}% of models agree on the direction"
-        claim=Claim(text=sentence+".", evidence_ids=[item.evidence_id], provenance=item.provenance)
+        claim=Claim(
+            short=labels[item.group], text=sentence+".", evidence_ids=[item.evidence_id],
+            provenance=item.provenance,
+        )
         (supporting if item.direction==toward_call else contradicting).append(claim)
 
     other_votes=round((1.0-prediction.agreement)*prediction.n_models)
     set_id=f"{marker.value}:{variant}:set"
     competing=Claim(
+        short=f"{other}: {other_votes} of {prediction.n_models} models",
         text=f"The competing call is {other}: {other_votes} of {prediction.n_models} equally good models "
         f"favour it; the set's median probability of {positive} is {prediction.prob_median:.0%}.",
         evidence_ids=[set_id],
@@ -92,6 +97,7 @@ def build_falsification(
         if t.flip_at is None:
             continue
         overturn.append(Claim(
+            short=f"{t.label} {_value(t, t.flip_at)} → {t.flips_to}",
             text=f"{t.label} of {_value(t, t.flip_at)} instead of {_value(t, t.current)} would flip the "
             f"majority call to {t.flips_to}, with everything else unchanged.",
             evidence_ids=[f"{marker.value}:{variant}:tipping:{t.column}"],

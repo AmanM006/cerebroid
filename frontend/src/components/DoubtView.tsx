@@ -2,12 +2,11 @@ import { useEffect, useState } from "react"
 import { api } from "../api/client"
 import type { Doubt, DoubtLevel, MarkerName } from "../api/types"
 import { ErrorNotice } from "./ErrorNotice"
-import { ProvenanceBadge } from "./ProvenanceBadge"
 
 const SOURCE_LABELS: Record<string, string>={
-  multiplicity: "Models disagree",
-  ambiguity: "Close to the boundary",
-  data_sparsity: "Unlike training cases",
+  multiplicity: "Models differ (on the call or how sure)",
+  ambiguity: "Close to 50/50",
+  data_sparsity: "Unusual tumor (unlike training cases)",
   missing_inputs: "Missing inputs",
   model_skill: "Weak imaging signal",
 }
@@ -48,29 +47,26 @@ export function DoubtView({
   const doubt=result.doubt
   if (!doubt) return null
 
+  // Only what is actually worrying for this patient; the full breakdown stays in the API.
+  const concerns=doubt.components.filter((c)=>c.level==="high" || c.level==="medium")
   return (
-    <div className="space-y-2">
-      <p className="rounded-lg border border-cyan-900/60 bg-cyan-950/20 px-2 py-1 font-mono text-[10.5px] text-cyan-100">
-        → {doubt.recommended_action}
-      </p>
-      <ul className="space-y-1">
-        {doubt.components.map((c)=>{
-          const style=LEVEL_STYLE[c.level]
-          return (
-            <li key={c.source} className="font-mono text-[10.5px]">
-              <div className="flex items-center justify-between gap-2">
+    <div className="space-y-1.5 font-mono text-[11px]">
+      {concerns.length===0 ? (
+        <p className="text-emerald-300">● No warning signs for this call.</p>
+      ) : (
+        <ul className="space-y-1">
+          {concerns.map((c)=>{
+            const style=LEVEL_STYLE[c.level]
+            return (
+              <li key={c.source} className="flex items-center gap-2" title={c.detail}>
+                <span className={style.tone} aria-hidden="true">{style.icon}</span>
                 <span className="text-[#c9c5d8]">{SOURCE_LABELS[c.source] ?? c.source}</span>
-                <span className={`flex items-center gap-1.5 ${style.tone}`}>
-                  <span aria-hidden="true">{style.icon}</span>
-                  {c.level}
-                  <ProvenanceBadge provenance={c.provenance} />
-                </span>
-              </div>
-              <p className="text-[9.5px] text-[#615c75]">{c.detail}</p>
-            </li>
-          )
-        })}
-      </ul>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      <p className="text-[10.5px] text-cyan-100">→ {doubt.recommended_action}</p>
     </div>
   )
 }
