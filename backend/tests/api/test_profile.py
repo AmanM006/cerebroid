@@ -362,3 +362,26 @@ def test_unknown_view_is_rejected(client, make_user, deployed, demo_study):
     url=f"/api/v1/studies/{study.id}/profile"
     r=client.get(url, params={"view": "everything"}, headers=login(client, "alice"))
     assert r.status_code==422
+
+
+def test_tipping_sweeps_age_for_the_same_call_as_the_profile(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    headers=login(client, "alice")
+    r=client.get(f"/api/v1/studies/{study.id}/tipping", params={"marker": "IDH"}, headers=headers)
+    assert r.status_code==200
+    body=r.json()
+    age=next(i for i in body["items"] if i["input"]=="age")
+    assert age["current"]==30 and age["provenance"]=="model_inferred"
+    assert len(age["curve"])==83
+    assert all(0<=p["positive_fraction"]<=1 for p in age["curve"])
+    if age["flip_at"] is not None:
+        assert age["flips_to"]!=body["call"]
+
+
+def test_other_users_study_tipping_is_not_found(client, make_user, make_study, deployed):
+    owner=make_user("owner")
+    make_user("mallory")
+    study=make_study(kind=StudyKind.UPLOAD, owner=owner)
+    url=f"/api/v1/studies/{study.id}/tipping"
+    assert client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory")).status_code==404
