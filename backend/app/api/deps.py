@@ -22,6 +22,7 @@ from app.core.security import decode_access_token
 from app.db.models import Role, Study, StudyKind, User
 from app.db.session import get_db
 from app.domain.feature_store import FeatureStore
+from app.domain.volume_store import VolumeStore
 from app.domain.registry import MarkerRegistry
 
 logger=structlog.get_logger("authz")
@@ -79,3 +80,7 @@ def get_registry(request: Request) -> MarkerRegistry:
 
 def get_feature_store(request: Request) -> FeatureStore:
     return request.app.state.feature_store
+
+
+def get_volume_store(request: Request) -> VolumeStore:
+    return request.app.state.volume_store

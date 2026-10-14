@@ -2,71 +2,83 @@ import { useEffect, useRef, useState } from "react"
 import { Niivue } from "@niivue/niivue"
 import { ErrorNotice } from "./ErrorNotice"
 
-export interface DirectVolume {
-  url: string
+/** A volume already fetched through the authenticated API client. */
+export interface LoadedVolume {
+  /** File name; the extension tells NiiVue the format (e.g. "t1c.nii.gz"). */
   name: string
+  data: ArrayBuffer
   colormap?: string
   opacity?: number
 }
 
+export type SliceMode="multiplanar" | "axial" | "coronal" | "sagittal" | "render3d"
+
+function nameMatchingBytes(name: string, buffer: ArrayBuffer): string {
+  const bytes=new Uint8Array(buffer, 0, Math.min(2, buffer.byteLength))
+  const gzipped=bytes[0]===0x1f && bytes[1]===0x8b
+  return !gzipped && name.endsWith(".gz") ? name.slice(0, -3) : name
+}
+
+function applySliceType(nv: Niivue, mode: SliceMode) {
+  const types: Record<SliceMode, number>={
+    render3d: nv.sliceTypeRender,
+    axial: nv.sliceTypeAxial,
+    sagittal: nv.sliceTypeSagittal,
+    coronal: nv.sliceTypeCoronal,
+    multiplanar: nv.sliceTypeMultiplanar,
+  }
+  nv.setSliceType(types[mode])
+}
+
 export function RealNiiVueViewport({
-  volumes = [{ url: "/assets/mni152.nii.gz", name: "mni152.nii.gz", colormap: "gray" }],
-  sliceType = "multiplanar",
+  volumes,
+  sliceType="multiplanar",
 }: {
-  volumes?: DirectVolume[]
-  sliceType?: "multiplanar" | "axial" | "coronal" | "sagittal" | "render3d"
+  volumes: LoadedVolume[]
+  sliceType?: SliceMode
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const nvRef = useRef<Niivue | null>(null)
-  const [state, setState] = useState<"idle" | "loading" | "ready" | "error">("idle")
-  const [error, setError] = useState<unknown>(null)
+  const canvasRef=useRef<HTMLCanvasElement>(null)
+  const nvRef=useRef<Niivue | null>(null)
+  const sliceTypeRef=useRef(sliceType)
+  const [state, setState]=useState<"loading" | "ready" | "error">("loading")
+  const [error, setError]=useState<unknown>(null)
 
-  // Initialize NiiVue once on mount
-  useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+  useEffect(()=>{
+    sliceTypeRef.current=sliceType
+  }, [sliceType])
 
-    let cancelled = false
+  useEffect(()=>{
+    const canvas=canvasRef.current
+    if (!canvas || volumes.length===0) return
 
-    const nv = new Niivue({
+    let cancelled=false
+
+    const nv=new Niivue({
       backColor: [0, 0, 0, 1],
       show3Dcrosshair: true,
       crosshairColor: [0, 0.85, 0.95, 0.8],
-      loadingText: "Initializing GPU Pipeline...",
-      dragMode: 1, // Slicing drag mode
+      dragMode: 1,
       isColorbar: false,
       textHeight: 0.03,
     })
-    nvRef.current = nv
+    nvRef.current=nv
 
-    ;(async () => {
-      setState("loading")
+    ;(async ()=>{
       try {
         await nv.attachToCanvas(canvas)
-        if (cancelled) return
-
-        const volumeList = volumes.map((v) => ({
-          url: v.url,
-          colormap: v.colormap ?? "gray",
-          opacity: v.opacity ?? 1,
-        }))
-
-        await nv.loadVolumes(volumeList)
-        if (cancelled) return
-
-        nv.setSliceType(
-          sliceType === "render3d"
-            ? nv.sliceTypeRender
-            : sliceType === "axial"
-            ? nv.sliceTypeAxial
-            : sliceType === "sagittal"
-            ? nv.sliceTypeSagittal
-            : sliceType === "coronal"
-            ? nv.sliceTypeCoronal
-            : nv.sliceTypeMultiplanar
-        )
-
+        for (const [i, v] of volumes.entries()) {
+          // NiiVue may take ownership of the buffer, and the same volume feeds both panels.
+          const data=v.data.slice(0)
+          await nv.loadFromArrayBuffer(data, nameMatchingBytes(v.name, data))
+          if (cancelled) return
+          const volume=nv.volumes[i]
+          if (volume) {
+            volume.colormap=v.colormap ?? "gray"
+            volume.opacity=v.opacity ?? 1
+          }
+        }
         nv.updateGLVolume()
+        applySliceType(nv, sliceTypeRef.current)
         if (!cancelled) setState("ready")
       } catch (err) {
         if (!cancelled) {
@@ -76,37 +88,24 @@ export function RealNiiVueViewport({
       }
     })()
 
-    // Smooth Canvas Resize Observer so resizing panels never causes WebGL blur/chopping
-    const ro = new ResizeObserver(() => {
-      if (nvRef.current && canvas) {
-        nvRef.current.resizeListener()
-        nvRef.current.drawScene()
-      }
+    // Keeps the WebGL canvas sharp when panels are resized or swapped.
+    const ro=new ResizeObserver(()=>{
+      nv.resizeListener()
+      nv.drawScene()
     })
     ro.observe(canvas)
 
-    return () => {
-      cancelled = true
+    return ()=>{
+      cancelled=true
       ro.disconnect()
     }
   }, [volumes])
 
-  // React to projection mode changes without reloading the 4MB volume
-  useEffect(() => {
-    const nv = nvRef.current
-    if (!nv || state !== "ready") return
-
-    if (sliceType === "render3d") {
-      nv.setSliceType(nv.sliceTypeRender)
-    } else if (sliceType === "axial") {
-      nv.setSliceType(nv.sliceTypeAxial)
-    } else if (sliceType === "sagittal") {
-      nv.setSliceType(nv.sliceTypeSagittal)
-    } else if (sliceType === "coronal") {
-      nv.setSliceType(nv.sliceTypeCoronal)
-    } else {
-      nv.setSliceType(nv.sliceTypeMultiplanar)
-    }
+  // Changing projection reuses the loaded volumes instead of reloading them.
+  useEffect(()=>{
+    const nv=nvRef.current
+    if (!nv || state!=="ready") return
+    applySliceType(nv, sliceType)
     nv.drawScene()
   }, [sliceType, state])
 
@@ -115,15 +114,15 @@ export function RealNiiVueViewport({
       <canvas
         ref={canvasRef}
         className="h-full w-full cursor-crosshair touch-none"
-        aria-label="3D NiiVue MRI Volume"
+        aria-label="MRI volume viewer"
       />
-      {state === "loading" && (
+      {state==="loading" && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/80 font-mono text-xs text-cyan-400">
           <span className="h-4 w-4 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent mr-2.5" />
-          Binding GPU Texture Buffer…
+          Loading volume…
         </div>
       )}
-      {state === "error" && (
+      {state==="error" && (
         <div className="absolute inset-x-4 top-4">
           <ErrorNotice error={error} />
         </div>

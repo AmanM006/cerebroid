@@ -5,8 +5,9 @@ import re
 import time
 
 from fastapi import APIRouter, Depends, Query, Request, status
+from fastapi.responses import FileResponse
 
-from app.api.deps import get_accessible_study, get_feature_store, get_registry
+from app.api.deps import get_accessible_study, get_feature_store, get_registry, get_volume_store
 from app.api.schemas import (
     KnownMarkerIn,
     MarkerProfileOut,
@@ -14,6 +15,7 @@ from app.api.schemas import (
     ProfileOut,
     RevealOut,
     TrueResultOut,
+    VolumesOut,
 )
 from app.core.errors import AppError
 from app.db.models import Study, StudyKind
@@ -21,6 +23,7 @@ from app.domain.contracts import Marker, Provenance, ProvenancedValue
 from app.domain.feature_store import FeatureStore
 from app.domain.profile import MarkerResult, build_profile, known_label
 from app.domain.registry import MarkerRegistry, variant_label
+from app.domain.volume_store import Sequence, VolumeStore
 
 router=APIRouter(prefix="/api/v1/studies", tags=["studies"])
 
@@ -173,3 +176,31 @@ def reveal(
         value=ProvenancedValue(value=label, provenance=provenance)
         results.append(TrueResultOut(marker=marker, value=value))
     return RevealOut(study_id=study.id, results=results)
+
+
+@router.get("/{study_id}/volumes")
+def list_volumes(
+    study: Study=Depends(get_accessible_study),
+    volumes: VolumeStore=Depends(get_volume_store),
+) -> VolumesOut:
+    return VolumesOut(study_id=study.id, sequences=volumes.available(study.source_patient_id))
+
+
+@router.get("/{study_id}/volume/{sequence}", response_class=FileResponse)
+def get_volume(
+    sequence: Sequence,
+    study: Study=Depends(get_accessible_study),
+    volumes: VolumeStore=Depends(get_volume_store),
+) -> FileResponse:
+    """Streams one compressed NIfTI volume; the file name carries no patient id."""
+    path=volumes.path_for(study.source_patient_id, sequence)
+    if path is None:
+        raise AppError(
+            "VOLUME_NOT_AVAILABLE", "This volume is not available for this study.", status.HTTP_404_NOT_FOUND,
+        )
+    return FileResponse(
+        path,
+        media_type="application/gzip",
+        filename=f"{sequence.value}.nii.gz",
+        headers={"Cache-Control": "private, max-age=3600"},
+    )

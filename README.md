@@ -106,6 +106,8 @@ docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-0
 | `GET /api/v1/cases/{id}` | Bearer | One case; another user's case returns 404 |
 | `GET /api/v1/studies/{id}/profile` | Bearer | Molecular profile: per marker the call, probability range across the model set, stability verdict, model version and provenance. Optional `known=IDH:1` (repeatable) for lab results already known. |
 | `GET /api/v1/studies/{id}/reveal` | Bearer | Demo cases only: the dataset's true lab results (`provenance: measured`), for checking predictions. Never used by `/profile`. |
+| `GET /api/v1/studies/{id}/volumes` | Bearer | MRI sequences stored for the study (`t1`, `t1c`, `t2`, `flair`, `seg`) |
+| `GET /api/v1/studies/{id}/volume/{sequence}` | Bearer | One compressed NIfTI volume for the viewer; same access rule as the case itself |
 
 Example with curl:
 ```bash
@@ -214,5 +216,6 @@ Every error response has the shape `{error_code, message, request_id}`.
 | `INVALID_KNOWN_MARKER` | A `known` value isn't `<IDH\|1p19q\|MGMT\|GRADE>:<0\|1>`, or repeats a marker |
 | `FEATURES_NOT_READY` | No extracted imaging features exist for this study yet |
 | `NO_GROUND_TRUTH` | No lab results exist for this study (uploads, or no dataset row) |
+| `VOLUME_NOT_AVAILABLE` | The study has no stored volume for that sequence |
 | `HTTP_ERROR` | Generic HTTP error (404, 405, ...) |
 | `INTERNAL_ERROR` | Unexpected server error (details only in server logs) |

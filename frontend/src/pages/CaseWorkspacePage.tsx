@@ -80,7 +80,7 @@ export function CaseWorkspacePage() {
           </div>
 
           <div className="h-[88vh] min-h-[580px] w-full rounded-2xl border border-neutral-800 bg-[#080808] p-2 overflow-hidden shadow-2xl">
-            <ClinicalMriStudio leftComponent={leftComponent} onSwap={toggleSwap} />
+            {caseId && <ClinicalMriStudio studyId={caseId} leftComponent={leftComponent} onSwap={toggleSwap} />}
           </div>
         </section>
 
@@ -114,7 +114,7 @@ export function CaseWorkspacePage() {
                   Clinical Evidence &amp; Doubt
                 </h3>
                 <p className="font-mono text-xs text-neutral-400 leading-relaxed">
-                  Decisions are generated across near-optimal multiplicity sets ($\varepsilon \le 0.03$). Markers marked as <strong className="text-emerald-400">Stable</strong> achieve $\ge 85\%$ cross-model consensus.
+                  Each call is made by a set of equally accurate models. <strong className="text-emerald-400">Stable</strong> means nearly all of them agree; the cut-offs are chosen on cross-validation data.
                 </p>
                 <div className="rounded-xl border border-neutral-800 bg-[#141414] p-3 text-[11px] font-mono text-neutral-400 space-y-1.5">
                   <span className="font-bold text-neutral-200 block">Doubt Protocol:</span>
