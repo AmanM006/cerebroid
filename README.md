@@ -6,7 +6,7 @@ Manipal Hackathon 2026 · Team **Void** · Problem Statement: "From Image to Cli
 - **Team:** Void
 - **Team members:** Tanish Kuvar, Aman Mishra
 - **Repository:** https://github.com/Manipal-Hackathon-2026/Void
-- **Problem statement:** From Image to Clinical Story
+- **Problem statement:** From Image to Clinical Story (Healthcare Track, PS 2)
 
 ## 2. Solution summary
 A pre-operative "virtual molecular biopsy" for diffuse gliomas. From multi-sequence brain MRI,
