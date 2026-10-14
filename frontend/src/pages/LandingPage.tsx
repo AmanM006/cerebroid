@@ -1,442 +1,456 @@
 import { Link } from "react-router-dom"
 import {
+  Brain,
   Activity,
-  ArrowRight,
+  Filter,
+  ArrowUpDown,
+  ExternalLink,
   ShieldCheck,
-  Dna,
-  Layers,
+  ChevronRight,
+  Database,
+  Cpu,
   Sparkles,
-  PhoneCall,
-  CheckCircle2,
+  ArrowRight,
 } from "lucide-react"
-import { InteractiveBrain3D } from "../components/InteractiveBrain3D"
+import { CyberGridPerspective } from "../components/CyberGridPerspective"
 
 export function LandingPage() {
+
+  // Real Cohort Cases data matching the Wope table layout
+  const demoCases = [
+    {
+      id: "UCSF-PDGM-0018",
+      age: 54,
+      sex: "F",
+      idh: "Mutant (0.98)",
+      codeletion: "Codeleted (0.97)",
+      grade: "Grade 4",
+      verdict: "STABLE",
+      verdictColor: "emerald",
+      agreement: "100%",
+      iqr: "0.08",
+      matrix: "240×240×155",
+    },
+    {
+      id: "UCSF-PDGM-0026",
+      age: 62,
+      sex: "M",
+      idh: "Wildtype (0.02)",
+      codeletion: "Intact (0.04)",
+      grade: "Grade 4",
+      verdict: "STABLE",
+      verdictColor: "emerald",
+      agreement: "96%",
+      iqr: "0.11",
+      matrix: "240×240×155",
+    },
+    {
+      id: "UCSF-PDGM-0061",
+      age: 41,
+      sex: "M",
+      idh: "Mutant (0.96)",
+      codeletion: "Intact (0.09)",
+      grade: "Grade 3",
+      verdict: "STABLE",
+      verdictColor: "emerald",
+      agreement: "92%",
+      iqr: "0.14",
+      matrix: "240×240×155",
+    },
+    {
+      id: "UCSF-PDGM-0073",
+      age: 58,
+      sex: "F",
+      idh: "Borderline (0.54)",
+      codeletion: "Intact (0.12)",
+      grade: "Grade 4",
+      verdict: "CONTESTED",
+      verdictColor: "amber",
+      agreement: "68%",
+      iqr: "0.26",
+      matrix: "240×240×155",
+    },
+    {
+      id: "UCSF-PDGM-0232",
+      age: 67,
+      sex: "M",
+      idh: "Wildtype (0.04)",
+      codeletion: "Intact (0.02)",
+      grade: "Grade 4",
+      verdict: "STABLE",
+      verdictColor: "emerald",
+      agreement: "100%",
+      iqr: "0.05",
+      matrix: "240×240×155",
+    },
+    {
+      id: "UCSF-PDGM-0243",
+      age: 49,
+      sex: "F",
+      idh: "Mutant (0.91)",
+      codeletion: "Codeleted (0.94)",
+      grade: "Grade 2",
+      verdict: "STABLE",
+      verdictColor: "emerald",
+      agreement: "94%",
+      iqr: "0.12",
+      matrix: "240×240×155",
+    },
+  ]
+
   return (
-    <div className="min-h-screen w-full bg-[#f8f9fc] text-slate-800 antialiased selection:bg-indigo-500/20 selection:text-indigo-900 font-sans">
+    <div className="relative min-h-screen w-full bg-[#05020a] text-white selection:bg-purple-500/30 selection:text-purple-200 overflow-x-hidden font-sans">
       
       {/* =========================================================================
-          HERO CONTAINER WITH CURVED WHITE CANVAS WRAPPER (Ref image design)
+          PERSPECTIVE GRID & INTENSE NEON HORIZON GLOW (Exact Wope aesthetic)
          ========================================================================= */}
-      <div className="p-3 sm:p-6 md:p-8">
-        <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-7xl flex-col overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-[#4b3bf6] via-[#6355f6] to-[#7f71ff] p-6 shadow-2xl shadow-indigo-500/20 md:p-10">
-          
-          {/* Subtle Ambient Background Orbs */}
-          <div className="pointer-events-none absolute -top-24 -left-24 h-96 w-96 rounded-full bg-white/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full bg-indigo-950/20 blur-3xl" />
+      <CyberGridPerspective />
 
-          {/* =========================================================================
-              FLOATING PILL NAVBAR (Like Mediate in reference)
-             ========================================================================= */}
-          <header className="relative z-30 flex items-center justify-between rounded-full bg-white/10 px-5 py-3 backdrop-blur-xl border border-white/20 shadow-lg">
-            {/* Logo */}
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-indigo-600 font-extrabold shadow-md">
-                <Dna className="h-4 w-4" />
-              </div>
-              <span className="text-base font-bold tracking-tight text-white">
-                Void<span className="text-indigo-200">Bio</span>
-              </span>
-            </div>
+      {/* Intense Glowing Horizon Strip */}
+      <div className="pointer-events-none absolute top-[58%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-6xl h-44 bg-gradient-to-t from-purple-500/25 via-fuchsia-600/35 to-transparent blur-[80px] z-0" />
+      <div className="pointer-events-none absolute top-[57%] left-1/2 -translate-x-1/2 w-4/5 h-2 bg-gradient-to-r from-transparent via-purple-400/80 to-transparent blur-md z-0" />
 
-            {/* Nav links */}
-            <nav className="hidden items-center gap-7 lg:flex text-xs font-medium text-white/80">
-              <a href="#hero" className="text-white hover:text-white/90 transition-colors">
-                Home
-              </a>
-              <a href="#services" className="hover:text-white transition-colors">
-                About
-              </a>
-              <a href="#services" className="hover:text-white transition-colors">
-                Biomarkers
-              </a>
-              <a href="#evidence" className="hover:text-white transition-colors">
-                Clinical Multiplicity
-              </a>
-              <a href="#services" className="hover:text-white transition-colors">
-                Neuroimaging
-              </a>
-              <a href="#contact" className="hover:text-white transition-colors">
-                Documentation
-              </a>
-            </nav>
-
-            {/* Right Action */}
-            <div className="flex items-center gap-3">
-              <Link
-                to="/login"
-                className="hidden sm:inline-flex rounded-full px-4 py-1.5 text-xs font-semibold text-white hover:bg-white/10 transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                to="/cases"
-                className="flex items-center gap-1.5 rounded-full bg-white px-5 py-2 text-xs font-bold text-indigo-600 shadow-md hover:bg-indigo-50 hover:shadow-lg transition-all"
-              >
-                <span>Launch PACS</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </Link>
-            </div>
-          </header>
-
-          {/* =========================================================================
-              HERO MAIN CONTENT (Split 2-Column: Left Text, Right 3D Brain & Floating Badges)
-             ========================================================================= */}
-          <div className="relative z-20 grid flex-1 grid-cols-1 items-center gap-8 py-8 lg:grid-cols-12 lg:gap-12">
-            
-            {/* Left Column: Headlines & Call to Action */}
-            <div className="flex flex-col items-start space-y-6 text-white lg:col-span-6 lg:py-6">
-              
-              {/* Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3.5 py-1 text-xs font-medium text-white backdrop-blur-md border border-white/20">
-                <Sparkles className="h-3.5 w-3.5 text-indigo-200" />
-                <span>WHO 2021 CNS5 Molecular Taxonomy</span>
-              </div>
-
-              {/* Title */}
-              <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl leading-[1.12]">
-                We bring non-invasive <br className="hidden sm:inline" />
-                molecular neuro-biopsy.
-              </h1>
-
-              {/* Description */}
-              <p className="max-w-xl text-sm sm:text-base text-white/80 leading-relaxed font-normal">
-                Classifying IDH1/2 mutations, 1p/19q codeletion, and WHO CNS tumor grade directly from multiparametric MRI before invasive craniotomy. Powered by predictive multiplicity and true 3D spatial voxel modeling.
-              </p>
-
-              {/* Actions */}
-              <div className="flex flex-wrap items-center gap-3.5 pt-2">
-                <Link
-                  to="/cases"
-                  className="rounded-full bg-white px-7 py-3 text-xs sm:text-sm font-bold text-indigo-600 shadow-xl hover:bg-indigo-50 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-                >
-                  Explore Patient Cohort
-                </Link>
-                <Link
-                  to="/cases/UCSF-PDGM-0018"
-                  className="rounded-full bg-white/15 px-6 py-3 text-xs sm:text-sm font-semibold text-white backdrop-blur-md border border-white/20 hover:bg-white/25 transition-all"
-                >
-                  Live Demo (Case 0018)
-                </Link>
-              </div>
-
-              {/* Trust Avatar & Social Proof Pill (Like reference) */}
-              <div className="flex items-center gap-3.5 pt-4 rounded-2xl bg-white/10 p-3 backdrop-blur-md border border-white/15">
-                <div className="flex -space-x-2">
-                  {["#60a5fa", "#34d399", "#f472b6", "#a78bfa"].map((c, i) => (
-                    <div
-                      key={i}
-                      className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-indigo-600 text-[10px] font-bold text-white shadow"
-                      style={{ backgroundColor: c }}
-                    >
-                      {String.fromCharCode(65 + i)}
-                    </div>
-                  ))}
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full border-2 border-indigo-600 bg-white text-[10px] font-bold text-indigo-600 shadow">
-                    +494
-                  </div>
-                </div>
-                <div className="text-left text-xs">
-                  <div className="font-bold text-white">494 UCSF-PDGM Patients</div>
-                  <div className="text-[11px] text-white/70">Verified test cohort with held-out validation</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: 3D Holographic Brain & Floating Frosted Glass Chips */}
-            <div className="relative flex h-[380px] sm:h-[480px] lg:h-[560px] w-full items-center justify-center lg:col-span-6">
-              
-              {/* Central Glowing Radial */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="h-72 w-72 sm:h-96 sm:w-96 rounded-full bg-white/20 blur-3xl" />
-              </div>
-
-              {/* Interactive 3D Brain Particle Cloud */}
-              <div className="relative z-10 h-full w-full">
-                <InteractiveBrain3D />
-              </div>
-
-              {/* Floating Pill 1: Stability Badge (Top Left) */}
-              <div className="absolute -top-2 sm:top-8 left-2 sm:left-4 z-20 flex items-center gap-2.5 rounded-2xl bg-white/85 px-4 py-2.5 text-xs text-slate-800 shadow-xl backdrop-blur-lg border border-white/60">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                  <ShieldCheck className="h-4 w-4" />
-                </div>
-                <div>
-                  <div className="font-bold text-[11px] text-slate-900">Stable Agreement</div>
-                  <div className="text-[10px] text-slate-500">97.8% diagnostic accuracy</div>
-                </div>
-              </div>
-
-              {/* Floating Pill 2: IDH AUC Metric (Middle Right) */}
-              <div className="absolute top-1/2 -translate-y-1/2 right-0 sm:right-2 z-20 flex items-center gap-3 rounded-2xl bg-white/90 px-4 py-3 text-xs text-slate-800 shadow-xl backdrop-blur-lg border border-white/70">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                  <Activity className="h-5 w-5" />
-                </div>
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-slate-400">IDH Fused AUC</div>
-                  <div className="text-base font-extrabold text-indigo-600">0.9772</div>
-                </div>
-              </div>
-
-              {/* Floating Pill 3: Call & Verified Chip (Bottom Left) */}
-              <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-10 z-20 flex items-center gap-3 rounded-full bg-white px-4 py-2 text-xs text-slate-800 shadow-2xl border border-slate-100">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-indigo-600 text-white shadow-sm">
-                  <PhoneCall className="h-3.5 w-3.5" />
-                </div>
-                <div className="text-left font-mono">
-                  <span className="text-[10px] text-slate-400 block font-sans">Decision Support</span>
-                  <span className="text-xs font-bold text-slate-800">Ready for Tumor Board</span>
-                </div>
-              </div>
-
-              {/* Floating Mini Controls (Bottom Right - like call buttons in reference) */}
-              <div className="absolute bottom-4 sm:bottom-8 right-4 sm:right-8 z-20 flex items-center gap-2 rounded-full bg-white/80 p-1.5 shadow-xl backdrop-blur-md">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
-                  <CheckCircle2 className="h-4 w-4" />
-                </div>
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500 text-white shadow-sm">
-                  <Layers className="h-4 w-4" />
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </div>
+      {/* Ambient Deep Radial Backlight */}
+      <div className="pointer-events-none absolute top-16 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-purple-900/20 blur-[160px] z-0" />
 
       {/* =========================================================================
-          SECTION 2: CLEAN WHITE BENTO SERVICES CARDS (Identical to reference layout)
+          MINIMALIST TOP NAVBAR (Matching Wope: Logo Left, Center Links, Right Auth)
          ========================================================================= */}
-      <section id="services" className="mx-auto max-w-7xl px-6 py-20 md:px-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-          <div>
-            <span className="text-xs font-bold tracking-widest uppercase text-indigo-600">
-              Clinical Services You Can Rely On
-            </span>
-            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
-              Comprehensive Neuro-Oncology <br className="hidden sm:inline" />
-              Biomarker Intelligence
-            </h2>
+      <header className="relative z-40 mx-auto flex h-20 w-full max-w-7xl items-center justify-between px-6 md:px-12">
+        {/* Brand Logo */}
+        <Link to="/" className="flex items-center gap-2.5 group">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.5)]">
+            <Brain className="h-4 w-4" />
           </div>
-          <p className="mt-4 md:mt-0 max-w-md text-sm text-slate-500 leading-relaxed">
-            Integrating 24 near-optimal candidate model sets per marker to expose predictive multiplicity and eliminate artificial algorithmic certainty.
-          </p>
+          <span className="font-extrabold text-lg tracking-tight text-white group-hover:text-purple-300 transition-colors">
+            void<span className="text-purple-400">pacs</span>
+          </span>
+        </Link>
+
+        {/* Center Nav Links */}
+        <nav className="hidden md:flex items-center gap-8 text-xs font-medium text-slate-300">
+          <a href="#hero" className="hover:text-white transition-colors">
+            Overview
+          </a>
+          <a href="#dashboard" className="hover:text-white transition-colors">
+            Case Engine
+          </a>
+          <a href="#features" className="hover:text-white transition-colors">
+            Multiplicity AI
+          </a>
+          <a href="#specs" className="hover:text-white transition-colors">
+            Specifications
+          </a>
+        </nav>
+
+        {/* Right Auth / Action */}
+        <div className="flex items-center gap-5 text-xs">
+          <Link
+            to="/login"
+            className="text-slate-300 hover:text-white font-medium transition-colors"
+          >
+            Log in
+          </Link>
+          <Link
+            to="/cases"
+            className="rounded-full bg-white/10 hover:bg-white/20 border border-white/20 px-5 py-2 font-semibold text-white backdrop-blur-md shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all"
+          >
+            Launch PACS
+          </Link>
+        </div>
+      </header>
+
+      {/* =========================================================================
+          SECTION 1 (100vh): HERO COPY & FLOATING INTERACTIVE DASHBOARD PREVIEW
+         ========================================================================= */}
+      <section
+        id="hero"
+        className="relative z-30 flex min-h-[calc(100vh-5rem)] w-full flex-col items-center justify-start px-4 sm:px-6 pt-12 pb-16 text-center"
+      >
+        {/* Main Headline (Exact Wope Typography styling) */}
+        <h1 className="max-w-4xl text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white leading-[1.12]">
+          New Era of Molecular <br className="hidden sm:inline" />
+          Neuro-Oncology
+        </h1>
+
+        {/* Sub-headline */}
+        <p className="mt-5 max-w-2xl text-sm sm:text-base text-slate-300/80 leading-relaxed font-normal">
+          Let predictive multiplicity do the heavy lifting. Stratify IDH1/2 mutations, 1p/19q codeletion,
+          and WHO CNS Grade directly from multiparametric MRI before biopsy.
+        </p>
+
+        {/* Center Pill Badge Button */}
+        <div className="mt-6 inline-flex">
+          <Link
+            to="/cases"
+            className="rounded-full border border-purple-500/40 bg-purple-950/40 px-5 py-2 text-xs font-medium text-purple-200 backdrop-blur-md shadow-[0_0_20px_rgba(168,85,247,0.2)] hover:border-purple-400 hover:bg-purple-900/50 transition-all flex items-center gap-2"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-purple-400" />
+            <span>WHO 2021 CNS5 Taxonomy · 494 Verified Cases</span>
+            <ChevronRight className="h-3.5 w-3.5 text-purple-400" />
+          </Link>
         </div>
 
-        {/* 6 Clean White Bento Cards with Light Borders & Numbers */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[
-            {
-              id: "01",
-              title: "IDH1 / IDH2 Status",
-              sub: "Primary Diffuse Glioma Classification",
-              desc: "Fused clinical-radiomic model achieving 0.977 AUC. Resolves astrocytoma from glioblastoma non-invasively before stereotactic biopsy.",
-              tag: "0.977 AUC",
-            },
-            {
-              id: "02",
-              title: "1p/19q Codeletion",
-              sub: "Oligodendroglioma Hallmark",
-              desc: "Synergistic prediction reaching 0.974 AUC when conditioned on known IDH mutation. Eliminates unnecessary FISH delay.",
-              tag: "0.974 AUC",
-            },
-            {
-              id: "03",
-              title: "WHO CNS Grade",
-              sub: "Histopathologic Malignancy",
-              desc: "Direct 3D spatial discrimination of Grade 4 microvascular proliferation and pseudopalisading necrosis against Grade 2–3 tumors.",
-              tag: "0.999 AUC",
-            },
-            {
-              id: "04",
-              title: "Predictive Multiplicity",
-              sub: "Rashomon Ensemble Framework",
-              desc: "Classifies cases into STABLE (≥85% consensus, 2.2% error), CONTESTED, and ARBITRARY to protect against single-model overconfidence.",
-              tag: "Rashomon Set",
-            },
-            {
-              id: "05",
-              title: "3D Multiplanar Viewport",
-              sub: "WebGL Hardware Raycasting",
-              desc: "Streams genuine skull-stripped T1, T1c, T2, FLAIR, and discrete tumor segmentations [0, 1, 2, 4] directly to the radiologist's screen.",
-              tag: "NiiVue WebGL",
-            },
-            {
-              id: "06",
-              title: "Low-Signal Safeguards",
-              sub: "Prior Echoing Detection",
-              desc: "Calculates empirical base-rate skill. When model sets merely echo cohort prevalence (e.g. MGMT at 0.4%), flags 'No reliable signal'.",
-              tag: "Safe Guard",
-            },
-          ].map((card, i) => (
-            <div
-              key={i}
-              className="group relative flex flex-col justify-between rounded-3xl bg-white p-8 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 border border-slate-100"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600 font-mono font-bold text-xs group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                    +{card.id}
-                  </span>
-                  <span className="rounded-full bg-slate-50 px-3 py-1 text-[11px] font-semibold text-slate-500 border border-slate-100">
-                    {card.tag}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                  {card.title}
-                </h3>
-                <div className="text-xs font-medium text-slate-400 mt-1 mb-3">
-                  {card.sub}
-                </div>
-                <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                  {card.desc}
-                </p>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-indigo-600">
-                <span>View case evidence</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </div>
+        {/* =========================================================================
+            THE GLASS DASHBOARD PREVIEW (Positioned on the horizon line like Wope)
+           ========================================================================= */}
+        <div
+          id="dashboard"
+          className="relative mt-12 w-full max-w-6xl rounded-2xl border border-white/15 bg-[#0e071c]/75 p-5 backdrop-blur-2xl shadow-[0_20px_70px_rgba(0,0,0,0.8),0_0_50px_rgba(168,85,247,0.15)] text-left transition-all"
+        >
+          {/* Dashboard Window Header Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4 text-xs font-mono">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 rounded-lg bg-white/10 px-2.5 py-1 text-slate-300 font-semibold border border-white/10">
+                <Brain className="h-3.5 w-3.5 text-purple-400" />
+                <span>Virtual Biopsy Explorer</span>
+              </span>
+              <span className="text-slate-500">/</span>
+              <span className="text-purple-300 font-bold">UCSF-PDGM Test Split</span>
             </div>
-          ))}
+
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/10 px-2.5 py-1 text-slate-400">
+                <Filter className="h-3 w-3" />
+                <span>Filter</span>
+              </div>
+              <div className="flex items-center gap-1.5 rounded-lg bg-white/5 border border-white/10 px-2.5 py-1 text-slate-400">
+                <ArrowUpDown className="h-3 w-3" />
+                <span>Sort: Agreement</span>
+              </div>
+              <Link
+                to="/cases"
+                className="flex items-center gap-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 px-3 py-1 font-bold text-white shadow transition-colors"
+              >
+                <span>Live Viewport</span>
+                <ExternalLink className="h-3 w-3" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Table Container (Styled identically to Wope Keyword Finder) */}
+          <div className="mt-4 overflow-x-auto">
+            <table className="w-full text-left text-xs font-mono">
+              <thead>
+                <tr className="border-b border-white/10 text-slate-400 uppercase text-[10px] tracking-wider">
+                  <th className="py-2.5 px-3">Patient ID</th>
+                  <th className="py-2.5 px-3">Clinical</th>
+                  <th className="py-2.5 px-3">IDH Fused (AUC 0.977)</th>
+                  <th className="py-2.5 px-3">1p/19q (AUC 0.974)</th>
+                  <th className="py-2.5 px-3">WHO Grade</th>
+                  <th className="py-2.5 px-3">Verdict</th>
+                  <th className="py-2.5 px-3">Set Agreement</th>
+                  <th className="py-2.5 px-3">Prob IQR</th>
+                  <th className="py-2.5 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5">
+                {demoCases.map((c, idx) => (
+                  <tr
+                    key={idx}
+                    className="group hover:bg-white/[0.04] transition-colors"
+                  >
+                    {/* Patient ID */}
+                    <td className="py-3 px-3 font-bold text-white flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-purple-400 shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+                      <span>{c.id}</span>
+                    </td>
+
+                    {/* Age/Sex */}
+                    <td className="py-3 px-3 text-slate-400">
+                      {c.age}y · {c.sex}
+                    </td>
+
+                    {/* IDH */}
+                    <td className="py-3 px-3 text-slate-200">
+                      <span className="font-semibold text-purple-300">{c.idh}</span>
+                    </td>
+
+                    {/* 1p/19q */}
+                    <td className="py-3 px-3 text-slate-300">
+                      {c.codeletion}
+                    </td>
+
+                    {/* Grade */}
+                    <td className="py-3 px-3 text-slate-300">
+                      {c.grade}
+                    </td>
+
+                    {/* Verdict */}
+                    <td className="py-3 px-3">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                          c.verdict === "STABLE"
+                            ? "bg-emerald-950/80 text-emerald-300 border border-emerald-700/60"
+                            : "bg-amber-950/80 text-amber-300 border border-amber-700/60"
+                        }`}
+                      >
+                        {c.verdict === "STABLE" ? (
+                          <ShieldCheck className="h-3 w-3" />
+                        ) : (
+                          <Activity className="h-3 w-3" />
+                        )}
+                        <span>{c.verdict}</span>
+                      </span>
+                    </td>
+
+                    {/* Agreement Bar */}
+                    <td className="py-3 px-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-14 rounded-full bg-white/10 overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-purple-500 to-emerald-400 rounded-full"
+                            style={{ width: c.agreement }}
+                          />
+                        </div>
+                        <span className="text-[11px] text-slate-300">{c.agreement}</span>
+                      </div>
+                    </td>
+
+                    {/* IQR */}
+                    <td className="py-3 px-3 text-slate-400">
+                      ±{c.iqr}
+                    </td>
+
+                    {/* Action Button */}
+                    <td className="py-3 px-3 text-right">
+                      <Link
+                        to={`/cases/${c.id}`}
+                        className="inline-flex items-center gap-1 rounded-md bg-purple-900/40 hover:bg-purple-800/60 border border-purple-700/50 px-2.5 py-1 text-[11px] font-semibold text-purple-200 transition-colors"
+                      >
+                        <span>Open 3D</span>
+                        <ChevronRight className="h-3 w-3" />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Table Bottom Status Footer */}
+          <div className="mt-4 flex flex-wrap items-center justify-between border-t border-white/10 pt-3 text-[11px] font-mono text-slate-400">
+            <div className="flex items-center gap-4">
+              <span>Verified n=494 UCSF Patients</span>
+              <span>·</span>
+              <span className="text-emerald-400">● 15 Multiplicity Ensembles Deployed</span>
+              <span>·</span>
+              <span>240×240×155 True Voxel Arrays</span>
+            </div>
+            <Link
+              to="/cases"
+              className="text-purple-400 hover:text-purple-300 transition-colors font-bold flex items-center gap-1"
+            >
+              <span>Explore All 9 Test Demo Volumes</span>
+              <ArrowRight className="h-3 w-3" />
+            </Link>
+          </div>
         </div>
+
       </section>
 
       {/* =========================================================================
-          SECTION 3: CLINICAL TESTIMONIALS & TRUST SECTION (Ref image card style)
+          SECTION 2 (100vh): RASHOMON MULTIPLICITY EXPLAINER
          ========================================================================= */}
-      <section id="evidence" className="bg-[#f0f3fa] py-20 px-6 md:px-12">
-        <div className="mx-auto max-w-7xl">
-          <div className="text-center max-w-2xl mx-auto mb-14">
-            <span className="text-xs font-bold tracking-widest uppercase text-indigo-600">
-              Evidence-Based Molecular Oncology
+      <section
+        id="features"
+        className="relative z-30 flex min-h-screen w-full flex-col items-center justify-center border-t border-white/10 bg-[#07030e] px-6 py-20 md:px-16"
+      >
+        <div className="mx-auto flex h-full max-w-6xl flex-col justify-center space-y-8">
+          <div className="flex flex-col space-y-3 text-center max-w-2xl mx-auto">
+            <span className="font-mono text-xs font-bold text-purple-400 uppercase tracking-widest">
+              The Rashomon Multiplicity Engine
             </span>
-            <h2 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
-              Clinicians Who Rely on VOID
+            <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight">
+              Why Single Models Fail In Neuro-Oncology
             </h2>
-            <p className="mt-3 text-sm text-slate-500">
-              Validated on 494 institutional cases with zero synthetic shortcuts.
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              In clinical radiology, multiple distinct models achieve equal top-tier loss but make conflicting predictions on borderline patients. VOID isolates the entire near-optimal set to quantify true clinical certainty.
             </p>
           </div>
 
+          {/* 3 Pillars of Multiplicity */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                role: "Neuro-Surgeon",
-                title: "Pre-Operative Trajectory Planning",
-                comment: "Knowing IDH mutation status non-invasively changes whether we plan supratotal resection or stereotactic debulking on morning rounds.",
-                author: "Dr. Aaron Schader",
-                sub: "Chief of Neurosurgery",
-              },
-              {
-                role: "Neuro-Radiologist",
-                title: "Zero False Confidence",
-                comment: "Most AI models give a single confident percentage. VOID tells us if the models disagree, exactly when we need to be vigilant.",
-                author: "Dr. Elena Vance",
-                sub: "Attending Neuroradiologist",
-              },
-              {
-                role: "Neuro-Pathologist",
-                title: "1p/19q Fish Concordance",
-                comment: "The fused-given-IDH model's 0.974 AUC provides rapid preliminary guidance while formal cytogenetics are processing.",
-                author: "Dr. Marcus Chen",
-                sub: "Molecular Neuropathology",
-              },
-            ].map((card, idx) => (
-              <div
-                key={idx}
-                className="rounded-3xl bg-white p-7 shadow-sm border border-slate-100/80 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-center gap-1 text-amber-400 mb-4">
-                    {"★".repeat(5)}
-                  </div>
-                  <h4 className="text-base font-bold text-slate-900 mb-2">
-                    {card.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed italic">
-                    "{card.comment}"
-                  </p>
-                </div>
-                <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-full bg-indigo-100 flex items-center justify-center font-bold text-indigo-600 text-xs">
-                    {card.author[4]}
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-900">{card.author}</div>
-                    <div className="text-[11px] text-slate-400">{card.sub}</div>
-                  </div>
-                </div>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-7 backdrop-blur-xl space-y-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-950 border border-purple-700/60 text-purple-400">
+                <Database className="h-5 w-5" />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              <h3 className="font-bold text-base text-white">24 Candidates Per Marker</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Trained across LightGBM, elastic-net Logistic Regression, and ExtraTrees with 50–70% feature bagging on 268 pyradiomics features.
+              </p>
+            </div>
 
-      {/* =========================================================================
-          SECTION 4: DARK BOTTOM CTA BANNER (Like reference image bottom left card)
-         ========================================================================= */}
-      <section className="p-4 sm:p-8">
-        <div className="mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-[#0c0d18] px-8 py-16 text-center text-white sm:px-16 shadow-2xl">
-          <span className="text-xs font-bold tracking-widest uppercase text-indigo-400">
-            Pre-Operative Decision Support
-          </span>
-          <h2 className="mt-3 text-3xl font-extrabold tracking-tight sm:text-5xl max-w-3xl mx-auto">
-            Transforming Neurosurgical Care With Molecular Certainty.
-          </h2>
-          <p className="mt-4 max-w-xl mx-auto text-sm sm:text-base text-slate-400">
-            Open a demo study, interact with real 3D NIfTI brain volumes, and test predictive multiplicity live in the browser.
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-4">
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-7 backdrop-blur-xl space-y-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-950 border border-purple-700/60 text-purple-400">
+                <ShieldCheck className="h-5 w-5 text-emerald-400" />
+              </div>
+              <h3 className="font-bold text-base text-white">2.2% Error on Stable Calls</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                When models achieve ≥85% consensus with probability IQR ≤ 0.20, test error drops to 2.2% (vs 42.9% on contested cases).
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-7 backdrop-blur-xl space-y-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-950 border border-purple-700/60 text-purple-400">
+                <Cpu className="h-5 w-5 text-amber-400" />
+              </div>
+              <h3 className="font-bold text-base text-white">Low-Signal Safeguards</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Measures out-of-fold log-loss against base-rate prevalence. Markers that merely echo the prior (e.g. MGMT at 0.4% skill) flag "No reliable signal".
+              </p>
+            </div>
+          </div>
+
+          {/* Quick Action Banner */}
+          <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-950/40 via-purple-900/30 to-purple-950/40 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+            <div className="flex items-center gap-3">
+              <Sparkles className="h-5 w-5 text-purple-400 shrink-0" />
+              <span className="text-slate-200">
+                <strong>Synergy Verified:</strong> 1p/19q test AUC increases from 0.897 to <strong>0.974</strong> when conditioned on known IDH mutation.
+              </span>
+            </div>
             <Link
               to="/cases"
-              className="rounded-full bg-indigo-600 px-8 py-3.5 text-xs sm:text-sm font-bold text-white shadow-lg hover:bg-indigo-500 hover:shadow-indigo-500/25 transition-all"
+              className="rounded-xl bg-purple-600 hover:bg-purple-500 px-5 py-2 font-bold text-white shadow transition-all shrink-0"
             >
-              Access Clinical Workspace
-            </Link>
-            <Link
-              to="/login"
-              className="rounded-full bg-white/10 px-8 py-3.5 text-xs sm:text-sm font-semibold text-white backdrop-blur-md border border-white/15 hover:bg-white/20 transition-all"
-            >
-              Sign In as Clinician
+              Test In Workspace →
             </Link>
           </div>
         </div>
       </section>
 
       {/* =========================================================================
-          CLEAN SLATE FOOTER
+          SECTION 3: FOOTER
          ========================================================================= */}
-      <footer id="contact" className="border-t border-slate-200 bg-white py-12 px-6 md:px-12 text-xs text-slate-500">
+      <footer id="specs" className="relative z-30 border-t border-white/10 bg-[#040108] py-12 px-6 md:px-12 text-xs text-slate-500 font-mono">
         <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-[10px]">
-              V
-            </div>
-            <span className="font-bold text-slate-800">VOID / PACS</span>
-            <span className="text-slate-300">|</span>
+          <div className="flex items-center gap-3">
+            <Brain className="h-4 w-4 text-purple-400" />
+            <span className="font-bold text-slate-300">VOID / PACS</span>
+            <span>·</span>
             <span>UCSF-PDGM Molecular Multiplicity System</span>
           </div>
 
-          <div className="flex items-center gap-6">
-            <Link to="/cases" className="hover:text-indigo-600 transition-colors">
+          <div className="flex items-center gap-6 text-[11px] text-slate-400">
+            <Link to="/cases" className="hover:text-purple-400 transition-colors">
               Patient Cohort
             </Link>
-            <Link to="/login" className="hover:text-indigo-600 transition-colors">
+            <Link to="/login" className="hover:text-purple-400 transition-colors">
               Staff Portal
             </Link>
             <a
               href="https://github.com/Manipal-Hackathon-2026/Void"
               target="_blank"
               rel="noreferrer"
-              className="hover:text-indigo-600 transition-colors"
+              className="hover:text-purple-400 transition-colors"
             >
-              GitHub Repo
+              GitHub Repository
             </a>
           </div>
 
-          <div className="text-[11px] text-slate-400">
-            © 2026 Manipal Hackathon · Clinical Research Use Only
+          <div className="text-[10px] text-slate-600">
+            For Clinical Decision-Support & Investigational Research Use Only.
           </div>
         </div>
       </footer>
