@@ -97,3 +97,20 @@ def test_descriptor_fractions_in_unit_interval(table):
     for column in ("desc__enhancing_fraction", "desc__necrosis_fraction"):
         if column in table:
             assert table[column].dropna().between(0, 1).all(), f"{column} outside [0, 1]"
+
+
+def test_prior_biopsy_matches_the_raw_clinical_column(table):
+    """The column is reproducible from the unmodified clinical values (ml/pipeline/prior_biopsy.py)."""
+    import importlib.util
+
+    raw_path=FEATURE_TABLE.parent/"prior_biopsy_raw.csv"
+    if not raw_path.is_file():
+        pytest.skip("raw prior_biopsy values not committed")
+    script=get_settings().repo_root/"ml"/"pipeline"/"prior_biopsy.py"
+    spec=importlib.util.spec_from_file_location("prior_biopsy", script)
+    assert spec is not None and spec.loader is not None
+    module=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    raw=pd.read_csv(raw_path, dtype=str, keep_default_na=False)
+    assert set(table["patient_id"])<=set(raw["patient_id"])
+    assert module.mismatches(table, raw)==[]

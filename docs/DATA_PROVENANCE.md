@@ -102,6 +102,7 @@ Missing labels stay `NaN`; targets are never imputed.
 - `age`: Patient age at scan (years, 18–100)
 - `sex`: Biological sex (1=Male, 0=Female)
 - `prior_biopsy`: Stereotactic biopsy performed prior to MRI scan (1.0=Yes, 0.0=No, NaN=unrecorded)
+  - Source: clinical CSV column "Biopsy prior to imaging", copied unmodified per patient into `artifacts/features/prior_biopsy_raw.csv` (No 426, Yes 68, blank 0). Encoded by `ml/pipeline/prior_biopsy.py`; CI checks the table against it (`test_prior_biopsy_matches_the_raw_clinical_column`).
   - Yes: 68 patients (13.8%)
   - No: 426 patients (86.2%)
   - Unrecorded: 0 patients
