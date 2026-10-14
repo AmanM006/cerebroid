@@ -130,16 +130,6 @@ export function NovaCell3DScene() {
       opacity: 0.85,
     })
 
-    // Small floater nucleus material
-    const floaterNucleusMat = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#0284c7"),
-      emissive: new THREE.Color("#0369a1"),
-      emissiveIntensity: 0.6,
-      roughness: 0.3,
-      transparent: true,
-      opacity: 0.95,
-    })
-
     // -------------------------------------------------------------
     // 1. PRIMARY HERO VESICLE WITH 3D ORGANIC TUMOR SPHEROID CORE
     // -------------------------------------------------------------
@@ -257,19 +247,6 @@ export function NovaCell3DScene() {
       const sGeo = new THREE.SphereGeometry(sat.r, 36, 36)
       const sMesh = new THREE.Mesh(sGeo, floaterMaterial)
       g.add(sMesh)
-
-      // Add small inner nuclei
-      const nGeo = new THREE.SphereGeometry(sat.r * 0.35, 20, 20)
-      for (let k = 0; k < sat.nuclei; k++) {
-        const nMesh = new THREE.Mesh(nGeo, floaterNucleusMat)
-        const ang = (k / sat.nuclei) * Math.PI * 2
-        nMesh.position.set(
-          Math.cos(ang) * sat.r * 0.25,
-          Math.sin(ang) * sat.r * 0.25,
-          0
-        )
-        g.add(nMesh)
-      }
 
       masterGroup.add(g)
       satelliteMeshes.push({
