@@ -25,3 +25,7 @@ Current posture:
 - The API container runs as a non-root user.
 - All error responses are a stable `{error_code, message, request_id}` shape — no stack traces, SQL,
   file paths, or library versions ever reach a client (see `backend/app/core/errors.py`).
+- Passwords hashed with argon2id; 15-minute HS256 access tokens; rotating refresh tokens in HttpOnly,
+  SameSite=Strict cookies with reuse detection; account lockout after repeated failures.
+- One shared authorization dependency for every case route; other users' cases return 404.
+- The API refuses to start without a strong `JWT_SECRET_KEY`.

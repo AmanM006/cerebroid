@@ -1,17 +1,29 @@
+# Built from the repo root (see docker-compose.yml) because the API needs
+# artifacts/ and ml/configs/ as well as backend/. The image mirrors the repo
+# layout under /srv/vbx so paths resolve the same as in development.
 FROM python:3.11-slim
 
-WORKDIR /app
+# libgomp1: OpenMP runtime required by LightGBM.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system vbx && useradd --system --gid vbx --no-create-home vbx
 
-COPY requirements.txt .
+WORKDIR /srv/vbx/backend
+
+COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY app ./app
+COPY backend/alembic.ini .
+COPY backend/app ./app
+COPY ml/configs /srv/vbx/ml/configs
+COPY artifacts /srv/vbx/artifacts
 
-RUN chown -R vbx:vbx /app
+# Files stay owned by root: the API process can read its code and models but not modify them.
 USER vbx
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Apply pending migrations, then hand the process over to uvicorn.
+CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]

@@ -1,6 +1,8 @@
 services:
   api:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -8,6 +10,9 @@ services:
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-vbx}:${POSTGRES_PASSWORD:-vbx}@db:5432/${POSTGRES_DB:-vbx}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env (see .env.example)}
+      JWT_ACCESS_TOKEN_TTL_MINUTES: ${JWT_ACCESS_TOKEN_TTL_MINUTES:-15}
+      JWT_REFRESH_TOKEN_TTL_DAYS: ${JWT_REFRESH_TOKEN_TTL_DAYS:-7}
     depends_on:
       db:
         condition: service_healthy
@@ -18,6 +23,9 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-vbx}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vbx}
       POSTGRES_DB: ${POSTGRES_DB:-vbx}
+    ports:
+      # bound to localhost only, for running migrations/tests from the host
+      - "127.0.0.1:5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:

@@ -7,3 +7,13 @@ structlog==24.4.0
 sqlalchemy==2.0.36
 psycopg[binary]==3.2.3
 alembic==1.14.0
+argon2-cffi==25.1.0
+pyjwt==2.15.1
+# Model runtime. Must match the versions used to train artifacts/models (pickles are version-sensitive).
+numpy==2.4.6
+pandas==3.0.6
+scikit-learn==1.9.1
+scipy==1.17.1
+joblib==1.6.0
+lightgbm==4.7.0
+pyyaml==6.0.3

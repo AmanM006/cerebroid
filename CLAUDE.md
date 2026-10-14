@@ -108,7 +108,7 @@ Neuro-radiologist / neuro-oncologist. Flow: open case (or upload 4 NIfTI sequenc
 ## 3. DATA (exact plan — do not deviate without asking)
 
 - **Labels / clinical:** UCSF-PDGM clinical CSV + metadata glossary (TCIA, CC BY 4.0). Fields used as INPUTS: age, sex only. Fields used as TARGETS: IDH status, 1p/19q status, MGMT status, WHO grade (optional output), overall survival (stretch).
-- **Images:** BraTS 2021 training set (brain-extracted, co-registered NIfTI: T1, T1ce, T2, FLAIR + expert segmentation with labels for enhancing tumor / necrotic core / edema). Joined to UCSF-PDGM via the official **BraTS↔TCIA ID crosswalk** (TCIA). Expect ~300 joined patients.
+- **Images:** UCSF-PDGM's own skull-stripped, co-registered NIfTI volumes (T1, T1c, T2, FLAIR) and its tumor segmentation (enhancing tumor / necrotic core / edema), same patients and same CC BY 4.0 license as the labels. No cross-dataset join. Verify segmentation label values and file names on one case before the full extraction run. (Decision 2026-10-14, replacing the BraTS 2021 + crosswalk plan; see [docs/ADR/002-data-source.md](docs/ADR/002-data-source.md).)
 - **Bulk data never enters the repo or our laptops.** Feature extraction runs in a cloud notebook (Kaggle/Colab). The notebook itself IS committed (`ml/notebooks/`). Only derived artifacts are committed: the radiomics feature table (CSV/Parquet, MBs), trained model artifacts, and 5–8 small hero-case volumes for the demo (compressed NIfTI, each well under GitHub's 100 MB limit; verify license permits redistribution with attribution — ask me if unsure).
 - **Leakage rules (critical — judges may probe this):**
   - NEVER use as inputs: WHO grade, pathology diagnosis, extent of resection, treatment, survival, vital status, MGMT index, any post-operative variable.
@@ -183,6 +183,26 @@ Markers are registered via `ml/configs/markers.yaml`. Adding a marker = one plug
 | `GET /health`, `GET /ready` | Liveness; readiness (artifacts loaded + warm-up inference + DB) |
 Every inference response includes `model_version` (artifact sha256), `feature_pipeline_version`, `input_hash`, `request_id`, `latency_ms`.
 Every evidence/claim object in any response includes `provenance` (enum from §2.4 item 8) and `evidence_ids` linking to the items that support it. Pydantic response models must make these fields required so a claim without provenance cannot be serialized.
+
+### 4.5 Model artifact format (contract between Track ML and Track APP)
+Enforced by `backend/app/domain/registry.py`; a marker whose artifacts don't match is reported by `/ready` and never served.
+```
+artifacts/manifest.json              {"files": {"<path relative to artifacts/>": "<sha256 hex>"}, "library_versions": {...}}
+artifacts/models/<idh|1p19q|mgmt|grade>/
+  models.joblib                      list of fitted estimators, one per near-optimal set member, each with
+                                     predict_proba(DataFrame) -> [:, 1] = P(positive class). Imputation, scaling and
+                                     calibration live inside each estimator (e.g. an sklearn Pipeline).
+  meta.json                          {marker, feature_columns, feature_medians, decision_threshold,
+                                      verdict_thresholds: {stable_min_agreement, stable_max_iqr, arbitrary_max_agreement},
+                                      epsilon, models: [{model_id, family, cv_log_loss}], library_versions}
+```
+- `feature_columns`: ordered model inputs; `age`, `sex` (M=1.0, F=0.0) and convention-named features only (`contracts.py`). Missing values arrive as NaN.
+- `feature_medians`: training-cohort median per column (exactly the same keys); used for the startup warm-up prediction.
+- `models` in `meta.json` lists the set members in the same order as `models.joblib`.
+- Positive class per marker: IDH mutant, 1p/19q codeleted, MGMT methylated, GRADE grade 4 (vs 2–3).
+- Verdict: ARBITRARY if agreement ≤ `arbitrary_max_agreement`; STABLE if agreement ≥ `stable_min_agreement` and IQR of set probabilities ≤ `stable_max_iqr`; otherwise CONTESTED. Thresholds are chosen on CV data.
+- **Train with exactly the versions pinned in `backend/requirements.txt`** (numpy, pandas, scikit-learn, scipy, joblib, lightgbm); pickles are version-sensitive.
+- Every file under `artifacts/models/` must appear in `manifest.json` with its sha256; anything unlisted or mismatched is never unpickled.
 
 ---
 

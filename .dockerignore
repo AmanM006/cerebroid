@@ -1,0 +1,9 @@
+# Allowlist: only what the API image needs. Keeps .env, .git, virtualenvs and data out of the image.
+*
+!backend/requirements.txt
+!backend/alembic.ini
+!backend/app/
+!ml/configs/
+!artifacts/
+**/__pycache__
+**/*.pyc
