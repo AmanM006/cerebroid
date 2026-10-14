@@ -98,10 +98,10 @@ export function LandingPage() {
             </span>
           </a>
 
-          {/* Compact Crisp Rectangular Login Button linking to /login */}
+          {/* Balanced Rectangular Login Button linking to /login */}
           <Link
             to="/login"
-            className="inline-flex items-center justify-center px-4 py-1.5 rounded-none bg-white hover:bg-neutral-100 text-black font-bold text-xs tracking-wider uppercase shadow-[0_2px_12px_rgba(255,255,255,0.15)] hover:shadow-[0_4px_16px_rgba(255,255,255,0.25)] border border-white active:scale-95 transition-all duration-200 cursor-pointer"
+            className="inline-flex items-center justify-center px-6 py-2 rounded-none bg-white hover:bg-neutral-100 text-black font-bold text-sm tracking-wider uppercase shadow-[0_2px_14px_rgba(255,255,255,0.18)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.3)] border border-white active:scale-95 transition-all duration-200 cursor-pointer"
           >
             Login
           </Link>
