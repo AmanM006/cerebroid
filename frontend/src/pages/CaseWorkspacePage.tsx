@@ -196,7 +196,7 @@ export function CaseWorkspacePage() {
           style={{
             filter: `contrast(${contrast}%) brightness(${brightness}%)`,
           }}
-          className="h-full max-h-[38vh] w-auto max-w-full rounded-lg object-contain transition-all"
+          className="h-full max-h-[75vh] w-auto max-w-full rounded-lg object-contain transition-all"
         />
 
         <span className="absolute top-2 left-1/2 -translate-x-1/2 font-mono text-[9px] text-neutral-500 font-bold">S (SUPERIOR)</span>
@@ -343,49 +343,96 @@ export function CaseWorkspacePage() {
 
   return (
     <AppShell>
-      <div className="flex h-[calc(100vh-3.25rem)] w-full flex-col overflow-hidden bg-black px-4 py-2 space-y-2">
-        {/* Top Case Subheader */}
-        <div className="flex shrink-0 items-center justify-between border-b border-neutral-850 pb-1.5 px-1">
-          <div className="flex items-center gap-3">
-            <Link
-              to="/cases"
-              className="rounded-xl border border-neutral-800 bg-[#121212] px-3 py-1 text-xs font-mono text-neutral-300 hover:border-neutral-600 hover:text-white transition-all cursor-pointer"
+      <div className="w-full bg-black text-white">
+        {/* =========================================================================
+            SECTION 1 (First 100vh): Pure High-Resolution Radiologic Neuroimaging
+            - 3D NIfTI GPU Viewport & 2D True Voxel Slice side-by-side
+            - Full height utilization without feeling cramped
+           ========================================================================= */}
+        <section className="flex h-[calc(100vh-3.25rem)] w-full flex-col px-4 py-2 space-y-2">
+          {/* Top Case Header */}
+          <div className="flex shrink-0 items-center justify-between border-b border-neutral-850 pb-1.5 px-1">
+            <div className="flex items-center gap-3">
+              <Link
+                to="/cases"
+                className="rounded-xl border border-neutral-800 bg-[#121212] px-3 py-1 text-xs font-mono text-neutral-300 hover:border-neutral-600 hover:text-white transition-all cursor-pointer"
+              >
+                ← Back to Cohort
+              </Link>
+              <h1 className="text-sm font-mono font-bold text-white tracking-wide">
+                {study?.label ?? "Case Workspace"}
+              </h1>
+              {study && (
+                <div className="flex items-center gap-3 font-mono text-xs text-neutral-400">
+                  <span className="flex items-center gap-1.5">
+                    Age <strong className="text-white">{study.age.value ?? "—"}</strong>
+                    <ProvenanceBadge provenance={study.age.provenance} />
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    Sex <strong className="text-white">{study.sex.value ?? "—"}</strong>
+                    <ProvenanceBadge provenance={study.sex.provenance} />
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 font-mono text-xs">
+              <a
+                href="#molecular-section"
+                className="flex items-center gap-1.5 rounded-lg border border-neutral-800 bg-[#141414] px-2.5 py-1 text-[11px] text-neutral-300 hover:border-cyan-700 hover:text-cyan-300 transition-colors"
+              >
+                <span>↓ Molecular & Evidence (Scroll to Section 2)</span>
+              </a>
+              <span className="rounded-full bg-emerald-950/60 border border-emerald-700/50 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                ● Active Session
+              </span>
+            </div>
+          </div>
+
+          {error !== null && <ErrorNotice error={error} />}
+
+          {/* Section 1 Grid: Exactly fills 100vh with the 2 MRI viewers side by side */}
+          <div className="grid flex-1 grid-cols-1 md:grid-cols-2 gap-3 min-h-0 overflow-hidden">
+            {renderBlock(blocks[0] ?? "3d_viewport", 0)}
+            {renderBlock(blocks[1] ?? "2d_slice", 1)}
+          </div>
+        </section>
+
+        {/* =========================================================================
+            SECTION 2 (Second 100vh): Molecular Profile, Multiplicity & Evidence
+            - Deep diagnostic inference, stability flags, WHO 2021 criteria
+           ========================================================================= */}
+        <section
+          id="molecular-section"
+          className="flex min-h-[calc(100vh-3.25rem)] w-full flex-col border-t border-neutral-850 px-4 py-4 space-y-3 bg-[#050505]"
+        >
+          <div className="flex shrink-0 items-center justify-between border-b border-neutral-850 pb-2 px-1">
+            <div className="flex items-center gap-2 font-mono">
+              <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+              <h2 className="text-sm font-bold uppercase tracking-wider text-white">
+                Molecular Biomarker & Clinical Evidence Analysis
+              </h2>
+              <span className="rounded bg-[#161616] border border-neutral-800 px-2 py-0.5 text-[10px] text-neutral-400">
+                WHO 2021 CNS Taxonomy · Platt Calibrated Multiplicity
+              </span>
+            </div>
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                window.scrollTo({ top: 0, behavior: "smooth" })
+              }}
+              className="text-[11px] font-mono text-neutral-400 hover:text-white transition-colors"
             >
-              ← Back to Cohort
-            </Link>
-            <h1 className="text-sm font-mono font-bold text-white tracking-wide">
-              {study?.label ?? "Case Workspace"}
-            </h1>
-            {study && (
-              <div className="flex items-center gap-3 font-mono text-xs text-neutral-400">
-                <span className="flex items-center gap-1.5">
-                  Age <strong className="text-white">{study.age.value ?? "—"}</strong>
-                  <ProvenanceBadge provenance={study.age.provenance} />
-                </span>
-                <span className="flex items-center gap-1.5">
-                  Sex <strong className="text-white">{study.sex.value ?? "—"}</strong>
-                  <ProvenanceBadge provenance={study.sex.provenance} />
-                </span>
-              </div>
-            )}
+              ↑ Back to Neuroimaging Viewports
+            </a>
           </div>
 
-          <div className="flex items-center gap-3 font-mono text-xs">
-            <span className="text-[11px] text-neutral-500">
-              ⠿ Drag any block header or click to swap positions like Scratch blocks
-            </span>
-            <span className="rounded-full bg-emerald-950/60 border border-emerald-700/50 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-              ● Active Session
-            </span>
+          <div className="grid flex-1 grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="min-h-[550px]">{renderBlock(blocks[2] ?? "molecular_profile", 2)}</div>
+            <div className="min-h-[550px]">{renderBlock(blocks[3] ?? "evidence_doubt", 3)}</div>
           </div>
-        </div>
-
-        {error !== null && <ErrorNotice error={error} />}
-
-        {/* 2x2 Scratch Grid: Exactly 100vh bounded, fully visible on one screen */}
-        <div className="grid flex-1 grid-cols-1 md:grid-cols-2 grid-rows-2 gap-2.5 overflow-hidden min-h-0">
-          {blocks.map((blockId, index) => renderBlock(blockId, index))}
-        </div>
+        </section>
       </div>
     </AppShell>
   )
