@@ -56,6 +56,51 @@ export interface Readiness {
   markers: Record<string, MarkerStatus>
 }
 
+export type MarkerName="IDH" | "1p19q" | "MGMT" | "GRADE"
+export type Verdict="STABLE" | "CONTESTED" | "ARBITRARY"
+
+// Positive / negative class labels per marker; mirrors MARKER_LABELS in backend contracts.py.
+export const MARKER_LABELS: Record<MarkerName, { positive: string; negative: string; title: string }>={
+  IDH: { positive: "mutant", negative: "wildtype", title: "IDH" },
+  "1p19q": { positive: "codeleted", negative: "intact", title: "1p/19q co-deletion" },
+  MGMT: { positive: "methylated", negative: "unmethylated", title: "MGMT promoter" },
+  GRADE: { positive: "grade 4", negative: "grade 2-3", title: "WHO grade" },
+}
+
+export interface MarkerProfile {
+  marker: MarkerName
+  status: "known" | "predicted" | "unavailable"
+  call: string | null
+  provenance: Provenance
+  evidence_ids: string[]
+  verdict?: Verdict | null
+  variant?: string | null
+  n_models?: number | null
+  agreement?: number | null
+  prob_min?: number | null
+  prob_median?: number | null
+  prob_max?: number | null
+  model_version?: string | null
+  reason?: string | null
+}
+
+export interface Profile {
+  study_id: string
+  inputs: {
+    age: ProvenancedValue
+    sex: ProvenancedValue
+    prior_biopsy: ProvenancedValue
+    known_markers: { marker: MarkerName; value: ProvenancedValue }[]
+  }
+  missing_inputs: string[]
+  markers: MarkerProfile[]
+  model_versions: Record<string, string>
+  feature_pipeline_version: string
+  input_hash: string
+  request_id: string | null
+  latency_ms: number
+}
+
 export interface ErrorBody {
   error_code: string
   message: string

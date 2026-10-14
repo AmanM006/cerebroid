@@ -9,7 +9,7 @@
  * - Every failure becomes an ApiError carrying the server's error_code and
  *   request_id, so a user can report the exact request that failed.
  */
-import type { Case, CaseList, ErrorBody, Readiness, TokenResponse, User } from "./types"
+import type { Case, CaseList, ErrorBody, MarkerName, Profile, Readiness, TokenResponse, User } from "./types"
 
 export class ApiError extends Error {
   readonly status: number
@@ -104,6 +104,14 @@ export const api={
   me: ()=>getJson<User>("/api/v1/auth/me"),
   listCases: ()=>getJson<CaseList>("/api/v1/cases"),
   getCase: (id: string)=>getJson<Case>(`/api/v1/cases/${encodeURIComponent(id)}`),
+
+  /** known: lab results the clinician already has, 1 = positive class, 0 = negative. */
+  getProfile(id: string, known: Partial<Record<MarkerName, 0 | 1>>={}): Promise<Profile> {
+    const params=new URLSearchParams()
+    for (const [marker, value] of Object.entries(known)) params.append("known", `${marker}:${value}`)
+    const query=params.size>0 ? `?${params}` : ""
+    return getJson<Profile>(`/api/v1/studies/${encodeURIComponent(id)}/profile${query}`)
+  },
 
   /** /ready answers 503 while not ready, which is information here, not an error. */
   async readiness(): Promise<Readiness> {
