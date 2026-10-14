@@ -81,7 +81,7 @@ From multi-sequence brain MRI + tumor segmentation + patient context (age, sex),
 ### 2.3 Mapping to the problem statement (must remain demonstrable)
 | PS requirement | VBX feature |
 |---|---|
-| Combine images with patient information | Radiomics from 4 MRI sequences × 3 tumor sub-regions + age/sex (clinical context) |
+| Combine images with patient information | Radiomics from 4 anatomical MRI sequences + diffusion (ADC) + perfusion (ASL) × 3 tumor sub-regions, + age/sex (clinical context) + known lab results |
 | Identify relationships between sources | Fused vs imaging-only vs clinical-only comparison per patient; evidence-group interactions |
 | Highlight contributing findings | Grouped SHAP (sequence × region × feature-class, plus clinical), with cross-model agreement on the explanation |
 | Strong evidence vs uncertainty/missing | Stability verdicts, doubt decomposition, missing-sequence handling, OOD/data-sparsity flags |
@@ -112,6 +112,7 @@ Neuro-radiologist / neuro-oncologist. Flow: open case (or upload 4 NIfTI sequenc
 
 - **Labels / clinical:** UCSF-PDGM clinical CSV + metadata glossary (TCIA, CC BY 4.0). Fields used as INPUTS: age, sex only. Fields used as TARGETS: IDH status, 1p/19q status, MGMT status, WHO grade (optional output), overall survival (stretch).
 - **Images:** UCSF-PDGM's own skull-stripped, co-registered NIfTI volumes (T1, T1c, T2, FLAIR) and its tumor segmentation (enhancing tumor / necrotic core / edema), same patients and same CC BY 4.0 license as the labels. No cross-dataset join. Verify segmentation label values and file names on one case before the full extraction run. (Decision 2026-10-14, replacing the BraTS 2021 + crosswalk plan; see [docs/ADR/002-data-source.md](docs/ADR/002-data-source.md).)
+- **Physiological MRI (second feature pass):** UCSF-PDGM's diffusion (ADC, cell density) and perfusion (ASL, blood flow) volumes, extracted per tumor region with the same feature classes as the anatomical sequences; sequence codes `adc`, `asl`; a patient without one gets NaN features + `missing__adc` / `missing__asl` = 1. Comes after the first anatomical model sets are deployed. See [docs/ADR/003-physiological-mri.md](docs/ADR/003-physiological-mri.md).
 - **Bulk data never enters the repo or our laptops.** Feature extraction runs in a cloud notebook (Kaggle/Colab). The notebook itself IS committed (`ml/notebooks/`). Only derived artifacts are committed: the radiomics feature table (CSV/Parquet, MBs), trained model artifacts, and 5–8 small hero-case volumes for the demo (compressed NIfTI, each well under GitHub's 100 MB limit; verify license permits redistribution with attribution — ask me if unsure).
 - **Leakage rules (critical — judges may probe this):**
   - NEVER use as inputs: WHO grade, pathology diagnosis, extent of resection, treatment, survival, vital status, MGMT index, any post-operative variable.
