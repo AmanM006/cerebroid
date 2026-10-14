@@ -29,6 +29,9 @@ from app.api.schemas import (
     EvidenceOut,
     ClaimOut,
     FalsificationOut,
+    MarkerStateOut,
+    NextMeasurementsOut,
+    TestSuggestionOut,
     TippingItemOut,
     TippingOut,
     TrueResultOut,
@@ -40,6 +43,7 @@ from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenanc
 from app.domain.doubt import decompose, primary
 from app.domain.explain import explain_set
 from app.domain.falsification import Claim, build_falsification
+from app.domain.next_measurement import plan
 from app.domain.tipping import find_tipping_points
 from app.domain.feature_store import FeatureStore
 from app.domain.profile import MarkerResult, build_profile, known_label
@@ -467,4 +471,54 @@ def get_falsification(
         model_version=prediction.model_version,
         request_id=getattr(request.state, "request_id", None),
         latency_ms=round((time.perf_counter()-started)*1000, 2),
+    )
+
+
+@router.get("/{study_id}/next-measurements")
+def get_next_measurements(
+    request: Request,
+    known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
+    study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
+    registry: MarkerRegistry=Depends(get_registry),
+    store: FeatureStore=Depends(get_feature_store),
+) -> NextMeasurementsOut:
+    """Which WHO CNS5 categories the current calls leave open, and which lab test narrows them most."""
+    known_markers=_parse_known(known)
+    if not store.has(study.source_patient_id) or store.version is None:
+        raise AppError(
+            "FEATURES_NOT_READY", "Imaging features for this study are not available yet.",
+            status.HTTP_409_CONFLICT,
+        )
+    vector=store.vector_for(
+        patient_id=study.source_patient_id,  # type: ignore[arg-type]
+        study_id=str(study.id),
+        age=study.age,
+        sex=study.sex,
+        prior_biopsy=study.prior_biopsy,
+        known_markers=known_markers,
+    )
+    result=plan(build_profile(registry, vector))
+    audit("next_measurements.read", str(study.id))
+    return NextMeasurementsOut(
+        study_id=study.id,
+        input_hash=_input_hash(vector),
+        label="decision-support heuristic",
+        marker_states=[
+            MarkerStateOut(
+                marker=s.marker, value=s.value, settled=s.settled, from_lab=s.from_lab, reason=s.reason,
+                provenance=Provenance.CLINICAL_INPUT if s.from_lab
+                else Provenance.MISSING if s.value is None else Provenance.MODEL_INFERRED,
+            )
+            for s in result.states
+        ],
+        candidate_categories=result.candidates,
+        tests=[
+            TestSuggestionOut(
+                marker=t.marker, test=t.test, settled=t.settled, remaining_worst_case=t.remaining_worst_case,
+                reason=t.reason,
+            )
+            for t in result.tests
+        ],
+        request_id=getattr(request.state, "request_id", None),
     )

@@ -446,3 +446,17 @@ def test_model_card_describes_each_deployed_set(client, make_user, deployed):
 
 def test_model_card_requires_authentication(client, deployed):
     assert client.get("/api/v1/model-card").status_code==401
+
+
+def test_next_measurements_is_labelled_a_heuristic(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    headers=login(client, "alice")
+    r=client.get(f"/api/v1/studies/{study.id}/next-measurements", params={"known": "IDH:1"}, headers=headers)
+    assert r.status_code==200
+    body=r.json()
+    assert body["label"]=="decision-support heuristic"
+    idh=next(s for s in body["marker_states"] if s["marker"]=="IDH")
+    assert idh["from_lab"] and idh["provenance"]=="clinical_input"
+    assert "Glioblastoma, IDH-wildtype" not in body["candidate_categories"]
+    assert all(t["marker"]!="IDH" for t in body["tests"])
