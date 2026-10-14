@@ -118,14 +118,18 @@ export function NovaCell3DScene() {
       opacity: 0.85,
     })
 
-    // Sub-vesicle material for the satellite cells
+    // Sub-vesicle material for the satellite cells: identical glass transmission and liquid refraction
     const floaterMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#38bdf8"),
-      emissive: new THREE.Color("#0369a1"),
-      emissiveIntensity: 0.2,
-      roughness: 0.08,
-      transmission: 0.82,
+      color: new THREE.Color("#56d0fa"),
+      emissive: new THREE.Color("#0284c7"),
+      emissiveIntensity: 0.12,
+      roughness: 0.05,
+      metalness: 0.05,
+      transmission: 0.85,
       ior: 1.34,
+      thickness: 1.6,
+      specularIntensity: 1.2,
+      specularColor: new THREE.Color("#ffffff"),
       transparent: true,
       opacity: 0.85,
     })
