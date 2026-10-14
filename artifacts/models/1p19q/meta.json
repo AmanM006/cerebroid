@@ -37,7 +37,6 @@
     "flair__et__firstorder__Maximum",
     "flair__et__firstorder__Mean",
     "flair__et__firstorder__MeanAbsoluteDeviation",
-    "flair__et__firstorder__Median",
     "flair__et__firstorder__Minimum",
     "flair__et__firstorder__Range",
     "flair__et__firstorder__RootMeanSquared",
@@ -71,7 +70,6 @@
     "missing__ed",
     "missing__et",
     "missing__ncr",
-    "prior_biopsy",
     "sex",
     "shape__ed__shape__Elongation",
     "shape__ed__shape__Flatness",
@@ -112,7 +110,6 @@
     "t1__ed__glcm__Contrast",
     "t1__ed__glcm__Correlation",
     "t1__ed__glcm__Dissimilarity",
-    "t1__ed__glcm__Energy",
     "t1__ed__glcm__Homogeneity",
     "t1__et__firstorder__10Percentile",
     "t1__et__firstorder__90Percentile",
@@ -124,7 +121,6 @@
     "t1__et__firstorder__Mean",
     "t1__et__firstorder__MeanAbsoluteDeviation",
     "t1__et__firstorder__Median",
-    "t1__et__firstorder__Minimum",
     "t1__et__firstorder__Range",
     "t1__et__firstorder__RootMeanSquared",
     "t1__et__firstorder__Skewness",
@@ -194,7 +190,6 @@
     "t1ce__et__glcm__Dissimilarity",
     "t1ce__et__glcm__Energy",
     "t1ce__et__glcm__Homogeneity",
-    "t1ce__ncr__firstorder__10Percentile",
     "t1ce__ncr__firstorder__90Percentile",
     "t1ce__ncr__firstorder__Energy",
     "t1ce__ncr__firstorder__Entropy",
@@ -310,7 +305,6 @@
     "flair__et__firstorder__Maximum": 2677.831298828125,
     "flair__et__firstorder__Mean": 1657.6906519005815,
     "flair__et__firstorder__MeanAbsoluteDeviation": 222.90186330612372,
-    "flair__et__firstorder__Median": 1658.35693359375,
     "flair__et__firstorder__Minimum": 307.9576721191406,
     "flair__et__firstorder__Range": 2300.218505859375,
     "flair__et__firstorder__RootMeanSquared": 1694.72956946348,
@@ -344,7 +338,6 @@
     "missing__ed": 0.0,
     "missing__et": 0.0,
     "missing__ncr": 0.0,
-    "prior_biopsy": 0.0,
     "sex": 1.0,
     "shape__ed__shape__Elongation": 0.9362099992793894,
     "shape__ed__shape__Flatness": 0.734764251727643,
@@ -385,7 +378,6 @@
     "t1__ed__glcm__Contrast": 0.850446232467774,
     "t1__ed__glcm__Correlation": 0.8593515544427061,
     "t1__ed__glcm__Dissimilarity": 0.05940980991567005,
-    "t1__ed__glcm__Energy": 0.9836164753183368,
     "t1__ed__glcm__Homogeneity": 0.9918468529789829,
     "t1__et__firstorder__10Percentile": 1282.4267822265624,
     "t1__et__firstorder__90Percentile": 1908.0291748046875,
@@ -397,7 +389,6 @@
     "t1__et__firstorder__Mean": 1574.6182717589795,
     "t1__et__firstorder__MeanAbsoluteDeviation": 161.89273776029364,
     "t1__et__firstorder__Median": 1569.62841796875,
-    "t1__et__firstorder__Minimum": 584.9401245117188,
     "t1__et__firstorder__Range": 1730.0712890625,
     "t1__et__firstorder__RootMeanSquared": 1593.6894227704854,
     "t1__et__firstorder__Skewness": 0.12276670655428853,
@@ -467,7 +458,6 @@
     "t1ce__et__glcm__Dissimilarity": 0.034581763610890805,
     "t1ce__et__glcm__Energy": 0.9911688728971275,
     "t1ce__et__glcm__Homogeneity": 0.9934920792820368,
-    "t1ce__ncr__firstorder__10Percentile": 1591.1085815429688,
     "t1ce__ncr__firstorder__90Percentile": 2929.8021728515623,
     "t1ce__ncr__firstorder__Energy": 37057386499.826996,
     "t1ce__ncr__firstorder__Entropy": 5.175467585892561,
@@ -557,29 +547,29 @@
   "epsilon": 0.03,
   "models": [
     {
-      "model_id": "logreg-5",
-      "family": "logreg",
-      "cv_log_loss": 0.1303
+      "model_id": "extratrees_bag_4",
+      "family": "extratrees",
+      "cv_log_loss": 0.1359
     },
     {
-      "model_id": "logreg-4",
-      "family": "logreg",
-      "cv_log_loss": 0.1349
+      "model_id": "extratrees_bag_1",
+      "family": "extratrees",
+      "cv_log_loss": 0.1385
     },
     {
-      "model_id": "logreg-6",
-      "family": "logreg",
-      "cv_log_loss": 0.1373
+      "model_id": "extratrees_bag_5",
+      "family": "extratrees",
+      "cv_log_loss": 0.1405
     },
     {
-      "model_id": "logreg-1",
+      "model_id": "logreg_bag_7",
       "family": "logreg",
-      "cv_log_loss": 0.1375
+      "cv_log_loss": 0.1415
     },
     {
-      "model_id": "logreg-2",
-      "family": "logreg",
-      "cv_log_loss": 0.1375
+      "model_id": "extratrees_bag_0",
+      "family": "extratrees",
+      "cv_log_loss": 0.1416
     }
   ],
   "library_versions": {
@@ -589,5 +579,6 @@
     "scipy": "1.17.1",
     "joblib": "1.6.0",
     "lightgbm": "4.7.0"
-  }
+  },
+  "baseline_log_loss": 0.1691
 }

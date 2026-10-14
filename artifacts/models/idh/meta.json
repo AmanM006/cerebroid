@@ -71,7 +71,6 @@
     "missing__ed",
     "missing__et",
     "missing__ncr",
-    "prior_biopsy",
     "sex",
     "shape__ed__shape__Elongation",
     "shape__ed__shape__Flatness",
@@ -230,7 +229,6 @@
     "t2__ed__firstorder__Skewness",
     "t2__ed__firstorder__Variance",
     "t2__ed__glcm__Contrast",
-    "t2__ed__glcm__Correlation",
     "t2__ed__glcm__Dissimilarity",
     "t2__ed__glcm__Energy",
     "t2__ed__glcm__Homogeneity",
@@ -246,7 +244,6 @@
     "t2__et__firstorder__Median",
     "t2__et__firstorder__Minimum",
     "t2__et__firstorder__Range",
-    "t2__et__firstorder__RootMeanSquared",
     "t2__et__firstorder__Skewness",
     "t2__et__firstorder__Variance",
     "t2__et__glcm__Contrast",
@@ -262,7 +259,6 @@
     "t2__ncr__firstorder__Kurtosis",
     "t2__ncr__firstorder__Maximum",
     "t2__ncr__firstorder__Mean",
-    "t2__ncr__firstorder__MeanAbsoluteDeviation",
     "t2__ncr__firstorder__Median",
     "t2__ncr__firstorder__Minimum",
     "t2__ncr__firstorder__Range",
@@ -344,7 +340,6 @@
     "missing__ed": 0.0,
     "missing__et": 0.0,
     "missing__ncr": 0.0,
-    "prior_biopsy": 0.0,
     "sex": 1.0,
     "shape__ed__shape__Elongation": 0.9362099992793894,
     "shape__ed__shape__Flatness": 0.734764251727643,
@@ -503,7 +498,6 @@
     "t2__ed__firstorder__Skewness": 0.3472016080876635,
     "t2__ed__firstorder__Variance": 25143.429632992928,
     "t2__ed__glcm__Contrast": 0.2653788504954215,
-    "t2__ed__glcm__Correlation": 0.9028245915947428,
     "t2__ed__glcm__Dissimilarity": 0.038433131492542315,
     "t2__ed__glcm__Energy": 0.9836153447041527,
     "t2__ed__glcm__Homogeneity": 0.9916126446180125,
@@ -519,7 +513,6 @@
     "t2__et__firstorder__Median": 771.7752075195312,
     "t2__et__firstorder__Minimum": 129.8498077392578,
     "t2__et__firstorder__Range": 1415.6178741455078,
-    "t2__et__firstorder__RootMeanSquared": 804.316267104423,
     "t2__et__firstorder__Skewness": 0.4739789622565619,
     "t2__et__firstorder__Variance": 21931.044653740293,
     "t2__et__glcm__Contrast": 0.4213766364368702,
@@ -535,7 +528,6 @@
     "t2__ncr__firstorder__Kurtosis": 0.11200012220979083,
     "t2__ncr__firstorder__Maximum": 1570.1390380859375,
     "t2__ncr__firstorder__Mean": 994.265428785197,
-    "t2__ncr__firstorder__MeanAbsoluteDeviation": 134.42711890102518,
     "t2__ncr__firstorder__Median": 978.9534606933594,
     "t2__ncr__firstorder__Minimum": 332.4156951904297,
     "t2__ncr__firstorder__Range": 1181.1902160644531,
@@ -557,29 +549,29 @@
   "epsilon": 0.03,
   "models": [
     {
-      "model_id": "logreg-4",
+      "model_id": "logreg_bag_3",
       "family": "logreg",
-      "cv_log_loss": 0.1891
+      "cv_log_loss": 0.1993
     },
     {
-      "model_id": "logreg-1",
+      "model_id": "logreg_bag_6",
       "family": "logreg",
-      "cv_log_loss": 0.1909
+      "cv_log_loss": 0.2072
     },
     {
-      "model_id": "logreg-2",
-      "family": "logreg",
-      "cv_log_loss": 0.199
+      "model_id": "lgbm_bag_1",
+      "family": "lightgbm",
+      "cv_log_loss": 0.2081
     },
     {
-      "model_id": "logreg-8",
+      "model_id": "logreg_bag_0",
       "family": "logreg",
-      "cv_log_loss": 0.1992
+      "cv_log_loss": 0.2087
     },
     {
-      "model_id": "logreg-6",
-      "family": "logreg",
-      "cv_log_loss": 0.2066
+      "model_id": "lgbm_bag_7",
+      "family": "lightgbm",
+      "cv_log_loss": 0.2111
     }
   ],
   "library_versions": {
@@ -589,5 +581,6 @@
     "scipy": "1.17.1",
     "joblib": "1.6.0",
     "lightgbm": "4.7.0"
-  }
+  },
+  "baseline_log_loss": 0.5053
 }
