@@ -1,0 +1,16 @@
+{
+  "feature_table_sha256": "85e3b9883e3e5af5b36493cd407fbbffedd04a5544139bdf515e0c99a322e0bb",
+  "feature_table_rows": 494,
+  "feature_table_cols": 278,
+  "n_raw_csv": 501,
+  "n_followup_dropped": 0,
+  "n_after_dedup": 501,
+  "n_missing_vol": 6,
+  "n_pediatric_dropped": 1,
+  "n_final_cohort": 494,
+  "n_train": 395,
+  "n_test": 99,
+  "prior_biopsy_yes": 68,
+  "prior_biopsy_no": 426,
+  "prior_biopsy_unrecorded": 0
+}

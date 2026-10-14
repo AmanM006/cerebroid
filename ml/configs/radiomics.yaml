@@ -1,0 +1,29 @@
+# Extraction parameter specification for VBX SciPy/scikit-image feature extraction
+#
+# Feature classes extracted:
+#   - 3D morphological shape: MeshSurfaceArea (marching cubes), Sphericity,
+#     Elongation, Flatness, Major/MinorAxisLength (regionprops inertia tensor)
+#   - First-order intensity statistics: Mean, Variance, Skewness, Kurtosis,
+#     Percentiles (10, 25, 75, 90), Median, Range, InterquartileRange,
+#     MeanAbsoluteDeviation, RootMeanSquared, Energy, Entropy
+#   - GLCM texture (scikit-image graycomatrix/graycoprops):
+#     Contrast, Correlation, Energy, Homogeneity, Dissimilarity
+#     Angles: 0, 45, 90, 135 degrees in-plane
+#     Gray levels: 32 bins normalized within mask
+#     Minimum slice coverage: >= 16 voxels
+#
+# Interpretable tumor descriptors (contracts.py):
+#   - desc__total_volume_mm3 (voxel count x physical spacing)
+#   - desc__enhancing_fraction (ET / total)
+#   - desc__necrosis_fraction (NCR / total)
+#   - desc__edema_to_core_ratio (ED / (ET + NCR))
+
+intensity:
+  bin_levels: 32
+  min_slice_voxels: 16
+  glcm_distances: [1]
+  glcm_angles_rad: [0, 0.785398, 1.570796, 2.356194]
+
+shape:
+  marching_cubes_level: 0.5
+  min_voxels: 8
