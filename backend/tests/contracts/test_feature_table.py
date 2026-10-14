@@ -114,3 +114,34 @@ def test_prior_biopsy_matches_the_raw_clinical_column(table):
     raw=pd.read_csv(raw_path, dtype=str, keep_default_na=False)
     assert set(table["patient_id"])<=set(raw["patient_id"])
     assert module.mismatches(table, raw)==[]
+
+
+def test_extraction_module_reproduces_the_table_for_demo_patients(table):
+    """ml/pipeline/extract.py (v1) recomputes the committed features exactly from the committed scans."""
+    import importlib.util
+
+    import numpy as np
+
+    SimpleITK=pytest.importorskip("SimpleITK")
+    pytest.importorskip("skimage")
+    root=get_settings().repo_root
+    volumes=root/"artifacts"/"volumes"
+    patients=sorted(p.name for p in volumes.iterdir() if p.is_dir())[:2] if volumes.is_dir() else []
+    if not patients:
+        pytest.skip("no demo volumes committed")
+    spec=importlib.util.spec_from_file_location("extract", root/"ml"/"pipeline"/"extract.py")
+    assert spec is not None and spec.loader is not None
+    module=importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    rows=table.set_index("patient_id")
+    for pid in patients:
+        images={k: SimpleITK.ReadImage(str(volumes/pid/f"{f}.nii.gz"))
+                for k, f in {"t1": "t1", "t1ce": "t1c", "t2": "t2", "flair": "flair"}.items()}
+        features=module.extract(images, SimpleITK.ReadImage(str(volumes/pid/"seg.nii.gz")), "v1")
+        row=rows.loc[pid]
+        for name, value in features.items():
+            expected=row[name]
+            if pd.isna(expected):
+                assert value is None or np.isnan(value), (pid, name)
+            else:
+                assert value==pytest.approx(float(expected), rel=1e-6, abs=1e-9), (pid, name)

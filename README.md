@@ -240,6 +240,16 @@ pip-audit -r requirements.txt
 ```
 
 ## 11. Known limitations
+- **Scanner intensity.** The deployed features are extracted in mode `v1` ([ml/pipeline/extract.py](ml/pipeline/extract.py)):
+  texture uses 32 grey levels normalized within each tumor region and shape/composition features don't depend on
+  intensity, but first-order intensity statistics use raw scanner values. All patients come from one institution with
+  the same preprocessing, so this holds within the cohort but would not transfer to another scanner. The stress test
+  ([ml/pipeline/stress_test.py](ml/pipeline/stress_test.py), results in `artifacts/metrics/robustness.json`, 9 demo
+  patients) measured: simulated noise (5-10%) and bias-field shading (15%) changed 0 of 36 calls; a scanner gain change
+  left only 33% of first-order features in agreement (Lin's CCC >= 0.9) under `v1` versus 100% under the brain-normalized
+  `v2` mode. Retraining on `v2` features is the planned fix.
+- **Tumor outline errors.** Features are measured inside the segmentation; shifting or shrinking it by one voxel
+  changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC yet.
 - Brute-force protection is per-account lockout (5 failures → 15 minutes); there is no per-IP rate limiting.
   Anyone who knows a username can therefore lock that account for 15 minutes.
 - The refresh cookie has the `Secure` flag only when `APP_ENV=production`.

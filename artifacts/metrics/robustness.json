@@ -1,0 +1,156 @@
+{
+  "patients": [
+    "UCSF-PDGM-0018",
+    "UCSF-PDGM-0026",
+    "UCSF-PDGM-0061",
+    "UCSF-PDGM-0073",
+    "UCSF-PDGM-0162",
+    "UCSF-PDGM-0232",
+    "UCSF-PDGM-0243",
+    "UCSF-PDGM-0282",
+    "UCSF-PDGM-0327"
+  ],
+  "seed": 0,
+  "metric": "share of features with Lin's CCC >= 0.9 (clean vs perturbed, across patients)",
+  "results": [
+    {
+      "perturbation": "noise_5pct",
+      "v1": {
+        "intensity (first-order)": 1.0,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v2": {
+        "intensity (first-order)": 1.0,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v1_calls": {
+        "compared": 36,
+        "calls_changed": 0,
+        "verdicts_changed": 0,
+        "calls_changed_by_marker": {}
+      }
+    },
+    {
+      "perturbation": "noise_10pct",
+      "v1": {
+        "intensity (first-order)": 0.989,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 0.983
+      },
+      "v2": {
+        "intensity (first-order)": 0.989,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v1_calls": {
+        "compared": 36,
+        "calls_changed": 0,
+        "verdicts_changed": 1,
+        "calls_changed_by_marker": {}
+      }
+    },
+    {
+      "perturbation": "bias_field_15pct",
+      "v1": {
+        "intensity (first-order)": 0.967,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v2": {
+        "intensity (first-order)": 0.989,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v1_calls": {
+        "compared": 36,
+        "calls_changed": 0,
+        "verdicts_changed": 1,
+        "calls_changed_by_marker": {}
+      }
+    },
+    {
+      "perturbation": "scanner_gain_x1.25",
+      "v1": {
+        "intensity (first-order)": 0.328,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v2": {
+        "intensity (first-order)": 1.0,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v1_calls": {
+        "compared": 36,
+        "calls_changed": 0,
+        "verdicts_changed": 1,
+        "calls_changed_by_marker": {}
+      }
+    },
+    {
+      "perturbation": "gain_offset",
+      "v1": {
+        "intensity (first-order)": 0.596,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v2": {
+        "intensity (first-order)": 1.0,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v1_calls": {
+        "compared": 36,
+        "calls_changed": 1,
+        "verdicts_changed": 2,
+        "calls_changed_by_marker": {
+          "IDH": 1
+        }
+      }
+    },
+    {
+      "perturbation": "outline_shift_1vox",
+      "v1": {
+        "intensity (first-order)": 0.814,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 0.967
+      },
+      "v2": {
+        "intensity (first-order)": 0.814,
+        "shape & composition": 1.0,
+        "texture (GLCM)": 1.0
+      },
+      "v1_calls": {
+        "compared": 36,
+        "calls_changed": 2,
+        "verdicts_changed": 4,
+        "calls_changed_by_marker": {
+          "IDH": 2
+        }
+      }
+    },
+    {
+      "perturbation": "outline_erode_1vox",
+      "v1": {
+        "intensity (first-order)": 0.459,
+        "shape & composition": 0.64,
+        "texture (GLCM)": 0.4
+      },
+      "v2": {
+        "intensity (first-order)": 0.448,
+        "shape & composition": 0.64,
+        "texture (GLCM)": 0.417
+      },
+      "v1_calls": {
+        "compared": 36,
+        "calls_changed": 1,
+        "verdicts_changed": 6,
+        "calls_changed_by_marker": {
+          "IDH": 1
+        }
+      }
+    }
+  ]
+}
