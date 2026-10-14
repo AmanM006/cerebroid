@@ -10,7 +10,7 @@
  *   request_id, so a user can report the exact request that failed.
  */
 import type {
-  Case, CaseList, Doubt, ErrorBody, Evidence, Falsification, MarkerName, MriSequence, Profile, ProfileView, Readiness, Reveal, Tipping, TokenResponse, User, Volumes,
+  Case, CaseList, Doubt, ErrorBody, Evidence, Falsification, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, Tipping, TokenResponse, User, Volumes,
 } from "./types"
 
 export class ApiError extends Error {
@@ -142,6 +142,14 @@ export const api={
     const params=new URLSearchParams({ marker })
     for (const [m, value] of Object.entries(known)) params.append("known", `${m}:${value}`)
     return getJson<Falsification>(`/api/v1/studies/${encodeURIComponent(id)}/falsification?${params}`)
+  },
+
+  /** WHO CNS5 categories still possible and the lab tests ranked by how far they narrow them. */
+  getNextMeasurements(id: string, known: Partial<Record<MarkerName, 0 | 1>>={}): Promise<NextMeasurements> {
+    const params=new URLSearchParams()
+    for (const [m, value] of Object.entries(known)) params.append("known", `${m}:${value}`)
+    const query=params.size>0 ? `?${params}` : ""
+    return getJson<NextMeasurements>(`/api/v1/studies/${encodeURIComponent(id)}/next-measurements${query}`)
   },
 
   /** The dataset's true lab results, for held-out demo cases only. */

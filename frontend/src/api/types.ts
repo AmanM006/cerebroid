@@ -146,6 +146,18 @@ export interface Evidence {
   latency_ms: number
 }
 
+export interface NextMeasurements {
+  study_id: string
+  input_hash: string
+  label: "decision-support heuristic"
+  marker_states: {
+    marker: MarkerName; value: string | null; settled: boolean; from_lab: boolean; reason: string; provenance: Provenance
+  }[]
+  candidate_categories: string[]
+  tests: { marker: MarkerName; test: string; settled: boolean; remaining_worst_case: number | null; reason: string }[]
+  request_id: string | null
+}
+
 export interface Claim {
   text: string
   evidence_ids: string[]

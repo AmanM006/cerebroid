@@ -22,8 +22,18 @@ const VIEWS: { id: ProfileView; label: string; hint: string }[] = [
 
 const short = (sha: string) => sha.replace("sha256:", "").slice(0, 10)
 
-export function ProfilePanel({ studyId, readiness }: { studyId: string; readiness: Readiness | null }) {
-  const [known, setKnown] = useState<KnownResults>({})
+export function ProfilePanel({
+  studyId,
+  readiness,
+  known,
+  onKnownChange,
+}: {
+  studyId: string
+  readiness: Readiness | null
+  /** Lab results the clinician entered; owned by the page so other panels follow them too. */
+  known: KnownResults
+  onKnownChange: (known: KnownResults) => void
+}) {
   const [view, setView] = useState<ProfileView>("fused")
   // Each result remembers which request it answers; "loading" = the latest answer is for an older request.
   const [result, setResult] = useState<{ key: string; profile: Profile | null; error: unknown } | null>(null)
@@ -56,7 +66,7 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
 
   return (
     <div className="space-y-3">
-      <KnownResultsForm value={known} onChange={setKnown} disabled={notReady} />
+      <KnownResultsForm value={known} onChange={onKnownChange} disabled={notReady} />
 
       <div role="radiogroup" aria-label="Inputs the models may use" className="flex flex-wrap items-center gap-1.5">
         <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-[#716c87]">Models see:</span>
@@ -126,9 +136,10 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
             {profile.missing_inputs.length > 0 && (
               <p>Missing inputs: {profile.missing_inputs.join(", ")} (uncertainty higher)</p>
             )}
-            <p className="text-[#565169]">
-              pipeline {short(profile.feature_pipeline_version)} · input {short(profile.input_hash)}
-              {profile.request_id && <> · req {profile.request_id}</>}
+            <p className="w-fit cursor-help text-[#565169]"
+              title={`Features ${short(profile.feature_pipeline_version)} · input ${short(profile.input_hash)}`
+                + (profile.request_id ? ` · request ${profile.request_id}` : "")}>
+              ⓘ Reproducibility details
             </p>
           </div>
         </div>
