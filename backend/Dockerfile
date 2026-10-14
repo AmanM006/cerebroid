@@ -26,4 +26,5 @@ USER vbx
 EXPOSE 8000
 
 # Apply pending migrations, then hand the process over to uvicorn.
-CMD ["sh", "-c", "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+# PORT is set by some hosts (e.g. Render); seed is a no-op unless VBX_SEED_* variables are set.
+CMD ["sh", "-c", "alembic upgrade head && python -m app.cli seed && exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

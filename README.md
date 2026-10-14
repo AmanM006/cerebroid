@@ -98,6 +98,13 @@ done
 ```
 
 ## 7. Deployment & access details
+- **Public deployment (Render, free tier):** one Docker web service built from
+  [ops/render/Dockerfile](ops/render/Dockerfile) (the API also serves the built frontend, so the app is one origin)
+  plus a free Postgres, both defined in [render.yaml](render.yaml). To recreate it: Render dashboard → New →
+  Blueprint → this repository; enter the two test-account passwords below when asked. Migrations, the nine demo
+  cases and the test accounts are created automatically at start-up (`python -m app.cli seed`, idempotent).
+  The free tier sleeps after 15 idle minutes; [keepalive.yml](.github/workflows/keepalive.yml) pings `/health`
+  every 10 minutes once the repository variable `VBX_PUBLIC_URL` is set.
 - **Docker Compose:** `docker compose up --build`, app on `http://localhost:8080` (set `WEB_PORT` to change it),
   API also reachable directly on `http://localhost:8000`.
 - **Interactive API docs:** `http://localhost:8000/docs`.
@@ -108,6 +115,7 @@ A synthetic, non-admin clinician account for evaluators. It sees the public demo
 | Username | Password | Role |
 |---|---|---|
 | `evaluator` | `vbx-eval-fcd664d1` | clinician |
+| `reviewer` | `vbx-review-718d0a59` | reviewer (can also run the audit-log check) |
 
 On a fresh local stack, create it with the command below and enter the password from the table when prompted:
 ```bash
@@ -164,6 +172,9 @@ See [.env.example](.env.example).
 | `LOG_LEVEL` | Log level, e.g. `INFO` |
 | `CORS_ORIGINS` | Comma-separated allowlist of frontend origins |
 | `WEB_PORT` | Host port of the web container (default 8080) |
+| `FRONTEND_DIST` | Built frontend directory for the API to serve itself (single-service hosting; unset in compose) |
+| `VBX_SEED_DEMO_CASES` | Comma-separated patient IDs registered as demo cases at start-up |
+| `VBX_EVALUATOR_PASSWORD` / `VBX_REVIEWER_PASSWORD` | Create the synthetic `evaluator` / `reviewer` accounts at start-up |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres credentials |
 | `DATABASE_URL` | SQLAlchemy connection string |
 | `JWT_SECRET_KEY` | **Required.** JWT signing key, ≥32 random characters |

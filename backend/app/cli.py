@@ -5,6 +5,12 @@
 
 The password is read from VBX_NEW_USER_PASSWORD or prompted for, never taken
 as a command-line argument (it would end up in shell history and `ps`).
+
+`seed` runs at container start, for hosts without a shell. It is idempotent and
+driven only by environment variables:
+    VBX_SEED_DEMO_CASES      comma-separated patient IDs, e.g. UCSF-PDGM-0061,UCSF-PDGM-0162
+    VBX_EVALUATOR_PASSWORD   creates the synthetic clinician account "evaluator"
+    VBX_REVIEWER_PASSWORD    creates the synthetic reviewer account "reviewer" (audit check)
 """
 import argparse
 import getpass
@@ -64,6 +70,38 @@ def add_demo_case(patient_id: str) -> None:
         print(f"Added demo case {patient_id} as study {study.id}.")
 
 
+def _ensure_user(username: str, role: Role, password: str) -> None:
+    if len(password)<MIN_PASSWORD_LENGTH:
+        print(f"Skipped {username!r}: password shorter than {MIN_PASSWORD_LENGTH} characters.")
+        return
+    with get_session_factory()() as db:
+        if db.scalar(select(User).where(User.username==username)):
+            return
+        db.add(User(username=username, password_hash=hash_password(password), role=role, is_synthetic=True))
+        db.commit()
+    print(f"Created synthetic {role.value} {username!r}.")
+
+
+def seed() -> None:
+    """Creates the configured demo cases and test accounts that don't exist yet."""
+    patient_ids=[p.strip() for p in os.environ.get("VBX_SEED_DEMO_CASES", "").split(",") if p.strip()]
+    if patient_ids:
+        store=load_feature_store(get_settings().feature_table_path)
+        with get_session_factory()() as db:
+            existing=set(db.scalars(select(Study.source_patient_id)))
+        for patient_id in patient_ids:
+            if patient_id in existing:
+                continue
+            if not store.has(patient_id):
+                print(f"Skipped {patient_id!r}: not in the feature table.")
+                continue
+            add_demo_case(patient_id)
+    if password:=os.environ.get("VBX_EVALUATOR_PASSWORD"):
+        _ensure_user("evaluator", Role.CLINICIAN, password)
+    if password:=os.environ.get("VBX_REVIEWER_PASSWORD"):
+        _ensure_user("reviewer", Role.REVIEWER, password)
+
+
 def main() -> None:
     parser=argparse.ArgumentParser(prog="python -m app.cli")
     commands=parser.add_subparsers(dest="command", required=True)
@@ -76,11 +114,15 @@ def main() -> None:
     demo=commands.add_parser("add-demo-case")
     demo.add_argument("--patient-id", required=True, help="e.g. UCSF-PDGM-0004")
 
+    commands.add_parser("seed", help="idempotent demo cases and test accounts from environment variables")
+
     args=parser.parse_args()
     if args.command=="create-user":
         create_user(args.username, Role(args.role), args.synthetic)
     elif args.command=="add-demo-case":
         add_demo_case(args.patient_id)
+    elif args.command=="seed":
+        seed()
 
 
 if __name__=="__main__":
