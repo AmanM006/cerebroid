@@ -85,7 +85,8 @@ From multi-sequence brain MRI + tumor segmentation + patient context (age, sex),
 | Identify relationships between sources | Fused vs imaging-only vs clinical-only comparison per patient; evidence-group interactions |
 | Highlight contributing findings | Grouped SHAP (sequence × region × feature-class, plus clinical), with cross-model agreement on the explanation |
 | Strong evidence vs uncertainty/missing | Stability verdicts, doubt decomposition, missing-sequence handling, OOD/data-sparsity flags |
-| Combining reveals what isolated analysis misses | **Context-blind toggle** (imaging-only) and **image-blind toggle** (clinical-only) live in the UI + ablation table in the notebook |
+| Combining reveals what isolated analysis misses | **Context-blind toggle** (imaging-only) and **image-blind toggle** (clinical-only) live in the UI + ablation table in the notebook + **"resolved by combining"** cases (§2.4 item 13) |
+| Lab results as a modality | **Known-result conditioning** (§2.4 item 12): a lab result the clinician already has (e.g. IDH) feeds the prediction of the remaining markers |
 
 ### 2.4 Core innovations (all must be real, computed, and explainable)
 1. **Multiplicity engine** — per marker, train a candidate pool (varied seeds, feature-subset bagging, hyperparameters, model families: LightGBM, elastic-net logistic regression, ExtraTrees). Score each by repeated stratified patient-level CV out-of-fold log-loss. The **near-optimal set** = all models with loss ≤ (1+ε)·best (default ε=0.03; report sensitivity for ε ∈ {0.01, 0.03, 0.05}). Calibrate each model (Platt/isotonic on OOF).
@@ -99,6 +100,8 @@ From multi-sequence brain MRI + tumor segmentation + patient context (age, sex),
 9. **Falsification panel per molecular call.** For each marker: supporting evidence, contradicting evidence (features pushing the other way, from grouped SHAP), the strongest competing call, and "what would overturn this" (the tipping evidence + the confirmatory assay). Generated from structured results by deterministic templates — no free-form LLM text, no claim without a linked evidence item.
 10. **"What does the average hide?" — intra-tumor heterogeneity.** In addition to whole-tumor models, train small near-optimal sets restricted to each sub-region's features (enhancing tumor, necrotic core, peritumoral edema; each + clinical). Per patient, show whether sub-regions agree with the whole-tumor call or tell a different story (e.g. "enhancing rim suggests IDH-wildtype; edema features are uninformative"). Report region-model performance honestly; regions with no signal are labelled as such.
 11. **Next-measurement planning (heuristic, labelled as heuristic).** For CONTESTED/ARBITRARY markers, rank the real confirmatory tests (IDH mutation testing, 1p/19q co-deletion testing, MGMT promoter methylation assay) by (a) current instability of that marker and (b) how many candidate integrated diagnoses it disambiguates. Show the candidate WHO CNS5 adult diffuse-glioma categories consistent with the current marker calls (e.g. IDH status gates whether 1p/19q status is diagnostically decisive) and which single test would collapse them. Do NOT present this as expected information gain or as clinical guidance; label it "decision-support heuristic".
+12. **Known-result conditioning (lab results as an input modality).** Clinicians often already hold one marker result (e.g. IDH from a prior biopsy or immunohistochemistry) while others are pending. The clinician may enter any known marker (provenance `clinical_input`); a known marker is never predicted, and the remaining markers are scored by a `fused_given_<marker>` set trained with that result as an input (`known__idh` etc., §4.5). Training uses the dataset label of the *other* marker only, never the target's own label. Core scope: given IDH → 1p/19q, MGMT, grade. The UI shows how entering the result changes each remaining call and its stability.
+13. **"Resolved by combining."** Per patient and marker, compare the imaging-only set with the fused set: cases where imaging alone is CONTESTED/ARBITRARY but the fused set is STABLE (and the reverse) are counted in the notebook with their accuracy, and flagged per patient in the UI. This is the direct, measurable evidence for "combining reveals what isolated analysis would miss".
 
 ### 2.5 Users & usability
 Neuro-radiologist / neuro-oncologist. Flow: open case (or upload 4 NIfTI sequences + mask + age/sex) → one-screen **Molecular Profile Card**: per marker → call, calibrated probability range, stability verdict, top evidence, tipping evidence, "confirm with tissue?" flag. 3D MRI viewer with tumor overlay. Decision support only — never presented as a diagnosis.
@@ -203,6 +206,12 @@ artifacts/models/<idh|1p19q|mgmt|grade>/
 - Verdict: ARBITRARY if agreement ≤ `arbitrary_max_agreement`; STABLE if agreement ≥ `stable_min_agreement` and IQR of set probabilities ≤ `stable_max_iqr`; otherwise CONTESTED. Thresholds are chosen on CV data.
 - **Train with exactly the versions pinned in `backend/requirements.txt`** (numpy, pandas, scikit-learn, scipy, joblib, lightgbm); pickles are version-sensitive.
 - Every file under `artifacts/models/` must appear in `manifest.json` with its sha256; anything unlisted or mismatched is never unpickled.
+- **Variants.** A marker may ship several sets, each in its own directory with its own `meta.json` (`variant`, `given`) and an entry in `ml/configs/markers.yaml` (`marker`, `variant`, `artifact_dir`):
+  - `fused`: imaging + `age`/`sex` (default, required for every marker)
+  - `imaging_only`: no `age`/`sex` columns (context-blind counterfactual; needed for §2.4 item 13)
+  - `clinical_only`: only `age`/`sex` (image-blind counterfactual)
+  - `fused_given_<m>`: fused plus `known__<m>` input columns, `given: [<M>]` listing exactly those markers (e.g. `fused_given_idh`, `known__idh`, `given: ["IDH"]`)
+  The registry enforces these scopes and picks, per patient, the fused set that uses the most of what is already known. Add a `markers.yaml` entry in the same commit as the artifacts it points to; an entry without artifacts makes `/ready` report `missing`.
 
 ---
 
@@ -277,7 +286,7 @@ Team: 2 members. **Only Tanish works for roughly the first hour → Layer 0 must
 | **L9 Red-team & freeze** | → 23:45 | Run `BUGBOUNTY_SELFTEST.md`, fix, finalize Known Limitations, merge to `bugbounty` | `bugbounty` deployed and stable before **00:00 freeze** |
 | Fixing phase | 16 Oct 02:00–03:30 | Branch `fixing` off `bugbounty`, fix reported bugs, merge to `main` after validation | No commits to `bugbounty` until organizers allow |
 
-**Feasibility cut line (if behind schedule, cut from the bottom up):** must-have = multiplicity engine, stability verdicts, profile card, provenance badges, context-/image-blind toggles, security/privacy core · should-have = falsification panel, doubt decomposition, tipping evidence, next-measurement heuristic · could-have = per-sub-region heterogeneity, async queue + MinIO, Locust numbers.
+**Feasibility cut line (if behind schedule, cut from the bottom up):** must-have = multiplicity engine, stability verdicts, profile card, provenance badges, context-/image-blind toggles, "resolved by combining" (§2.4 item 13), security/privacy core · should-have = known-result conditioning given IDH (§2.4 item 12), falsification panel, doubt decomposition, tipping evidence, next-measurement heuristic · could-have = per-sub-region heterogeneity, async queue + MinIO, Locust numbers.
 
 Stretch (only if all DoD met): MONAI pretrained BraTS segmentation for uploads without masks; survival risk (Cox, C-index) as an extra plugin; ε-sensitivity explorer in UI.
 
