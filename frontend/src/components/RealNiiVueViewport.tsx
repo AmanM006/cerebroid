@@ -21,16 +21,21 @@ export function RealNiiVueViewport({
   const [state, setState] = useState<"idle" | "loading" | "ready" | "error">("idle")
   const [error, setError] = useState<unknown>(null)
 
+  // Initialize NiiVue once on mount
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas || volumes.length === 0) return
+    if (!canvas) return
+
     let cancelled = false
 
     const nv = new Niivue({
-      backColor: [0.03, 0.02, 0.05, 1],
+      backColor: [0, 0, 0, 1],
       show3Dcrosshair: true,
-      crosshairColor: [0, 0.8, 0.9, 0.8],
-      loadingText: "Decoding NIfTI voxel buffer...",
+      crosshairColor: [0, 0.85, 0.95, 0.8],
+      loadingText: "Initializing GPU Pipeline...",
+      dragMode: 1, // Slicing drag mode
+      isColorbar: false,
+      textHeight: 0.03,
     })
     nvRef.current = nv
 
@@ -49,17 +54,17 @@ export function RealNiiVueViewport({
         await nv.loadVolumes(volumeList)
         if (cancelled) return
 
-        if (sliceType === "multiplanar") {
-          nv.setSliceType(nv.sliceTypeMultiplanar)
-        } else if (sliceType === "render3d") {
-          nv.setSliceType(nv.sliceTypeRender)
-        } else if (sliceType === "axial") {
-          nv.setSliceType(nv.sliceTypeAxial)
-        } else if (sliceType === "sagittal") {
-          nv.setSliceType(nv.sliceTypeSagittal)
-        } else if (sliceType === "coronal") {
-          nv.setSliceType(nv.sliceTypeCoronal)
-        }
+        nv.setSliceType(
+          sliceType === "render3d"
+            ? nv.sliceTypeRender
+            : sliceType === "axial"
+            ? nv.sliceTypeAxial
+            : sliceType === "sagittal"
+            ? nv.sliceTypeSagittal
+            : sliceType === "coronal"
+            ? nv.sliceTypeCoronal
+            : nv.sliceTypeMultiplanar
+        )
 
         nv.updateGLVolume()
         if (!cancelled) setState("ready")
@@ -71,18 +76,51 @@ export function RealNiiVueViewport({
       }
     })()
 
+    // Smooth Canvas Resize Observer so resizing panels never causes WebGL blur/chopping
+    const ro = new ResizeObserver(() => {
+      if (nvRef.current && canvas) {
+        nvRef.current.resizeListener()
+        nvRef.current.drawScene()
+      }
+    })
+    ro.observe(canvas)
+
     return () => {
       cancelled = true
+      ro.disconnect()
     }
-  }, [volumes, sliceType])
+  }, [volumes])
+
+  // React to projection mode changes without reloading the 4MB volume
+  useEffect(() => {
+    const nv = nvRef.current
+    if (!nv || state !== "ready") return
+
+    if (sliceType === "render3d") {
+      nv.setSliceType(nv.sliceTypeRender)
+    } else if (sliceType === "axial") {
+      nv.setSliceType(nv.sliceTypeAxial)
+    } else if (sliceType === "sagittal") {
+      nv.setSliceType(nv.sliceTypeSagittal)
+    } else if (sliceType === "coronal") {
+      nv.setSliceType(nv.sliceTypeCoronal)
+    } else {
+      nv.setSliceType(nv.sliceTypeMultiplanar)
+    }
+    nv.drawScene()
+  }, [sliceType, state])
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
-      <canvas ref={canvasRef} className="h-full w-full cursor-crosshair" aria-label="3D NiiVue MRI Volume" />
+      <canvas
+        ref={canvasRef}
+        className="h-full w-full cursor-crosshair touch-none"
+        aria-label="3D NiiVue MRI Volume"
+      />
       {state === "loading" && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/75 font-mono text-xs text-cyan-300">
-          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent mr-2.5" />
-          Streaming 3D NIfTI Volume &amp; Compiling WebGL Shaders…
+        <div className="absolute inset-0 flex items-center justify-center bg-black/80 font-mono text-xs text-cyan-400">
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent mr-2.5" />
+          Binding GPU Texture Buffer…
         </div>
       )}
       {state === "error" && (

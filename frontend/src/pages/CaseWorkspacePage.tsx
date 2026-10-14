@@ -14,10 +14,9 @@ export function CaseWorkspacePage() {
   const [readiness, setReadiness] = useState<Readiness | null>(null)
   const [error, setError] = useState<unknown>(null)
 
-  // Panel layout minimization states: true = maximized / expanded, false = collapsed
-  const [isViewerExpanded, setIsViewerExpanded] = useState(false)
-  const [isEvidenceVisible, setIsEvidenceVisible] = useState(true)
-  const [isProfileVisible, setIsProfileVisible] = useState(true)
+  // Scratch block swapping: order can be toggled by clicking panel headers
+  const [leftComponent, setLeftComponent] = useState<"2d" | "3d">("3d")
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   useEffect(() => {
     if (!caseId) return
@@ -25,15 +24,19 @@ export function CaseWorkspacePage() {
     api.readiness().then(setReadiness).catch(setError)
   }, [caseId])
 
+  const toggleSwap = () => {
+    setLeftComponent((prev) => (prev === "3d" ? "2d" : "3d"))
+  }
+
   return (
     <AppShell>
-      <div className="flex h-[calc(100vh-3.5rem)] flex-col gap-2.5 p-3 sm:p-4 bg-[#07060b]">
-        {/* Top Case Subheader */}
-        <div className="flex flex-wrap items-center justify-between border-b border-[#1b1926] pb-2.5">
+      <div className="flex h-[calc(100vh-3.25rem)] w-full flex-col overflow-hidden bg-black p-3 space-y-2.5">
+        {/* Top Clinical Case Bar */}
+        <div className="flex shrink-0 items-center justify-between border-b border-neutral-850 pb-2 px-1">
           <div className="flex items-center gap-3">
             <Link
               to="/cases"
-              className="rounded-lg border border-[#221f30] bg-[#12101b] px-2.5 py-1 text-xs font-mono text-[#8c889e] hover:border-[#38334d] hover:text-white transition-all cursor-pointer"
+              className="rounded-xl border border-neutral-800 bg-[#121212] px-3 py-1.5 text-xs font-mono text-neutral-300 hover:border-neutral-600 hover:text-white transition-all cursor-pointer"
             >
               ← Back to Cohort
             </Link>
@@ -41,7 +44,7 @@ export function CaseWorkspacePage() {
               {study?.label ?? "Case Workspace"}
             </h1>
             {study && (
-              <div className="flex items-center gap-3 font-mono text-xs text-[#8c889e]">
+              <div className="flex items-center gap-3 font-mono text-xs text-neutral-400">
                 <span className="flex items-center gap-1.5">
                   Age <strong className="text-white">{study.age.value ?? "—"}</strong>
                   <ProvenanceBadge provenance={study.age.provenance} />
@@ -54,128 +57,54 @@ export function CaseWorkspacePage() {
             )}
           </div>
 
-          {/* Quick Panel Toggle Buttons */}
           <div className="flex items-center gap-2 font-mono text-xs">
             <button
-              onClick={() => setIsViewerExpanded((prev) => !prev)}
-              className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold border transition-all cursor-pointer ${
-                isViewerExpanded
-                  ? "bg-cyan-950/70 border-cyan-700/60 text-cyan-300"
-                  : "bg-[#12101b] border-[#232030] text-[#8c889e] hover:text-white"
+              onClick={() => setIsSidebarOpen((prev) => !prev)}
+              className={`rounded-xl px-3 py-1.5 text-[11px] font-semibold border transition-all cursor-pointer ${
+                isSidebarOpen
+                  ? "bg-cyan-950/80 border-cyan-700/80 text-cyan-300"
+                  : "bg-[#121212] border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700"
               }`}
             >
-              {isViewerExpanded ? "⤢ Restore Layout" : "⤢ Maximize MRI Viewer"}
+              {isSidebarOpen ? "◧ Hide Molecular Sidebars" : "◧ Molecular & Evidence Sidebar"}
             </button>
-
-            {!isViewerExpanded && (
-              <>
-                <button
-                  onClick={() => setIsProfileVisible((prev) => !prev)}
-                  className={`rounded-lg px-2 py-1 text-[11px] border transition-all cursor-pointer ${
-                    isProfileVisible
-                      ? "bg-[#181624] border-[#2c283f] text-slate-200"
-                      : "bg-[#100f17] border-[#1d1b26] text-[#615c75]"
-                  }`}
-                  title="Toggle Molecular Profile Panel"
-                >
-                  {isProfileVisible ? "Hide Profile" : "Show Profile"}
-                </button>
-                <button
-                  onClick={() => setIsEvidenceVisible((prev) => !prev)}
-                  className={`rounded-lg px-2 py-1 text-[11px] border transition-all cursor-pointer ${
-                    isEvidenceVisible
-                      ? "bg-[#181624] border-[#2c283f] text-slate-200"
-                      : "bg-[#100f17] border-[#1d1b26] text-[#615c75]"
-                  }`}
-                  title="Toggle Evidence Panel"
-                >
-                  {isEvidenceVisible ? "Hide Evidence" : "Show Evidence"}
-                </button>
-              </>
-            )}
           </div>
         </div>
 
         {error !== null && <ErrorNotice error={error} />}
 
-        {/* Dynamic Modular Workspace Layout */}
-        <div className="flex flex-1 gap-3 overflow-hidden">
-          {/* Main 2D & 3D MRI Viewport (Expands smoothly up to 100% or 65% width) */}
-          <section
-            className={`relative flex flex-col overflow-hidden rounded-2xl border border-[#1e1b2b] bg-[#000000] transition-all duration-300 ${
-              isViewerExpanded
-                ? "w-full"
-                : isProfileVisible && isEvidenceVisible
-                ? "flex-1 min-w-0"
-                : isProfileVisible || isEvidenceVisible
-                ? "w-3/4 min-w-0"
-                : "w-full"
-            }`}
-          >
-            <ClinicalMriStudio />
+        {/* Modular Workspace Stage: MRI fills full width by default or shares space cleanly */}
+        <div className="flex flex-1 gap-3 overflow-hidden min-h-0">
+          {/* Main MRI Studio: Click header to swap 2D and 3D scratch block positions */}
+          <section className="flex flex-1 overflow-hidden min-w-0">
+            <ClinicalMriStudio leftComponent={leftComponent} onSwap={toggleSwap} />
           </section>
 
-          {/* Collapsible Molecular Profile Panel */}
-          {!isViewerExpanded && isProfileVisible && (
-            <section
-              aria-labelledby="profile-heading"
-              className="flex w-80 lg:w-96 flex-col overflow-hidden rounded-2xl border border-[#1e1b2b] bg-[#0c0a13] transition-all"
-            >
-              <div className="flex items-center justify-between border-b border-[#1b1926] bg-[#0f0d17] px-4 py-2.5">
-                <h2
-                  id="profile-heading"
-                  className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#a9a4be]"
-                >
-                  Molecular Profile
+          {/* Slide-in Molecular Profile & Evidence Panel */}
+          {isSidebarOpen && (
+            <aside className="flex w-96 shrink-0 flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all">
+              <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-4 py-2.5">
+                <h2 className="text-[11px] font-mono font-bold uppercase tracking-wider text-neutral-300">
+                  Molecular Profile &amp; Doubt
                 </h2>
                 <button
-                  onClick={() => setIsProfileVisible(false)}
-                  className="text-[#615c75] hover:text-white font-mono text-xs cursor-pointer"
-                  title="Minimize Panel"
+                  onClick={() => setIsSidebarOpen(false)}
+                  className="text-neutral-500 hover:text-white font-mono text-xs cursor-pointer"
                 >
                   ✕
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-3.5">
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {caseId && <ProfilePanel studyId={caseId} readiness={readiness} />}
-              </div>
-            </section>
-          )}
 
-          {/* Collapsible Evidence & Doubt Section */}
-          {!isViewerExpanded && isEvidenceVisible && (
-            <section
-              aria-labelledby="evidence-heading"
-              className="hidden 2xl:flex w-72 flex-col overflow-hidden rounded-2xl border border-[#1e1b2b] bg-[#0c0a13] transition-all"
-            >
-              <div className="flex items-center justify-between border-b border-[#1b1926] bg-[#0f0d17] px-4 py-2.5">
-                <h2
-                  id="evidence-heading"
-                  className="text-[11px] font-mono font-semibold uppercase tracking-wider text-[#a9a4be]"
-                >
-                  Clinical Doubt &amp; Evidence
-                </h2>
-                <button
-                  onClick={() => setIsEvidenceVisible(false)}
-                  className="text-[#615c75] hover:text-white font-mono text-xs cursor-pointer"
-                  title="Minimize Panel"
-                >
-                  ✕
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 font-mono text-xs text-[#8c889e] space-y-3">
-                <p>
-                  Decision-support evidence and cross-model uncertainty metrics populated automatically from near-optimal ensembles.
-                </p>
-                <div className="rounded-xl border border-[#1e1b2b] bg-[#12101b] p-3 text-[11px] text-[#716c87] space-y-1.5">
-                  <p className="font-semibold text-slate-300">WHO 2021 Diagnostic Targets:</p>
-                  <p>• IDH1/2 mutation status</p>
-                  <p>• 1p/19q codeletion (Oligodendroglioma)</p>
-                  <p>• MGMT promoter methylation</p>
-                  <p>• Histopathological CNS WHO Grade</p>
+                <div className="border-t border-neutral-850 pt-4 text-xs font-mono text-neutral-400 space-y-2">
+                  <p className="font-semibold text-white text-[11px]">WHO 2021 Clinical Criteria:</p>
+                  <p className="text-[11px] leading-relaxed">
+                    Cross-model multiplicity evaluation actively isolates stable genomic calls from contested predictions requiring histological biopsy.
+                  </p>
                 </div>
               </div>
-            </section>
+            </aside>
           )}
         </div>
       </div>

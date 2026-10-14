@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { RealNiiVueViewport } from "./RealNiiVueViewport"
 
-export type ViewMode = "side_by_side" | "2d_only" | "3d_only"
 export type Plane2D = "sagittal" | "axial" | "coronal"
 
 const PLANE_IMAGES: Record<Plane2D, string> = {
@@ -10,33 +9,45 @@ const PLANE_IMAGES: Record<Plane2D, string> = {
   coronal: "/assets/real_coronal.png",
 }
 
-export function ClinicalMriStudio() {
-  const [viewMode, setViewMode] = useState<ViewMode>("side_by_side")
-  const [is2dFirst, setIs2dFirst] = useState(true)
+export function ClinicalMriStudio({
+  leftComponent = "3d",
+  onSwap,
+}: {
+  leftComponent?: "2d" | "3d"
+  onSwap?: () => void
+}) {
   const [selectedPlane, setSelectedPlane] = useState<Plane2D>("sagittal")
   const [contrast, setContrast] = useState(115)
   const [brightness, setBrightness] = useState(105)
-  const [selectedSequence, setSelectedSequence] = useState<"T1" | "T1-Gd" | "T2" | "FLAIR">("T1-Gd")
   const [mri3dMode, setMri3dMode] = useState<"multiplanar" | "render3d" | "axial" | "sagittal">("multiplanar")
 
   const render2DPanel = () => (
-    <div className="relative flex flex-1 flex-col overflow-hidden rounded-xl border border-[#1e1b2b] bg-[#050409]">
-      {/* 2D Slice Header Bar */}
-      <div className="flex items-center justify-between border-b border-[#1b1926] bg-[#0c0a13] px-3 py-1.5 text-[10.5px] font-mono text-[#8c889e]">
-        <div className="flex items-center gap-2">
+    <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808]">
+      {/* 2D Slice Header Bar with Drag/Swap Grip */}
+      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-2 text-[11px] font-mono select-none">
+        <div
+          onClick={onSwap}
+          className="flex items-center gap-2 cursor-pointer group"
+          title="Click to swap position"
+        >
+          <span className="text-neutral-500 group-hover:text-cyan-400 font-bold transition-colors">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span className="font-semibold text-white">2D True Voxel Slice</span>
-          <span className="text-[#615c75]">[{selectedSequence}]</span>
+          <span className="font-semibold text-white group-hover:text-cyan-300 transition-colors">
+            2D True Voxel Slice
+          </span>
+          <span className="text-[10px] text-neutral-500 rounded bg-[#181818] px-1.5 py-0.2 border border-neutral-800">
+            [Click to Swap]
+          </span>
         </div>
         <div className="flex items-center gap-1.5">
           {(["sagittal", "axial", "coronal"] as const).map((plane) => (
             <button
               key={plane}
               onClick={() => setSelectedPlane(plane)}
-              className={`rounded px-1.5 py-0.5 text-[9.5px] uppercase transition-colors cursor-pointer ${
+              className={`rounded-lg px-2 py-0.8 text-[10px] font-mono uppercase transition-colors cursor-pointer ${
                 selectedPlane === plane
-                  ? "bg-cyan-950 text-cyan-300 border border-cyan-700/60 font-bold"
-                  : "text-[#6d6883] hover:text-white"
+                  ? "bg-cyan-950 text-cyan-300 border border-cyan-800/80 font-bold"
+                  : "text-neutral-400 hover:text-white"
               }`}
             >
               {plane}
@@ -46,34 +57,34 @@ export function ClinicalMriStudio() {
       </div>
 
       {/* 2D Real Voxel Canvas Stage with Crosshairs */}
-      <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-black p-2">
+      <div className="relative flex flex-1 items-center justify-center overflow-hidden bg-black p-3">
         <img
           src={PLANE_IMAGES[selectedPlane]}
           alt={`Real 2D MRI ${selectedPlane} slice`}
           style={{
             filter: `contrast(${contrast}%) brightness(${brightness}%)`,
           }}
-          className="h-full max-h-[58vh] w-auto max-w-full rounded-lg object-contain transition-all"
+          className="h-full max-h-[62vh] w-auto max-w-full rounded-lg object-contain transition-all"
         />
 
         {/* Anatomical Orientation Tags */}
-        <span className="absolute top-3 left-1/2 -translate-x-1/2 font-mono text-[9px] text-[#6d6883] font-bold">S (SUPERIOR)</span>
-        <span className="absolute bottom-3 left-1/2 -translate-x-1/2 font-mono text-[9px] text-[#6d6883] font-bold">I (INFERIOR)</span>
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-[9px] text-[#6d6883] font-bold">A</span>
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[9px] text-[#6d6883] font-bold">P</span>
+        <span className="absolute top-4 left-1/2 -translate-x-1/2 font-mono text-[9.5px] text-neutral-500 font-bold">S (SUPERIOR)</span>
+        <span className="absolute bottom-4 left-1/2 -translate-x-1/2 font-mono text-[9.5px] text-neutral-500 font-bold">I (INFERIOR)</span>
+        <span className="absolute left-4 top-1/2 -translate-y-1/2 font-mono text-[9.5px] text-neutral-500 font-bold">A</span>
+        <span className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-[9.5px] text-neutral-500 font-bold">P</span>
 
         {/* Medical Crosshair Overlay */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-1/2 left-0 right-0 h-px border-b border-cyan-500/20 border-dashed" />
-          <div className="absolute left-1/2 top-0 bottom-0 w-px border-r border-cyan-500/20 border-dashed" />
+          <div className="absolute top-1/2 left-0 right-0 h-px border-b border-cyan-500/25 border-dashed" />
+          <div className="absolute left-1/2 top-0 bottom-0 w-px border-r border-cyan-500/25 border-dashed" />
         </div>
       </div>
 
       {/* 2D Controls footer */}
-      <div className="flex items-center justify-between border-t border-[#1b1926] bg-[#08070d] px-3 py-2 text-[10px] font-mono text-[#8c889e]">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3.5 py-2 text-[10.5px] font-mono text-neutral-400">
+        <div className="flex items-center gap-4">
           <label className="flex items-center gap-1.5">
-            <span className="text-[#615c75]">Contrast:</span>
+            <span className="text-neutral-500">Contrast:</span>
             <input
               type="range"
               min="70"
@@ -84,7 +95,7 @@ export function ClinicalMriStudio() {
             />
           </label>
           <label className="flex items-center gap-1.5">
-            <span className="text-[#615c75]">Bright:</span>
+            <span className="text-neutral-500">Bright:</span>
             <input
               type="range"
               min="70"
@@ -95,29 +106,38 @@ export function ClinicalMriStudio() {
             />
           </label>
         </div>
-        <span className="text-[#555068]">Direct NIfTI Voxel Matrix</span>
+        <span className="text-neutral-500">Direct NIfTI Voxel Matrix</span>
       </div>
     </div>
   )
 
   const render3DPanel = () => (
-    <div className="relative flex flex-1 flex-col overflow-hidden rounded-xl border border-[#1e1b2b] bg-[#050409]">
-      {/* 3D Header Bar */}
-      <div className="flex items-center justify-between border-b border-[#1b1926] bg-[#0c0a13] px-3 py-1.5 text-[10.5px] font-mono text-[#8c889e]">
-        <div className="flex items-center gap-2">
+    <div className="relative flex flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808]">
+      {/* 3D Header Bar with Clickable Swap Grip */}
+      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-2 text-[11px] font-mono select-none">
+        <div
+          onClick={onSwap}
+          className="flex items-center gap-2 cursor-pointer group"
+          title="Click to swap position"
+        >
+          <span className="text-neutral-500 group-hover:text-cyan-400 font-bold transition-colors">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-          <span className="font-semibold text-white">Interactive 3D NIfTI GPU Viewport</span>
-          <span className="text-emerald-400 text-[10px]">[MNI152 Full Matrix]</span>
+          <span className="font-semibold text-white group-hover:text-cyan-300 transition-colors">
+            Interactive 3D NIfTI GPU Viewport
+          </span>
+          <span className="text-[10px] text-neutral-500 rounded bg-[#181818] px-1.5 py-0.2 border border-neutral-800">
+            [Click to Swap]
+          </span>
         </div>
         <div className="flex items-center gap-1">
           {(["multiplanar", "render3d", "axial", "sagittal"] as const).map((m) => (
             <button
               key={m}
               onClick={() => setMri3dMode(m)}
-              className={`rounded px-1.5 py-0.5 text-[9.5px] uppercase transition-colors cursor-pointer ${
+              className={`rounded-lg px-2 py-0.8 text-[10px] font-mono uppercase transition-colors cursor-pointer ${
                 mri3dMode === m
-                  ? "bg-cyan-950/80 text-cyan-300 border border-cyan-800/60 font-bold"
-                  : "text-[#6d6883] hover:text-white"
+                  ? "bg-cyan-950/80 text-cyan-300 border border-cyan-800/80 font-bold"
+                  : "text-neutral-400 hover:text-white"
               }`}
             >
               {m === "render3d" ? "3D Vol" : m}
@@ -135,89 +155,26 @@ export function ClinicalMriStudio() {
       </div>
 
       {/* 3D Controls footer */}
-      <div className="flex items-center justify-between border-t border-[#1b1926] bg-[#08070d] px-3 py-2 text-[10px] font-mono text-[#8c889e]">
+      <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3.5 py-2 text-[10.5px] font-mono text-neutral-400">
         <span className="text-cyan-400">Click &amp; drag crosshair · Scroll to scrub slices</span>
-        <span className="text-[#555068]">207 × 256 × 215 True 3D Voxels</span>
+        <span className="text-neutral-500">207 × 256 × 215 True 3D Voxels</span>
       </div>
     </div>
   )
 
   return (
-    <div className="relative flex h-full flex-col overflow-hidden bg-[#000000]">
-      {/* Top Clinical Sequence & Layout Selector Strip */}
-      <div className="flex flex-wrap items-center justify-between border-b border-[#1b1926] bg-[#0c0a13] px-3.5 py-2 text-[11px] font-mono">
-        {/* Modality Sequences */}
-        <div className="flex items-center gap-1.5">
-          <span className="text-[#615c75] mr-1">Sequence:</span>
-          {(["T1", "T1-Gd", "T2", "FLAIR"] as const).map((seq) => (
-            <button
-              key={seq}
-              onClick={() => setSelectedSequence(seq)}
-              className={`rounded-md px-2 py-0.8 text-[10px] font-semibold transition-all cursor-pointer ${
-                selectedSequence === seq
-                  ? "border border-cyan-500/60 bg-cyan-950/40 text-cyan-300 shadow-sm"
-                  : "border border-[#232030] bg-[#12101b] text-[#8c889e] hover:text-white hover:border-[#38334d]"
-              }`}
-            >
-              {seq}
-            </button>
-          ))}
-        </div>
-
-        {/* View Layout Controls & Swap Button */}
-        <div className="flex items-center gap-2">
-          {/* Swap Reorder Button */}
-          {viewMode === "side_by_side" && (
-            <button
-              onClick={() => setIs2dFirst((prev) => !prev)}
-              className="flex items-center gap-1 rounded-md border border-[#232030] bg-[#12101b] px-2 py-0.8 text-[10px] text-[#8c889e] hover:text-white hover:border-[#38334d] transition-all cursor-pointer"
-              title="Reorder Left/Right"
-            >
-              <span>⇄ Swap Order</span>
-            </button>
-          )}
-
-          {/* Mode Tabs */}
-          <div className="flex items-center rounded-lg border border-[#232030] bg-[#12101b] p-0.5">
-            <button
-              onClick={() => setViewMode("side_by_side")}
-              className={`rounded-md px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
-                viewMode === "side_by_side" ? "bg-[#1f1b2e] text-white" : "text-[#716c87] hover:text-slate-300"
-              }`}
-            >
-              Side by Side
-            </button>
-            <button
-              onClick={() => setViewMode("2d_only")}
-              className={`rounded-md px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
-                viewMode === "2d_only" ? "bg-[#1f1b2e] text-white" : "text-[#716c87] hover:text-slate-300"
-              }`}
-            >
-              2D Slice
-            </button>
-            <button
-              onClick={() => setViewMode("3d_only")}
-              className={`rounded-md px-2 py-0.5 text-[10px] font-medium transition-colors cursor-pointer ${
-                viewMode === "3d_only" ? "bg-[#1f1b2e] text-white" : "text-[#716c87] hover:text-slate-300"
-              }`}
-            >
-              3D NIfTI
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Viewport Stage */}
-      <div className="flex flex-1 gap-2.5 overflow-hidden p-2.5">
-        {viewMode === "side_by_side" && (
-          <>
-            {is2dFirst ? render2DPanel() : render3DPanel()}
-            {is2dFirst ? render3DPanel() : render2DPanel()}
-          </>
-        )}
-        {viewMode === "2d_only" && render2DPanel()}
-        {viewMode === "3d_only" && render3DPanel()}
-      </div>
+    <div className="relative flex h-full w-full gap-3 overflow-hidden bg-black p-1">
+      {leftComponent === "3d" ? (
+        <>
+          {render3DPanel()}
+          {render2DPanel()}
+        </>
+      ) : (
+        <>
+          {render2DPanel()}
+          {render3DPanel()}
+        </>
+      )}
     </div>
   )
 }
