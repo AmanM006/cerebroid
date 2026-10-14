@@ -92,3 +92,15 @@ def test_without_a_reference_sparsity_is_unknown_not_guessed():
     assert components["data_sparsity"].level=="unknown"
     assert components["data_sparsity"].value is None
     assert components["model_skill"].level=="unknown"
+
+
+def test_absent_tumor_region_is_a_finding_not_missing_data(reference):
+    """No necrotic core is common in lower-grade tumors: reported, never 'supply it and re-run'."""
+    components=_by_source(decompose(
+        _prediction([0.9, 0.92, 0.95], StabilityVerdict.STABLE), False, 0.6,
+        _vector({c: 0.0 for c in COLUMNS}, missing=("ncr", "et")), reference, None,
+    ))
+    missing=components["missing_inputs"]
+    assert missing.level=="low"
+    assert "necrotic core" in missing.detail and "enhancing tumor" in missing.detail
+    assert missing.action=="No action needed."
