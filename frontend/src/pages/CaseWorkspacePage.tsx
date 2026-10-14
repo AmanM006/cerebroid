@@ -307,7 +307,7 @@ export function CaseWorkspacePage() {
       <div className="flex-1 overflow-y-auto p-3.5 font-mono text-xs text-neutral-400 space-y-3">
         <div className="rounded-xl border border-neutral-800 bg-[#121212] p-3 text-[11px] text-neutral-300 space-y-1.5">
           <span className="font-bold text-white block">Multiplicity Protocol:</span>
-          <p>• Stable markers (&ge;85% consensus): high confidence, non-invasive call.</p>
+          <p>• Stable markers (nearly all equally good models agree): the imaging call is consistent.</p>
           <p>• Contested / Arbitrary markers: histology / tissue biopsy mandatory.</p>
         </div>
 
