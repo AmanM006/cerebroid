@@ -9,19 +9,13 @@ import type { Case, Readiness } from "../api/types"
 import { AppShell } from "../components/AppShell"
 import { ErrorNotice } from "../components/ErrorNotice"
 import type { ViewerVolume } from "../components/MriViewer"
+import { ProfilePanel } from "../components/ProfilePanel"
 import { ProvenanceBadge } from "../components/ProvenanceBadge"
 
 // NiiVue is most of the bundle; load it only when a case is opened.
 const MriViewer=lazy(()=>import("../components/MriViewer").then((m)=>({ default: m.MriViewer })))
 
 const NO_VOLUMES: ViewerVolume[]=[]
-
-const MARKER_STATUS_TEXT: Record<string, string>={
-  loaded: "model set loaded",
-  missing: "model set not deployed",
-  integrity_error: "model files failed integrity check",
-  invalid: "model files invalid",
-}
 
 export function CaseWorkspacePage() {
   const { caseId }=useParams<{ caseId: string }>()
@@ -56,23 +50,11 @@ export function CaseWorkspacePage() {
           </div>
         </section>
 
-        <section aria-labelledby="profile-heading" className="rounded-lg border border-slate-800 bg-slate-900/50 p-4">
+        <section aria-labelledby="profile-heading" className="overflow-y-auto rounded-lg border border-slate-800 bg-slate-900/50 p-4">
           <h2 id="profile-heading" className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-400">
             Molecular profile
           </h2>
-          {!readiness && <p className="text-sm text-slate-400">Checking model availability…</p>}
-          {readiness && (
-            <ul className="space-y-2 text-sm">
-              {Object.entries(readiness.markers).map(([marker, status])=>(
-                <li key={marker} className="flex items-center justify-between rounded border border-slate-800 px-3 py-2">
-                  <span className="font-medium">{marker}</span>
-                  <span className={status==="loaded" ? "text-emerald-300" : "text-slate-400"}>
-                    {MARKER_STATUS_TEXT[status] ?? status}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+          {caseId && <ProfilePanel studyId={caseId} readiness={readiness} />}
         </section>
 
         <section aria-labelledby="evidence-heading" className="rounded-lg border border-slate-800 bg-slate-900/50 p-4 xl:block">
