@@ -7,6 +7,9 @@ stability rule as the API. Reports, per set:
   95% confidence intervals (1000 resamples, seed 0)
 - how many test patients got each verdict, and the error rate within each
   verdict: the check that "Stable" calls really are more often right
+And per marker, "resolved by combining" (CLAUDE.md §2.4 item 13): test patients
+whose imaging-only set is not Stable but whose fused set is Stable, with the
+fused call's accuracy on them, plus the reverse direction.
 
 Run from the repo root with the backend environment:
     backend/.venv/Scripts/python ml/pipeline/evaluate.py      (Windows)
@@ -58,7 +61,7 @@ def _bootstrap(y: np.ndarray, score: np.ndarray, call: np.ndarray) -> dict:
     return {"auc_ci95": ci(aucs), "balanced_accuracy_ci95": ci(baccs)}
 
 
-def evaluate_set(marker: str, artifact_dir: Path, test: pd.DataFrame) -> dict:
+def evaluate_set(marker: str, artifact_dir: Path, test: pd.DataFrame) -> tuple[dict, pd.DataFrame]:
     meta=json.loads((artifact_dir/"meta.json").read_text(encoding="utf-8"))
     models=joblib.load(artifact_dir/"models.joblib")
     rows=test[test[TARGETS[marker]].notna()]
@@ -93,7 +96,25 @@ def evaluate_set(marker: str, artifact_dir: Path, test: pd.DataFrame) -> dict:
         "by_verdict": by_verdict,
     }
     result.update(_bootstrap(y, median, call) if len(np.unique(y))>1 else {})
-    return result
+    per_patient=pd.DataFrame(
+        {"call": call, "label": y, "verdict": verdicts}, index=rows["patient_id"].to_numpy(),
+    )
+    return result, per_patient
+
+
+def resolved_by_combining(fused: pd.DataFrame, imaging: pd.DataFrame) -> dict:
+    both=fused.join(imaging, lsuffix="_fused", rsuffix="_imaging", how="inner")
+    resolved=both[(both["verdict_imaging"]!="STABLE") & (both["verdict_fused"]=="STABLE")]
+    lost=both[(both["verdict_imaging"]=="STABLE") & (both["verdict_fused"]!="STABLE")]
+    def accuracy(frame: pd.DataFrame) -> float | None:
+        return None if frame.empty else round(float((frame["call_fused"]==frame["label_fused"]).mean()), 4)
+    return {
+        "n_test": int(len(both)),
+        "imaging_only_not_stable": int((both["verdict_imaging"]!="STABLE").sum()),
+        "resolved_by_combining": int(len(resolved)),
+        "fused_accuracy_on_resolved": accuracy(resolved),
+        "stable_only_without_context": int(len(lost)),
+    }
 
 
 def main() -> None:
@@ -101,16 +122,28 @@ def main() -> None:
     test=table[table["split"]=="test"]
     config=yaml.safe_load((REPO/"ml"/"configs"/"markers.yaml").read_text(encoding="utf-8"))
     results=[]
+    per_patient: dict[tuple[str, str], pd.DataFrame]={}
     for entry in config["markers"]:
         directory=REPO/"artifacts"/entry["artifact_dir"]
         if (directory/"meta.json").is_file():
-            results.append(evaluate_set(entry["marker"], directory, test))
+            result, patients=evaluate_set(entry["marker"], directory, test)
+            results.append(result)
+            per_patient[(result["marker"], result["variant"])]=patients
+    combining={
+        marker: resolved_by_combining(per_patient[(marker, "fused")], per_patient[(marker, "imaging_only")])
+        for marker in TARGETS if (marker, "fused") in per_patient and (marker, "imaging_only") in per_patient
+    }
     out=REPO/"artifacts"/"metrics"/"heldout.json"
     out.parent.mkdir(parents=True, exist_ok=True)
-    payload={"split": "test", "n_patients": int(len(test)), "bootstrap_resamples": N_BOOT, "sets": results}
+    payload={
+        "split": "test", "n_patients": int(len(test)), "bootstrap_resamples": N_BOOT, "sets": results,
+        "resolved_by_combining": combining,
+    }
     out.write_text(json.dumps(payload, indent=2)+"\n", encoding="utf-8", newline="\n")
     for r in results:
         print(r["marker"], r["variant"], "AUC", r["auc"], r.get("auc_ci95"), "by verdict", r["by_verdict"])
+    for marker, counts in combining.items():
+        print(marker, "resolved by combining:", counts)
 
 
 if __name__=="__main__":
