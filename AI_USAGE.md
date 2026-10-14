@@ -5,6 +5,4 @@ a team member read the generated output before it was committed — nothing here
 
 | Date | Layer | Tool | Purpose | What was generated | Human review |
 |---|---|---|---|---|---|
-| 2026-10-14 | L0 Foundation | Claude Code (Claude Sonnet 5) | Scaffold the repository: directory layout, FastAPI skeleton (`/health`, `/ready`, structured logging, request-ID middleware, global error handler), Dockerfile, docker-compose, GitHub Actions CI, pre-commit/gitleaks config, and the initial docs skeleton (README, SECURITY.md, THREAT_MODEL.md v0, DATA_PROVENANCE.md v0, ADR-001) | All files listed in the Layer 0 commit | Tanish reviewed and approved before commit |
-
-Future entries are appended here, one row per layer, never overwritten.
+| 2026-10-14 | L0 Foundation | Claude Code (Claude Sonnet 5) | Scaffold the repository: directory layout, FastAPI service (`/health`, `/ready`, structured logging, request-ID middleware, global error handler), Dockerfile, docker-compose, GitHub Actions CI, pre-commit/gitleaks config, and the initial docs (README, SECURITY.md, THREAT_MODEL.md v0, DATA_PROVENANCE.md v0, ADR-001) | All files listed in the Layer 0 commit | Tanish reviewed and approved before commit |

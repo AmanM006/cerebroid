@@ -3,10 +3,8 @@
 /health: process is up. No dependencies checked — must always be fast and
 cheap so an orchestrator doesn't kill a healthy-but-busy container.
 
-/ready: process can actually serve traffic. At this layer that means "can
-reach the database". Later layers extend this to also check that model
-artifacts are loaded and match the manifest (see CLAUDE.md §7) — deliberately
-not claimed here since those artifacts don't exist yet.
+/ready: process can actually serve traffic, i.e. the database is reachable.
+Model-artifact checks (CLAUDE.md §7) are added alongside the artifacts.
 """
 import structlog
 from fastapi import APIRouter, status

@@ -17,7 +17,7 @@ against us — so we keep it genuinely current, not sparse.
 ## Design posture
 Security and privacy are treated as first-class in every build layer, not a final pass. The running
 threat model (STRIDE per endpoint, updated every layer) lives in [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md).
-Current posture at Layer 0:
+Current posture:
 
 - No secrets in source control; `.env` is gitignored, `.env.example` holds placeholders only.
 - gitleaks runs pre-commit and in CI.
@@ -25,5 +25,3 @@ Current posture at Layer 0:
 - The API container runs as a non-root user.
 - All error responses are a stable `{error_code, message, request_id}` shape — no stack traces, SQL,
   file paths, or library versions ever reach a client (see `backend/app/core/errors.py`).
-
-None of auth, upload handling, or rate limiting exist yet (Layers 3/7) — see Known Limitations.
