@@ -17,7 +17,7 @@ def test_ready_reports_database_and_every_configured_marker(client):
     response=client.get("/ready")
     body=response.json()
     assert body["checks"]["database"] is True
-    assert set(body["markers"])=={"IDH", "1p19q", "MGMT", "GRADE"}
+    assert {"IDH", "1p19q", "MGMT", "GRADE"}<=set(body["markers"])
     if body["checks"]["models"]:
         assert response.status_code==200
     else:

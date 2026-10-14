@@ -245,3 +245,12 @@ def test_low_signal_when_set_barely_beats_the_base_rate(tmp_path, baseline, low)
     assert predictor.low_signal is low
     if baseline is not None:
         assert predictor.meta.skill==pytest.approx(1-0.5/baseline)
+
+
+def test_invalid_markers_config_is_reported_not_fatal(tmp_path):
+    config=tmp_path/"markers.yaml"
+    config.write_text("markers:\n  - marker: IDH\n    artifact_dir: models/idh\n    unexpected: 1\n")
+    registry=load_registry(tmp_path/"artifacts", config)
+    assert registry.predictors=={}
+    assert registry.status=={"markers_config": "invalid"}
+    assert not registry.all_loaded

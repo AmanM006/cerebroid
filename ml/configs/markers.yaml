@@ -26,18 +26,12 @@ markers:
 - marker: 1p19q
   variant: fused_given_idh
   artifact_dir: models/1p19q_fused_given_idh
-  given:
-  - IDH
 - marker: MGMT
   variant: fused_given_idh
   artifact_dir: models/mgmt_fused_given_idh
-  given:
-  - IDH
 - marker: GRADE
   variant: fused_given_idh
   artifact_dir: models/grade_fused_given_idh
-  given:
-  - IDH
 - marker: IDH
   variant: clinical_only
   artifact_dir: models/idh_clinical_only

@@ -318,7 +318,12 @@ class MarkerRegistry:
 
 def load_registry(artifacts_root: Path, config_path: Path) -> MarkerRegistry:
     """Loads every configured marker variant. A variant that fails is reported, never fatal."""
-    config=MarkersConfig.model_validate(yaml.safe_load(config_path.read_text(encoding="utf-8")))
+    try:
+        config=MarkersConfig.model_validate(yaml.safe_load(config_path.read_text(encoding="utf-8")))
+    except (OSError, ValueError, yaml.YAMLError) as exc:
+        # A broken config must not stop the API: /ready reports it and no marker is served.
+        logger.error("markers_config_invalid", path=str(config_path), detail=str(exc)[:500])
+        return MarkerRegistry(predictors={}, status={"markers_config": "invalid"})
     predictors: dict[tuple[Marker, str], SetMarkerPredictor]={}
     status: dict[str, str]={}
 
