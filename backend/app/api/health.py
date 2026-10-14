@@ -9,10 +9,10 @@ Model-artifact checks (CLAUDE.md §7) are added alongside the artifacts.
 import structlog
 from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
-from app.core.config import get_settings
+from app.db.session import get_engine
 
 router=APIRouter(tags=["health"])
 logger=structlog.get_logger("health")
@@ -34,10 +34,8 @@ def ready() -> JSONResponse:
 
 
 def _check_database() -> bool:
-    settings=get_settings()
     try:
-        engine=create_engine(settings.database_url, pool_pre_ping=True)
-        with engine.connect() as conn:
+        with get_engine().connect() as conn:
             conn.execute(text("SELECT 1"))
         return True
     except SQLAlchemyError:

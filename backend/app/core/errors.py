@@ -25,11 +25,28 @@ class AppError(Exception):
     and get a consistent, safe error body for free.
     """
 
-    def __init__(self, error_code: str, message: str, status_code: int=status.HTTP_400_BAD_REQUEST):
+    def __init__(
+        self,
+        error_code: str,
+        message: str,
+        status_code: int=status.HTTP_400_BAD_REQUEST,
+        headers: dict[str, str] | None=None,
+    ):
         self.error_code=error_code
         self.message=message
         self.status_code=status_code
+        self.headers=headers
         super().__init__(message)
+
+
+def unauthorized(error_code: str="AUTH_INVALID_TOKEN", message: str="Authentication required.") -> AppError:
+    return AppError(error_code, message, status.HTTP_401_UNAUTHORIZED, {"WWW-Authenticate": "Bearer"})
+
+
+def not_found() -> AppError:
+    # Same response whether the object doesn't exist or belongs to someone
+    # else, so IDs of other users' studies can't be probed.
+    return AppError("NOT_FOUND", "Resource not found.", status.HTTP_404_NOT_FOUND)
 
 
 def _error_body(error_code: str, message: str, request: Request) -> dict:
@@ -43,12 +60,13 @@ def register_exception_handlers(app: FastAPI) -> None:
         return JSONResponse(
             status_code=exc.status_code,
             content=_error_body(exc.error_code, exc.message, request),
+            headers=exc.headers,
         )
 
     @app.exception_handler(RequestValidationError)
     async def handle_validation_error(request: Request, exc: RequestValidationError) -> JSONResponse:
         return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             content=_error_body("VALIDATION_ERROR", "Request did not match the expected schema.", request),
         )
 
