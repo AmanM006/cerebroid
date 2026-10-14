@@ -204,6 +204,12 @@ pre-operative scan per patient, split/fold rules, models load in the API environ
 held-out patients; skipped while those files are absent).
 
 ## Model artifacts
+Golden regression set: `backend/tests/golden/expected.json` freezes the profile (call, verdict, median probability,
+variant, low-signal flag, top IDH evidence group) for 10 held-out patients, with and without a known IDH result. CI fails
+if predictions drift. After an intended model update, regenerate it in the same commit:
+```bash
+cd backend && .venv/Scripts/python -m tests.golden.snapshot --write
+```
 Held-out metrics are computed by [ml/pipeline/evaluate.py](ml/pipeline/evaluate.py) on the 99 test-split patients and written to
 `artifacts/metrics/heldout.json` (rerun it after every model update; the model card hides metrics whose model file changed):
 ```bash
