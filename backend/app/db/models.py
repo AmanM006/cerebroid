@@ -108,3 +108,23 @@ class Study(Base):
     source_patient_id: Mapped[str | None]=mapped_column(String(32))
     status: Mapped[StudyStatus]=mapped_column(_enum(StudyStatus, "study_status"), default=StudyStatus.PENDING)
     created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class AuditEntry(Base):
+    """One tamper-evident audit record (CLAUDE.md §5).
+
+    hash=sha256 over this row's fields and the previous row's hash, so editing,
+    deleting or reordering any row breaks every hash after it. Rows hold IDs
+    and action names only, never clinical values.
+    """
+
+    __tablename__="audit_log"
+
+    seq: Mapped[int]=mapped_column(Integer, primary_key=True, autoincrement=False)
+    ts: Mapped[datetime]=mapped_column(DateTime(timezone=True))
+    actor_id: Mapped[uuid.UUID | None]=mapped_column(index=True)
+    action: Mapped[str]=mapped_column(String(64))
+    object_id: Mapped[str | None]=mapped_column(String(64))
+    model_version: Mapped[str | None]=mapped_column(String(80))
+    prev_hash: Mapped[str]=mapped_column(String(64))
+    hash: Mapped[str]=mapped_column(String(64), unique=True)

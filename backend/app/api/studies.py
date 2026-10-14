@@ -8,7 +8,14 @@ from typing import Literal
 from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.responses import FileResponse
 
-from app.api.deps import get_accessible_study, get_feature_store, get_registry, get_volume_store
+from app.api.deps import (
+    Auditor,
+    get_accessible_study,
+    get_auditor,
+    get_feature_store,
+    get_registry,
+    get_volume_store,
+)
 from app.api.schemas import (
     CurvePointOut,
     KnownMarkerIn,
@@ -110,6 +117,7 @@ def get_profile(
         default="fused", description="Inputs the models may use: all, MRI only, or patient info only",
     ),
     study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
     registry: MarkerRegistry=Depends(get_registry),
     store: FeatureStore=Depends(get_feature_store),
 ) -> ProfileOut:
@@ -131,6 +139,14 @@ def get_profile(
         known_markers=known_markers,
     )
     results=build_profile(registry, vector, view)
+    versions={
+        variant_label(r.marker, r.variant): r.prediction.model_version
+        for r in results if r.prediction is not None and r.variant is not None
+    }
+    audit(
+        f"profile.read:{view}", str(study.id),
+        "sha256:"+hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest(),
+    )
 
     canonical=json.dumps(vector.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
     biopsy=None if study.prior_biopsy is None else ("yes" if study.prior_biopsy else "no")
@@ -147,10 +163,7 @@ def get_profile(
         ),
         missing_inputs=vector.missing_inputs(),
         markers=[_marker_out(r) for r in results],
-        model_versions={
-            variant_label(r.marker, r.variant): r.prediction.model_version
-            for r in results if r.prediction is not None and r.variant is not None
-        },
+        model_versions=versions,
         feature_pipeline_version=store.version,
         input_hash="sha256:"+hashlib.sha256(canonical.encode()).hexdigest(),
         request_id=getattr(request.state, "request_id", None),
@@ -178,6 +191,7 @@ def _true_label(marker: Marker, raw: object) -> str | None:
 @router.get("/{study_id}/reveal")
 def reveal(
     study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
     store: FeatureStore=Depends(get_feature_store),
 ) -> RevealOut:
     """True lab results for demo cases only; kept out of /profile so they can never feed a prediction."""
@@ -185,6 +199,7 @@ def reveal(
         raise AppError(
             "NO_GROUND_TRUTH", "No lab results are available for this study.", status.HTTP_409_CONFLICT,
         )
+    audit("reveal.read", str(study.id))
     row=store.rows[study.source_patient_id]  # type: ignore[index]
     results=[]
     for marker in Marker:
@@ -207,6 +222,7 @@ def list_volumes(
 def get_volume(
     sequence: Sequence,
     study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
     volumes: VolumeStore=Depends(get_volume_store),
 ) -> FileResponse:
     """Streams one compressed NIfTI volume; the file name carries no patient id."""
@@ -215,6 +231,7 @@ def get_volume(
         raise AppError(
             "VOLUME_NOT_AVAILABLE", "This volume is not available for this study.", status.HTTP_404_NOT_FOUND,
         )
+    audit(f"volume.read:{sequence.value}", str(study.id))
     return FileResponse(
         path,
         media_type="application/gzip",
@@ -267,6 +284,7 @@ def get_evidence(
     marker: Marker,
     known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
     study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
     registry: MarkerRegistry=Depends(get_registry),
     store: FeatureStore=Depends(get_feature_store),
 ) -> EvidenceOut:
@@ -275,6 +293,7 @@ def get_evidence(
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
     prediction=predictor.predict_set(vector)
     explanation=explain_set(predictor, vector)
+    audit(f"evidence.read:{marker.value}", str(study.id), prediction.model_version)
     sizes={e.group: (e.label, e.n_columns) for e in explanation.effects}
     toward_positive=prediction.call==known_label(marker, 1)
     return EvidenceOut(
@@ -313,6 +332,7 @@ def get_doubt(
     marker: Marker,
     known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
     study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
     registry: MarkerRegistry=Depends(get_registry),
     store: FeatureStore=Depends(get_feature_store),
 ) -> DoubtOut:
@@ -325,6 +345,7 @@ def get_doubt(
         study.source_patient_id,
     )
     worst=primary(components)
+    audit(f"doubt.read:{marker.value}", str(study.id), prediction.model_version)
     return DoubtOut(
         study_id=study.id,
         marker=marker,
@@ -360,6 +381,7 @@ def get_tipping(
     marker: Marker,
     known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
     study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
     registry: MarkerRegistry=Depends(get_registry),
     store: FeatureStore=Depends(get_feature_store),
 ) -> TippingOut:
@@ -368,6 +390,7 @@ def get_tipping(
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
     prediction=predictor.predict_set(vector)
     points=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
+    audit(f"tipping.read:{marker.value}", str(study.id), prediction.model_version)
     return TippingOut(
         study_id=study.id,
         marker=marker,

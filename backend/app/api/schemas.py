@@ -210,3 +210,10 @@ class VolumesOut(_Response):
 
     study_id: uuid.UUID
     sequences: list[Sequence]
+
+
+class AuditVerifyOut(_Response):
+    valid: bool
+    entries: int
+    first_invalid_seq: int | None
+    head_hash: str
