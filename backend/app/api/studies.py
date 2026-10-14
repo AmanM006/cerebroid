@@ -72,6 +72,12 @@ def _parse_known(values: list[str]) -> dict[Marker, int]:
     return known
 
 
+def _input_hash(vector: FeatureVector) -> str:
+    """sha256 of every model input for this request, so any output can be reproduced exactly."""
+    canonical=json.dumps(vector.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
+    return "sha256:"+hashlib.sha256(canonical.encode()).hexdigest()
+
+
 def _clinical(value: object) -> ProvenancedValue:
     if value is None:
         return ProvenancedValue(value=None, provenance=Provenance.MISSING)
@@ -151,7 +157,6 @@ def get_profile(
         "sha256:"+hashlib.sha256(json.dumps(versions, sort_keys=True).encode()).hexdigest(),
     )
 
-    canonical=json.dumps(vector.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
     biopsy=None if study.prior_biopsy is None else ("yes" if study.prior_biopsy else "no")
     return ProfileOut(
         study_id=study.id,
@@ -168,7 +173,7 @@ def get_profile(
         markers=[_marker_out(r) for r in results],
         model_versions=versions,
         feature_pipeline_version=store.version,
-        input_hash="sha256:"+hashlib.sha256(canonical.encode()).hexdigest(),
+        input_hash=_input_hash(vector),
         request_id=getattr(request.state, "request_id", None),
         latency_ms=round((time.perf_counter()-started)*1000, 2),
     )
@@ -301,6 +306,7 @@ def get_evidence(
     toward_positive=prediction.call==known_label(marker, 1)
     return EvidenceOut(
         study_id=study.id,
+        input_hash=_input_hash(vector),
         marker=marker,
         variant=predictor.variant,
         call=prediction.call,
@@ -351,6 +357,7 @@ def get_doubt(
     audit(f"doubt.read:{marker.value}", str(study.id), prediction.model_version)
     return DoubtOut(
         study_id=study.id,
+        input_hash=_input_hash(vector),
         marker=marker,
         variant=predictor.variant,
         call=prediction.call,
@@ -396,6 +403,7 @@ def get_tipping(
     audit(f"tipping.read:{marker.value}", str(study.id), prediction.model_version)
     return TippingOut(
         study_id=study.id,
+        input_hash=_input_hash(vector),
         marker=marker,
         variant=predictor.variant,
         call=prediction.call,
@@ -446,6 +454,7 @@ def get_falsification(
     audit(f"falsification.read:{marker.value}", str(study.id), prediction.model_version)
     return FalsificationOut(
         study_id=study.id,
+        input_hash=_input_hash(vector),
         marker=marker,
         variant=predictor.variant,
         call=prediction.call,
