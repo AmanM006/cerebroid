@@ -122,11 +122,28 @@ def parse_feature_name(name: str) -> FeatureName:
 CLINICAL_COLUMNS=("age", "sex")
 SEX_ENCODING: dict[Sex, float]={Sex.MALE: 1.0, Sex.FEMALE: 0.0}
 
+# A marker result the clinician already has from the lab is a model input named
+# known__<marker> (1.0 = positive class, 0.0 = negative), e.g. known__idh.
+KNOWN_PREFIX="known__"
+
+
+def known_column(marker: Marker) -> str:
+    return f"{KNOWN_PREFIX}{marker.value.lower()}"
+
+
+def known_marker_of(column: str) -> Marker | None:
+    """The marker behind a known__ column, or None if the column isn't one."""
+    for marker in Marker:
+        if column==known_column(marker):
+            return marker
+    return None
+
 
 def validate_model_column(name: str) -> None:
-    """A trained model may use the clinical columns plus any convention-named feature."""
-    if name not in CLINICAL_COLUMNS:
-        parse_feature_name(name)
+    """A trained model may use the clinical columns, known lab results and convention-named features."""
+    if name in CLINICAL_COLUMNS or known_marker_of(name) is not None:
+        return
+    parse_feature_name(name)
 
 
 # --- core contract models ------------------------------------------------------
@@ -148,12 +165,17 @@ class FeatureVector(_Contract):
     age and sex are the only clinical inputs (CLAUDE.md §3 leakage rules);
     there is deliberately no field for grade, pathology, treatment or outcome.
     A feature value of None means missing, never zero.
+
+    known_markers holds lab results the clinician already has (1 = positive
+    class, 0 = negative). A known marker is never predicted; it can only inform
+    the prediction of the other markers.
     """
 
     study_id: str=Field(min_length=1, max_length=64)
     age: int=Field(ge=18, le=100)
     sex: Sex
     features: dict[str, float | None]
+    known_markers: dict[Marker, Literal[0, 1]]=Field(default_factory=dict)
 
     @field_validator("features")
     @classmethod
