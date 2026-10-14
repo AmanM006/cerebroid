@@ -146,6 +146,28 @@ export interface Evidence {
   latency_ms: number
 }
 
+export interface Claim {
+  text: string
+  evidence_ids: string[]
+  provenance: Provenance
+}
+
+export interface Falsification {
+  study_id: string
+  marker: MarkerName
+  variant: string
+  call: string
+  verdict: Verdict
+  supporting: Claim[]
+  contradicting: Claim[]
+  competing: Claim
+  overturn: Claim[]
+  confirmatory_test: string
+  model_version: string
+  request_id: string | null
+  latency_ms: number
+}
+
 export interface TippingItem {
   input: string
   label: string

@@ -10,7 +10,7 @@
  *   request_id, so a user can report the exact request that failed.
  */
 import type {
-  Case, CaseList, Doubt, ErrorBody, Evidence, MarkerName, MriSequence, Profile, ProfileView, Readiness, Reveal, Tipping, TokenResponse, User, Volumes,
+  Case, CaseList, Doubt, ErrorBody, Evidence, Falsification, MarkerName, MriSequence, Profile, ProfileView, Readiness, Reveal, Tipping, TokenResponse, User, Volumes,
 } from "./types"
 
 export class ApiError extends Error {
@@ -135,6 +135,13 @@ export const api={
     const params=new URLSearchParams({ marker })
     for (const [m, value] of Object.entries(known)) params.append("known", `${m}:${value}`)
     return getJson<Tipping>(`/api/v1/studies/${encodeURIComponent(id)}/tipping?${params}`)
+  },
+
+  /** The case for and against one marker's call, and what would overturn it. */
+  getFalsification(id: string, marker: MarkerName, known: Partial<Record<MarkerName, 0 | 1>>={}): Promise<Falsification> {
+    const params=new URLSearchParams({ marker })
+    for (const [m, value] of Object.entries(known)) params.append("known", `${m}:${value}`)
+    return getJson<Falsification>(`/api/v1/studies/${encodeURIComponent(id)}/falsification?${params}`)
   },
 
   /** The dataset's true lab results, for held-out demo cases only. */

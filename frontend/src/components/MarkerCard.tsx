@@ -2,6 +2,7 @@ import { useState } from "react"
 import { MARKER_LABELS, type MarkerName, type MarkerProfile, type ProvenancedValue } from "../api/types"
 import { DoubtView } from "./DoubtView"
 import { EvidenceView } from "./EvidenceView"
+import { FalsificationView } from "./FalsificationView"
 import { TippingView } from "./TippingView"
 import { ProbabilityRange } from "./ProbabilityRange"
 import { ProvenanceBadge } from "./ProvenanceBadge"
@@ -24,6 +25,7 @@ export function MarkerCard({
   const [showWhy, setShowWhy] = useState(false)
   const [showDoubt, setShowDoubt] = useState(false)
   const [showTipping, setShowTipping] = useState(false)
+  const [showCase, setShowCase] = useState(false)
   const labels = MARKER_LABELS[marker.marker]
   const agreeing = marker.n_models != null && marker.agreement != null
     ? Math.round(marker.agreement * marker.n_models) : null
@@ -106,10 +108,18 @@ export function MarkerCard({
             >
               {showTipping ? "▾ Hide" : "▸ What would flip it?"}
             </button>
+            <button
+              onClick={() => setShowCase((v) => !v)}
+              aria-expanded={showCase}
+              className="font-mono text-[10.5px] text-cyan-300 hover:text-cyan-200 cursor-pointer"
+            >
+              {showCase ? "▾ Hide" : "▸ Case for & against"}
+            </button>
           </div>}
           {explainable && showWhy && <EvidenceView studyId={studyId} marker={marker.marker} known={known} />}
           {explainable && showDoubt && <DoubtView studyId={studyId} marker={marker.marker} known={known} />}
           {explainable && showTipping && <TippingView studyId={studyId} marker={marker.marker} known={known} />}
+          {explainable && showCase && <FalsificationView studyId={studyId} marker={marker.marker} known={known} />}
         </div>
       )}
 
