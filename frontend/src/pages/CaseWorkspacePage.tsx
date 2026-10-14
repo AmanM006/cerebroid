@@ -45,6 +45,9 @@ export function CaseWorkspacePage() {
 
   useEffect(() => {
     if (!caseId) return
+    setStudy(null)
+    setError(null)
+    setChosenSequence(null)
     api.getCase(caseId).then(setStudy).catch(setError)
     api.readiness().then(setReadiness).catch(setError)
   }, [caseId])
@@ -278,7 +281,7 @@ export function CaseWorkspacePage() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {caseId && <ProfilePanel studyId={caseId} readiness={readiness} />}
+        {caseId && <ProfilePanel key={caseId} studyId={caseId} readiness={readiness} />}
       </div>
     </div>
   )

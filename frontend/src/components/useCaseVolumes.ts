@@ -11,20 +11,18 @@ export const SEQUENCE_LABELS: Record<AnatomicalSequence, string>={
   t2: "T2",
   t1: "T1",
 }
-// Contrast-enhanced T1 shows the enhancing rim best, so it opens first when present.
-const DISPLAY_ORDER: AnatomicalSequence[]=["t1c", "flair", "t2", "t1"]
 
-// Stable empty list, so the viewer doesn't reload on every render.
+const DISPLAY_ORDER: AnatomicalSequence[]=["t1c", "flair", "t2", "t1"]
 const NO_VOLUMES: LoadedVolume[]=[]
+
+// Cache volume list and ArrayBuffers for the currently open study so switching T1c/FLAIR/T2 is instant.
+let cachedStudyId: string | null=null
+let cachedSequences: MriSequence[] | null=null
+const cachedBytes=new Map<string, ArrayBuffer>()
 
 type Loaded={ key: string; volumes: LoadedVolume[]; available: MriSequence[]; error: unknown }
 
-/**
- * Fetches a case's MRI volume (the chosen sequence, else the best available one)
- * plus its tumor segmentation, through the authenticated API client.
- */
 export function useCaseVolumes(studyId: string | undefined, chosen: AnatomicalSequence | null) {
-  // Each result remembers which request it answers, so a stale load never shows for a newer one.
   const [loaded, setLoaded]=useState<Loaded | null>(null)
   const key=JSON.stringify([studyId, chosen])
 
@@ -33,13 +31,27 @@ export function useCaseVolumes(studyId: string | undefined, chosen: AnatomicalSe
     let cancelled=false
     ;(async ()=>{
       try {
-        const { sequences }=await api.listVolumes(studyId)
+        if (cachedStudyId!==studyId) {
+          cachedStudyId=studyId
+          cachedSequences=null
+          cachedBytes.clear()
+        }
+        const sequences=cachedSequences ?? (await api.listVolumes(studyId)).sequences
+        cachedSequences=sequences
         const display=chosen && sequences.includes(chosen) ? chosen : DISPLAY_ORDER.find((s)=>sequences.includes(s))
         const volumes: LoadedVolume[]=[]
         if (display) {
-          volumes.push({ name: `${display}.nii.gz`, data: await api.volume(studyId, display) })
+          const getVol=async (seq: MriSequence)=>{
+            const k=`${studyId}:${seq}`
+            const hit=cachedBytes.get(k)
+            if (hit) return hit
+            const buf=await api.volume(studyId, seq)
+            cachedBytes.set(k, buf)
+            return buf
+          }
+          volumes.push({ name: `${display}.nii.gz`, data: await getVol(display) })
           if (sequences.includes("seg")) {
-            volumes.push({ name: "seg.nii.gz", data: await api.volume(studyId, "seg"), colormap: "warm", opacity: 0.45 })
+            volumes.push({ name: "seg.nii.gz", data: await getVol("seg"), colormap: "warm", opacity: 0.45 })
           }
         }
         if (!cancelled) setLoaded({ key, volumes, available: sequences, error: null })

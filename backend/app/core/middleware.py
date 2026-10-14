@@ -36,6 +36,9 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         duration_ms=(time.perf_counter()-start)*1000
 
         response.headers[REQUEST_ID_HEADER]=request_id
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        response.headers.setdefault("Referrer-Policy", "no-referrer")
         logger.info(
             "request_handled",
             method=request.method,

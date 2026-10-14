@@ -11,6 +11,7 @@ function format(item: TippingItem, value: number): string {
 }
 
 function nearestIndex(item: TippingItem, value: number): number {
+  if (item.curve.length===0) return 0
   let best=0
   item.curve.forEach((p, i)=>{
     if (Math.abs(p.value-value)<Math.abs(item.curve[best]!.value-value)) best=i
@@ -21,7 +22,9 @@ function nearestIndex(item: TippingItem, value: number): number {
 /** One input: the tipping sentence plus a slider that shows the call at any plausible value. */
 function TippingRow({ item, marker }: { item: TippingItem; marker: MarkerName }) {
   const [index, setIndex]=useState(()=>nearestIndex(item, item.current))
-  const point=item.curve[index]!
+  if (item.curve.length===0) return null
+  const safeIndex=Math.min(Math.max(0, index), item.curve.length-1)
+  const point=item.curve[safeIndex]!
   const labels=MARKER_LABELS[marker]
   const call=point.positive_fraction>=0.5 ? labels.positive : labels.negative
   const share=Math.round(Math.max(point.positive_fraction, 1-point.positive_fraction)*100)
@@ -40,7 +43,7 @@ function TippingRow({ item, marker }: { item: TippingItem; marker: MarkerName })
         type="range"
         min={0}
         max={item.curve.length-1}
-        value={index}
+        value={safeIndex}
         onChange={(e)=>setIndex(Number(e.target.value))}
         aria-label={`Try another ${item.label.toLowerCase()}`}
         className="h-1 w-full cursor-pointer accent-cyan-400"
@@ -83,7 +86,9 @@ export function TippingView({
   return (
     <div className="space-y-2">
       <ul className="space-y-2.5">
-        {tipping.items.map((item)=><TippingRow key={item.input} item={item} marker={marker} />)}
+        {tipping.items.map((item)=>(
+          <TippingRow key={`${item.input}:${item.current}:${item.flip_at}`} item={item} marker={marker} />
+        ))}
       </ul>
       <p className="border-t border-[#1e1b2b] pt-1.5 font-mono text-[9.5px] text-[#615c75]" title={tipping.method}>
         Everything else held fixed. Shows how sensitive the models are, not what would change the tumor.

@@ -206,19 +206,6 @@ export function LoginPage() {
                     </label>
                   </div>
                 </div>
-
-                <div className="flex justify-end pt-1">
-                  <a
-                    href="#forgot"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      alert("Evaluators: Use demo credentials (evaluator / eval2026) or your assigned institution account.")
-                    }}
-                    className="text-xs text-neutral-400 hover:text-white transition-colors py-1 cursor-pointer"
-                  >
-                    Forgot password?
-                  </a>
-                </div>
               </div>
 
               {/* Clean White Background Button with Black Text */}

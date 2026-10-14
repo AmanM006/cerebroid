@@ -43,19 +43,26 @@ async function toApiError(response: Response): Promise<ApiError> {
   }
 }
 
+async function _doRefresh(): Promise<boolean> {
+  try {
+    const response=await fetch("/api/v1/auth/refresh", { method: "POST", credentials: "same-origin" })
+    if (!response.ok) {
+      accessToken=null
+      return false
+    }
+    accessToken=((await response.json()) as TokenResponse).access_token
+    return true
+  } finally {
+    refreshInFlight=null
+  }
+}
+
 async function refreshAccessToken(): Promise<boolean> {
   refreshInFlight??=(async ()=>{
-    try {
-      const response=await fetch("/api/v1/auth/refresh", { method: "POST", credentials: "same-origin" })
-      if (!response.ok) {
-        accessToken=null
-        return false
-      }
-      accessToken=((await response.json()) as TokenResponse).access_token
-      return true
-    } finally {
-      refreshInFlight=null
+    if (typeof navigator!=="undefined" && "locks" in navigator) {
+      return navigator.locks.request("vbx_refresh_lock", ()=>_doRefresh())
     }
+    return _doRefresh()
   })()
   return refreshInFlight
 }

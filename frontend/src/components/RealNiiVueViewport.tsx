@@ -116,6 +116,8 @@ export function RealNiiVueViewport({
     return ()=>{
       cancelled=true
       ro.disconnect()
+      const gl=canvas.getContext("webgl2")
+      gl?.getExtension("WEBGL_lose_context")?.loseContext()
     }
   }, [volumes])
 
@@ -142,7 +144,7 @@ export function RealNiiVueViewport({
     const nv=nvRef.current
     const base=nv?.volumes[0]
     if (nv && base) {
-      nv.setColormap(base.id, cmap)
+      nv.setColorMap(base.id, cmap)
       nv.updateGLVolume()
       nv.drawScene()
     }

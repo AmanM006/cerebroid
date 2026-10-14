@@ -172,12 +172,12 @@ export function LandingPage() {
                 <div className="text-xs font-bold text-red-400 uppercase tracking-wider">Modality E1</div>
                 <h3 className="text-lg font-bold text-white mt-1">Fused (Imaging + Clinical)</h3>
                 <p className="text-xs text-neutral-400 mt-2">
-                  Joint latent cross-attention fusing deep 3D ResNet volume features with age and sex biomarkers.
+                  Multi-family near-optimal ensemble (LightGBM, Elastic-Net, ExtraTrees) combining 3D shape, intensity & GLCM texture features with patient age and sex.
                 </p>
               </div>
               <div className="mt-6 flex items-baseline justify-between pt-4 border-t border-neutral-800">
-                <span className="text-xs font-semibold text-neutral-400">Out-of-Fold AUC</span>
-                <span className="text-xl font-black text-red-400">0.963</span>
+                <span className="text-xs font-semibold text-neutral-400">Held-Out IDH AUC</span>
+                <span className="text-xl font-black text-red-400">0.977</span>
               </div>
             </div>
 
@@ -186,12 +186,12 @@ export function LandingPage() {
                 <div className="text-xs font-bold text-red-400 uppercase tracking-wider">Modality E2</div>
                 <h3 className="text-lg font-bold text-white mt-1">Imaging Only (Zero Prior)</h3>
                 <p className="text-xs text-neutral-400 mt-2">
-                  Unbiased radiomic deep learning directly from T1ce, T2, and FLAIR skull-stripped NIfTI volumes.
+                  Context-blind counterfactual set scored strictly on 268 radiomic features across enhancing tumor, necrotic core, and peritumoral edema.
                 </p>
               </div>
               <div className="mt-6 flex items-baseline justify-between pt-4 border-t border-neutral-800">
-                <span className="text-xs font-semibold text-neutral-400">Out-of-Fold AUC</span>
-                <span className="text-xl font-black text-red-400">0.941</span>
+                <span className="text-xs font-semibold text-neutral-400">Held-Out IDH AUC</span>
+                <span className="text-xl font-black text-red-400">0.963</span>
               </div>
             </div>
 
@@ -200,12 +200,12 @@ export function LandingPage() {
                 <div className="text-xs font-bold text-red-400 uppercase tracking-wider">Modality E4</div>
                 <h3 className="text-lg font-bold text-white mt-1">Fused Given Known IDH</h3>
                 <p className="text-xs text-neutral-400 mt-2">
-                  Conditional probability Bayesian inference predicting 1p/19q codeletion conditioned on verified IDH status.
+                  Known-result conditioning predicting 1p/19q co-deletion and WHO Grade when IDH status is already established from biopsy.
                 </p>
               </div>
               <div className="mt-6 flex items-baseline justify-between pt-4 border-t border-neutral-800">
-                <span className="text-xs font-semibold text-neutral-400">Out-of-Fold AUC</span>
-                <span className="text-xl font-black text-red-400">0.982</span>
+                <span className="text-xs font-semibold text-neutral-400">Held-Out 1p/19q AUC</span>
+                <span className="text-xl font-black text-red-400">0.974</span>
               </div>
             </div>
           </div>
@@ -215,12 +215,12 @@ export function LandingPage() {
               <span className="text-xs font-semibold text-neutral-400">9 Pre-loaded Benchmark Scans</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-neutral-800 text-neutral-300 font-bold">240×240×155</span>
             </div>
-            <a
-              href="/viewer"
+            <Link
+              to="/cases"
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white text-black font-bold text-sm shadow hover:bg-neutral-200 transition duration-200"
             >
-              <span>Launch 3D DICOM PACS Viewer</span>
-            </a>
+              <span>Launch 3D NIfTI PACS Workspace</span>
+            </Link>
           </div>
         </div>
       </section>
