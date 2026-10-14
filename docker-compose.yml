@@ -8,7 +8,7 @@ services:
     environment:
       APP_ENV: ${APP_ENV:-development}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:8080}
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-vbx}:${POSTGRES_PASSWORD:-vbx}@db:5432/${POSTGRES_DB:-vbx}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env (see .env.example)}
       JWT_ACCESS_TOKEN_TTL_MINUTES: ${JWT_ACCESS_TOKEN_TTL_MINUTES:-15}
@@ -16,6 +16,15 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: ops/nginx/Dockerfile
+    ports:
+      - "${WEB_PORT:-8080}:8080"
+    depends_on:
+      - api
 
   db:
     image: postgres:16-alpine

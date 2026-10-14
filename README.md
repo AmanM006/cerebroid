@@ -60,10 +60,11 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```bash
 docker compose up --build
 ```
-Database migrations run automatically when the API container starts.
+Database migrations run automatically when the API container starts. Open the app at
+`http://localhost:8080` (nginx serves the frontend and proxies the API on the same origin).
 ```bash
-curl http://localhost:8000/health
-curl http://localhost:8000/ready
+curl http://localhost:8080/health
+curl http://localhost:8080/ready
 ```
 
 ### Local (without Docker)
@@ -89,9 +90,29 @@ Register a public-dataset patient from the feature table as a demo case (age, se
 docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-0004
 ```
 
+To reproduce the deployed demo on a fresh stack, register the six held-out test patients:
+```bash
+for p in 0061 0073 0243 0018 0026 0232; do
+  docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-$p
+done
+```
+
 ## 7. Deployment & access details
-- **Docker Compose:** `docker compose up --build`, API on `http://localhost:8000`.
+- **Docker Compose:** `docker compose up --build`, app on `http://localhost:8080` (set `WEB_PORT` to change it),
+  API also reachable directly on `http://localhost:8000`.
 - **Interactive API docs:** `http://localhost:8000/docs`.
+
+### Test account
+A synthetic, non-admin clinician account for evaluators. It sees the public demo cases and its own uploads only.
+
+| Username | Password | Role |
+|---|---|---|
+| `evaluator` | `vbx-eval-fcd664d1` | clinician |
+
+On a fresh local stack, create it with the command below and enter the password from the table when prompted:
+```bash
+docker compose exec api python -m app.cli create-user --username evaluator --role clinician --synthetic
+```
 
 ### API endpoints
 | Method & path | Auth | Purpose |
@@ -135,6 +156,7 @@ See [.env.example](.env.example).
 | `APP_ENV` | `development` / `production` |
 | `LOG_LEVEL` | Log level, e.g. `INFO` |
 | `CORS_ORIGINS` | Comma-separated allowlist of frontend origins |
+| `WEB_PORT` | Host port of the web container (default 8080) |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres credentials |
 | `DATABASE_URL` | SQLAlchemy connection string |
 | `JWT_SECRET_KEY` | **Required.** JWT signing key, ≥32 random characters |
@@ -188,18 +210,24 @@ pip-audit -r requirements.txt
 See [AI_USAGE.md](AI_USAGE.md): each AI tool used, its purpose, what it generated, and what was human-reviewed.
 
 ## 13. Synthetic data disclosure
-None.
+No synthetic data is used by any model. The `evaluator` test account is a synthetic user and is flagged as such
+in the database (`is_synthetic`).
 
 ## 14. Dockerfiles & container commands
 - [backend/Dockerfile](backend/Dockerfile): `python:3.11-slim`, runs as a non-root user that cannot modify the
   application code or model files. Built from the repo root; [.dockerignore](.dockerignore) is an allowlist, so
   `.env`, `.git` and local environments never enter the image.
-- [docker-compose.yml](docker-compose.yml): `api` (FastAPI) + `db` (PostgreSQL 16).
+- [ops/nginx/Dockerfile](ops/nginx/Dockerfile): builds the frontend with Node 22, then serves it from
+  `nginx-unprivileged` (non-root, port 8080). [nginx.conf](ops/nginx/nginx.conf) proxies `/api`, `/health` and
+  `/ready` to the API and adds the security headers in [security_headers.inc](ops/nginx/security_headers.inc)
+  (CSP, `X-Frame-Options: DENY`, `nosniff`, `Referrer-Policy`, HSTS).
+- [docker-compose.yml](docker-compose.yml): `web` (nginx + frontend) + `api` (FastAPI) + `db` (PostgreSQL 16).
 
 ```bash
 docker compose up --build       # start
 docker compose down             # stop (add -v to drop the database volume)
 docker compose logs -f api      # API logs
+docker compose logs -f web      # nginx access log
 ```
 
 ## 15. Error codes
