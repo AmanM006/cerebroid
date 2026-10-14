@@ -331,3 +331,34 @@ def test_other_users_study_doubt_is_not_found(client, make_user, make_study, dep
     study=make_study(kind=StudyKind.UPLOAD, owner=owner)
     url=f"/api/v1/studies/{study.id}/doubt"
     assert client.get(url, params={"marker": "IDH"}, headers=login(client, "mallory")).status_code==404
+
+
+def test_imaging_only_view_rescores_with_the_context_blind_set(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    headers=login(client, "alice")
+    r=client.get(f"/api/v1/studies/{study.id}/profile", params={"view": "imaging_only"}, headers=headers)
+    assert r.status_code==200
+    body=r.json()
+    assert body["view"]=="imaging_only"
+    markers={m["marker"]: m for m in body["markers"]}
+    assert markers["IDH"]["status"]=="predicted" and markers["IDH"]["variant"]=="imaging_only"
+    assert markers["IDH"]["resolved_by_combining"] is False
+    assert markers["1p19q"]["status"]=="unavailable"
+    assert markers["1p19q"]["reason"]=="imaging-only model set not deployed"
+
+
+def test_clinical_only_view_never_falls_back_to_another_set(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    url=f"/api/v1/studies/{study.id}/profile"
+    r=client.get(url, params={"view": "clinical_only"}, headers=login(client, "alice"))
+    assert all(m["status"]=="unavailable" for m in r.json()["markers"])
+
+
+def test_unknown_view_is_rejected(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    url=f"/api/v1/studies/{study.id}/profile"
+    r=client.get(url, params={"view": "everything"}, headers=login(client, "alice"))
+    assert r.status_code==422

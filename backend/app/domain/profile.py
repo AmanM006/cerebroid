@@ -11,7 +11,7 @@ from typing import Literal
 import structlog
 
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, SetPrediction, StabilityVerdict
-from app.domain.registry import IMAGING_ONLY, MarkerRegistry, ModelOutputError
+from app.domain.registry import FUSED, IMAGING_ONLY, MarkerRegistry, ModelOutputError
 
 logger=structlog.get_logger("profile")
 
@@ -44,7 +44,9 @@ def known_label(marker: Marker, value: int) -> str:
     return positive if value==1 else negative
 
 
-def build_profile(registry: MarkerRegistry, vector: FeatureVector) -> list[MarkerResult]:
+def build_profile(registry: MarkerRegistry, vector: FeatureVector, view: str=FUSED) -> list[MarkerResult]:
+    """view=fused uses the best set for what is known; the other views re-score with the
+    imaging-only or clinical-only set, so the UI can show what each source decides alone."""
     known=set(vector.known_markers)
     results=[]
     for marker in Marker:
@@ -52,9 +54,11 @@ def build_profile(registry: MarkerRegistry, vector: FeatureVector) -> list[Marke
             call=known_label(marker, vector.known_markers[marker])
             results.append(MarkerResult(marker, "known", call=call))
             continue
-        predictor=registry.for_patient(marker, known)
+        predictor=registry.for_patient(marker, known) if view==FUSED else registry.get(marker, view)
         if predictor is None:
-            results.append(MarkerResult(marker, "unavailable", reason="model set not deployed"))
+            scope="" if view==FUSED else view.replace("_", "-")+" "
+            reason=f"{scope}model set not deployed"
+            results.append(MarkerResult(marker, "unavailable", reason=reason))
             continue
         try:
             prediction=predictor.predict_set(vector)
@@ -63,7 +67,7 @@ def build_profile(registry: MarkerRegistry, vector: FeatureVector) -> list[Marke
             results.append(MarkerResult(marker, "unavailable", reason="model output failed validation"))
             continue
         imaging_only=None
-        imaging_predictor=registry.get(marker, IMAGING_ONLY)
+        imaging_predictor=registry.get(marker, IMAGING_ONLY) if view==FUSED else None
         if imaging_predictor is not None:
             try:
                 imaging_only=imaging_predictor.predict_set(vector)

@@ -3,6 +3,7 @@ import hashlib
 import json
 import re
 import time
+from typing import Literal
 
 from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.responses import FileResponse
@@ -101,6 +102,9 @@ def _marker_out(result: MarkerResult) -> MarkerProfileOut:
 def get_profile(
     request: Request,
     known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
+    view: Literal["fused", "imaging_only", "clinical_only"]=Query(
+        default="fused", description="Inputs the models may use: all, MRI only, or patient info only",
+    ),
     study: Study=Depends(get_accessible_study),
     registry: MarkerRegistry=Depends(get_registry),
     store: FeatureStore=Depends(get_feature_store),
@@ -122,12 +126,13 @@ def get_profile(
         prior_biopsy=study.prior_biopsy,
         known_markers=known_markers,
     )
-    results=build_profile(registry, vector)
+    results=build_profile(registry, vector, view)
 
     canonical=json.dumps(vector.model_dump(mode="json"), sort_keys=True, separators=(",", ":"))
     biopsy=None if study.prior_biopsy is None else ("yes" if study.prior_biopsy else "no")
     return ProfileOut(
         study_id=study.id,
+        view=view,
         inputs=ProfileInputs(
             age=_clinical(study.age),
             sex=_clinical(study.sex),
