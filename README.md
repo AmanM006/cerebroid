@@ -148,7 +148,10 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 Suites: `tests/api` (auth flow, health), `tests/security` (forged/expired tokens, IDOR on cases),
-`tests/unit` (shared contracts, config validation, model registry and artifact integrity, stability verdicts).
+`tests/unit` (shared contracts, config validation, model registry and artifact integrity, stability verdicts),
+`tests/contracts` (the committed feature table and model artifacts: naming convention, leakage columns, one
+pre-operative scan per patient, split/fold rules, models load in the API environment, predictions vary across
+held-out patients; skipped while those files are absent).
 
 ## Model artifacts
 Trained model sets live in `artifacts/models/<marker>/` and are listed with their sha256 in
