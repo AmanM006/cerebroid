@@ -140,6 +140,22 @@ def test_meta_variant_must_match_config(tmp_path):
     assert registry.status["IDH"]=="invalid"
 
 
+def test_prior_biopsy_history_is_a_clinical_input(tmp_path):
+    columns=["age", "sex", "prior_biopsy"]
+    registry=_load(tmp_path, [
+        ("IDH", "clinical_only", "models/idh_clinical", columns, None),
+        ("IDH", "imaging_only", "models/idh_imaging", [*IMAGING, "prior_biopsy"], None),
+    ])
+    assert registry.status["IDH:clinical_only"]=="loaded"
+    assert registry.status["IDH:imaging_only"]=="invalid"
+
+    predictor=registry.get(Marker.IDH, "clinical_only")
+    unrecorded=predictor._frame(_patient())
+    assert np.isnan(unrecorded["prior_biopsy"].iloc[0])
+    recorded=FeatureVector(study_id="s1", age=50, sex="F", prior_biopsy=True, features={})
+    assert predictor._frame(recorded)["prior_biopsy"].iloc[0]==1.0
+
+
 def test_known_marker_values_are_binary():
     with pytest.raises(ValidationError):
         _patient(IDH=2)

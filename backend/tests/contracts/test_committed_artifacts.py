@@ -9,7 +9,7 @@ import pandas as pd
 import pytest
 
 from app.core.config import get_settings
-from app.domain.contracts import FeatureVector, Marker, Sex, known_marker_of
+from app.domain.contracts import CLINICAL_COLUMNS, FeatureVector, Marker, Sex, known_marker_of
 from app.domain.registry import MANIFEST_FILE, MarkersConfig, load_registry, variant_label
 
 # Feature-table column holding each marker's lab label (used to supply known results).
@@ -80,12 +80,14 @@ def test_predictions_on_held_out_patients_depend_on_input(registry):
             features={
                 c: (None if pd.isna(row[c]) else float(row[c]))
                 for c in predictor.meta.feature_columns
-                if c not in ("age", "sex") and known_marker_of(c) is None
+                if c not in CLINICAL_COLUMNS and known_marker_of(c) is None
             }
+            biopsy=row.get("prior_biopsy")
             vector=FeatureVector(
                 study_id=str(row["patient_id"]),
                 age=int(round(row["age"])),
                 sex=Sex.MALE if int(row["sex"])==1 else Sex.FEMALE,
+                prior_biopsy=None if biopsy is None or pd.isna(biopsy) else bool(biopsy),
                 features=features,
                 known_markers=known,
             )
