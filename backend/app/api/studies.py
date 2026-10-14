@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 
 from app.api.deps import get_accessible_study, get_feature_store, get_registry, get_volume_store
 from app.api.schemas import (
+    CurvePointOut,
     KnownMarkerIn,
     MarkerProfileOut,
     ProfileInputs,
@@ -19,14 +20,17 @@ from app.api.schemas import (
     DoubtOut,
     EvidenceItemOut,
     EvidenceOut,
+    TippingItemOut,
+    TippingOut,
     TrueResultOut,
     VolumesOut,
 )
 from app.core.errors import AppError
 from app.db.models import Study, StudyKind
-from app.domain.contracts import FeatureVector, Marker, Provenance, ProvenancedValue
+from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue
 from app.domain.doubt import decompose, primary
 from app.domain.explain import explain_set
+from app.domain.tipping import find_tipping_points
 from app.domain.feature_store import FeatureStore
 from app.domain.profile import MarkerResult, build_profile, known_label
 from app.domain.registry import MarkerRegistry, SetMarkerPredictor, variant_label
@@ -336,6 +340,54 @@ def get_doubt(
                 provenance=c.provenance,
             )
             for c in components
+        ],
+        model_version=prediction.model_version,
+        request_id=getattr(request.state, "request_id", None),
+        latency_ms=round((time.perf_counter()-started)*1000, 2),
+    )
+
+
+_TIPPING_METHOD=(
+    "Each clinician-verifiable input is swept across plausible values (ages 18-100; tumor descriptors over "
+    "the training patients' 1st-99th percentiles) with everything else fixed, re-running every model in the "
+    "set. flip_at is the nearest value where the majority call changes. Model sensitivity, not cause."
+)
+
+
+@router.get("/{study_id}/tipping")
+def get_tipping(
+    request: Request,
+    marker: Marker,
+    known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
+    study: Study=Depends(get_accessible_study),
+    registry: MarkerRegistry=Depends(get_registry),
+    store: FeatureStore=Depends(get_feature_store),
+) -> TippingOut:
+    """What it would take to flip this marker's call, per clinician-verifiable input."""
+    started=time.perf_counter()
+    predictor, vector=_marker_inputs(marker, known, study, registry, store)
+    prediction=predictor.predict_set(vector)
+    points=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
+    return TippingOut(
+        study_id=study.id,
+        marker=marker,
+        variant=predictor.variant,
+        call=prediction.call,
+        method=_TIPPING_METHOD,
+        items=[
+            TippingItemOut(
+                input=t.column, label=t.label, unit=t.unit, current=round(t.current, 6),
+                flip_at=t.flip_at, flips_to=t.flips_to,
+                curve=[
+                    CurvePointOut(
+                        value=round(c.value, 6), positive_fraction=round(c.positive_fraction, 4),
+                        prob_median=round(c.prob_median, 4),
+                    )
+                    for c in t.curve
+                ],
+                provenance=Provenance.MODEL_INFERRED,
+            )
+            for t in points
         ],
         model_version=prediction.model_version,
         request_id=getattr(request.state, "request_id", None),

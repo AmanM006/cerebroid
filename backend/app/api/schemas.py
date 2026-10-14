@@ -142,6 +142,37 @@ class DoubtOut(_Response):
     latency_ms: float
 
 
+class CurvePointOut(_Response):
+    value: float
+    positive_fraction: float
+    prob_median: float
+
+
+class TippingItemOut(_Response):
+    """How far one clinician-verifiable input would have to move to flip the call."""
+
+    input: str
+    label: str
+    unit: str
+    current: float
+    flip_at: float | None
+    flips_to: str | None
+    curve: list[CurvePointOut]
+    provenance: Provenance
+
+
+class TippingOut(_Response):
+    study_id: uuid.UUID
+    marker: Marker
+    variant: str
+    call: str
+    method: str
+    items: list[TippingItemOut]
+    model_version: str
+    request_id: str | None
+    latency_ms: float
+
+
 class ProfileOut(_Response):
     study_id: uuid.UUID
     view: Literal["fused", "imaging_only", "clinical_only"]

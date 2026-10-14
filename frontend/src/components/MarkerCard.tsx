@@ -2,6 +2,7 @@ import { useState } from "react"
 import { MARKER_LABELS, type MarkerName, type MarkerProfile, type ProvenancedValue } from "../api/types"
 import { DoubtView } from "./DoubtView"
 import { EvidenceView } from "./EvidenceView"
+import { TippingView } from "./TippingView"
 import { ProbabilityRange } from "./ProbabilityRange"
 import { ProvenanceBadge } from "./ProvenanceBadge"
 import { VerdictBadge } from "./VerdictBadge"
@@ -22,6 +23,7 @@ export function MarkerCard({
 }) {
   const [showWhy, setShowWhy] = useState(false)
   const [showDoubt, setShowDoubt] = useState(false)
+  const [showTipping, setShowTipping] = useState(false)
   const labels = MARKER_LABELS[marker.marker]
   const agreeing = marker.n_models != null && marker.agreement != null
     ? Math.round(marker.agreement * marker.n_models) : null
@@ -82,7 +84,7 @@ export function MarkerCard({
               ⚑ Imaging evidence inconclusive: confirm with tissue testing.
             </p>
           )}
-          {explainable && <div className="flex items-center gap-4">
+          {explainable && <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <button
               onClick={() => setShowWhy((v) => !v)}
               aria-expanded={showWhy}
@@ -97,9 +99,17 @@ export function MarkerCard({
             >
               {showDoubt ? "▾ Hide doubt" : "▸ What's uncertain?"}
             </button>
+            <button
+              onClick={() => setShowTipping((v) => !v)}
+              aria-expanded={showTipping}
+              className="font-mono text-[10.5px] text-cyan-300 hover:text-cyan-200 cursor-pointer"
+            >
+              {showTipping ? "▾ Hide" : "▸ What would flip it?"}
+            </button>
           </div>}
           {explainable && showWhy && <EvidenceView studyId={studyId} marker={marker.marker} known={known} />}
           {explainable && showDoubt && <DoubtView studyId={studyId} marker={marker.marker} known={known} />}
+          {explainable && showTipping && <TippingView studyId={studyId} marker={marker.marker} known={known} />}
         </div>
       )}
 

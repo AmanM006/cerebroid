@@ -17,6 +17,7 @@ import structlog
 
 from app.domain.contracts import FeatureVector, Marker, Sex, parse_feature_name
 from app.domain.doubt import CohortReference
+from app.domain.tipping import descriptor_grids
 
 logger=structlog.get_logger("feature_store")
 
@@ -36,6 +37,8 @@ class FeatureStore:
     version: str | None=None
     # Training-split patients, for "is this tumor unlike the training data?" (doubt.py).
     reference: CohortReference | None=None
+    # Plausible values of each interpretable descriptor, for tipping evidence (tipping.py).
+    descriptor_grids: dict[str, list[float]]=field(default_factory=dict)
 
     def has(self, patient_id: str | None) -> bool:
         return patient_id is not None and patient_id in self.rows
@@ -78,4 +81,5 @@ def load_feature_store(path: Path) -> FeatureStore:
     train={p: r for p, r in rows.items() if r.get("split")=="train"}
     reference=CohortReference(train) if len(train)>5 else None
     logger.info("feature_table_loaded", patients=len(rows), train=len(train), version=version)
-    return FeatureStore(rows=rows, version=version, reference=reference)
+    grids=descriptor_grids(train) if train else {}
+    return FeatureStore(rows=rows, version=version, reference=reference, descriptor_grids=grids)
