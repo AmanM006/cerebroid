@@ -1,0 +1,32 @@
+# radiomics.yaml — pyradiomics extraction parameters for VBX
+#
+# WHY these settings:
+#   - binWidth 25 HU is standard for MRI-derived intensity normalisation.
+#   - We extract first-order, shape (once per region), and the four main
+#     texture classes; NGTDM and GLDM are also included for completeness.
+#   - Resample to 1×1×1 mm so voxel spacing doesn't leak into shape features.
+#   - normalize=true handles cross-scanner intensity variation.
+#   - Shape features are sequence-independent; the pipeline extracts them once
+#     per sub-region and copies the values rather than re-running four times.
+#
+# Config hash is recorded in the notebook output alongside library versions
+# so any run is reproducible from those two pieces of information.
+
+setting:
+  binWidth: 25
+  resampledPixelSpacing: [1, 1, 1]
+  interpolator: sitkBSpline
+  padDistance: 10
+  normalize: true
+  normalizeScale: 100
+  removeOutliers: 3.0
+  label: 1          # overridden per-region in the pipeline
+
+featureClass:
+  firstorder: []    # all first-order features
+  shape: []         # all shape features (extracted once per region)
+  glcm: []
+  glrlm: []
+  glszm: []
+  ngtdm: []
+  gldm: []
