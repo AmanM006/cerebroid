@@ -2,7 +2,6 @@ import { useState, useEffect } from "react"
 import { ArrowDown } from "lucide-react"
 import Lenis from "lenis"
 import { NovaCell3DScene } from "../components/NovaCell3DScene"
-import { TechText } from "../components/TechText"
 import { CircularText } from "../components/CircularText"
 
 export function LandingPage() {
@@ -88,26 +87,15 @@ export function LandingPage() {
         {/* TOP NAVBAR: Edge-to-edge */}
         <header className="relative z-30 flex items-center justify-between px-8 sm:px-14 lg:px-20 pt-8 sm:pt-10">
           
-          {/* TechText vector wordmark for NovaCell on the top left */}
-          <div className="w-48 sm:w-60 h-12 flex items-center">
-            <TechText
-              text="NovaCell"
-              fontWeight={800}
-              fontSize={34}
-              color="#ffffff"
-              accentColor="#ef4444"
-              letterSpacing={-0.03}
-              reach={100}
-              softness={0.7}
-              strokeWidth={1.4}
-              speed={1}
-              lineStyle="dashed"
-              selection={true}
-              labels={false}
-              draggable={true}
-              sweep={true}
-            />
-          </div>
+          {/* Clean normal bold NovaCell wordmark on the top left */}
+          <a href="/" className="flex items-center gap-2 group">
+            <span
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white"
+              style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}
+            >
+              NovaCell
+            </span>
+          </a>
 
           {/* Clean Minimalist White Glass Login Button */}
           <a

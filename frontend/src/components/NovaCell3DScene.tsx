@@ -62,8 +62,7 @@ export function NovaCell3DScene() {
     const height = mount.clientHeight
 
     const scene = new THREE.Scene()
-    // Black mist fog for dark theme
-    scene.fog = new THREE.FogExp2(0x05070a, 0.02)
+    scene.fog = new THREE.FogExp2(0x000000, 0.015)
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
     camera.position.set(0, 0, 16)
@@ -76,119 +75,104 @@ export function NovaCell3DScene() {
     renderer.setSize(width, height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.3
+    renderer.toneMappingExposure = 1.4
     mount.appendChild(renderer.domElement)
 
-    // Lighting setup tailored for crisp white glass balls and vibrant red tumor
-    const ambientLight = new THREE.AmbientLight(0x222630, 2.5)
+    // Lighting setup for glowing, shiny organic red tumors in deep obsidian space
+    const ambientLight = new THREE.AmbientLight(0x2a0808, 2.0)
     scene.add(ambientLight)
 
-    // Bright specular key light
-    const keyLight = new THREE.DirectionalLight(0xffffff, 4.0)
+    // Crisp white specular key light
+    const keyLight = new THREE.DirectionalLight(0xffffff, 4.2)
     keyLight.position.set(-8, 12, 10)
     scene.add(keyLight)
 
-    // White rim backlight
-    const rimLight = new THREE.DirectionalLight(0xffffff, 3.0)
+    // Secondary rim backlight
+    const rimLight = new THREE.DirectionalLight(0xff4444, 3.0)
     rimLight.position.set(6, -6, -8)
     scene.add(rimLight)
 
-    // Internal intense red/crimson point light for the tumor core
-    const coreRedLight = new THREE.PointLight(0xff2222, 60, 25)
-    coreRedLight.position.set(1.4, -0.2, 0.5)
-    scene.add(coreRedLight)
+    // Bright glowing internal red point lights that illuminate the central hero tumor
+    const heroRedLight = new THREE.PointLight(0xff1111, 120, 25)
+    heroRedLight.position.set(1.4, -0.2, 2.0)
+    scene.add(heroRedLight)
 
     const masterGroup = new THREE.Group()
     scene.add(masterGroup)
 
-    // Clear White/Pearl Glass Vesicle Membrane Material
-    const whiteGlassMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#ffffff"),
-      emissive: new THREE.Color("#334155"),
-      emissiveIntensity: 0.1,
-      roughness: 0.06,
-      metalness: 0.1,
-      transmission: 0.9, // Ultra high crystal transparency
-      ior: 1.45,
-      thickness: 1.6,
-      specularIntensity: 1.5,
-      specularColor: new THREE.Color("#ffffff"),
-      transparent: true,
-      opacity: 0.9,
-    })
-
-    // -------------------------------------------------------------
-    // 1. PRIMARY HERO VESICLE WITH VIBRANT RED 3D TUMOR SPHEROID CORE
-    // -------------------------------------------------------------
-    const heroGroup = new THREE.Group()
-    heroGroup.position.set(1.4, -0.2, 0.5)
-
-    // Outer clear white glass sphere
-    const heroOuterGeo = new THREE.SphereGeometry(3.6, 64, 64)
-    const heroOuterMesh = new THREE.Mesh(heroOuterGeo, whiteGlassMaterial)
-    heroGroup.add(heroOuterMesh)
-
-    // --- INNER 3D TUMOR SPHEROID ---
     const noise = createNoise3D()
-    const tumorGeo = new THREE.SphereGeometry(2.0, 96, 96)
-    const posAttr = tumorGeo.attributes.position!
-    const v3 = new THREE.Vector3()
 
-    for (let i = 0; i < posAttr.count; i++) {
-      v3.fromBufferAttribute(posAttr, i)
-      const len = v3.length()
-      const n1 = noise(v3.x * 1.5, v3.y * 1.5, v3.z * 1.5)
-      const n2 = noise(v3.x * 3.5, v3.y * 3.5, v3.z * 3.5) * 0.4
-      const n3 = noise(v3.x * 7.0, v3.y * 7.0, v3.z * 7.0) * 0.15
-      const displacement = 1.0 + (n1 + n2 + n3) * 0.42
-      v3.normalize().multiplyScalar(len * displacement)
-      posAttr.setXYZ(i, v3.x, v3.y, v3.z)
-    }
-    tumorGeo.computeVertexNormals()
-
-    // Highly saturated organic RED tumor material
-    const tumorMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#ef4444"), // Bright vivid red
-      emissive: new THREE.Color("#b91c1c"), // Deep ruby crimson core
-      emissiveIntensity: 0.55,
-      roughness: 0.28,
-      metalness: 0.1,
-      clearcoat: 1.0,
-      clearcoatRoughness: 0.12,
-      transmission: 0.12,
+    // Vibrant, glistening hyper-vascular red tumor material
+    const primaryTumorMaterial = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color("#ff1e1e"), // Bright vivid crimson/scarlet
+      emissive: new THREE.Color("#b91c1c"), // Deep internal vascular red glow
+      emissiveIntensity: 0.65,
+      roughness: 0.22,
+      metalness: 0.15,
+      clearcoat: 1.0, // High wet biological shine
+      clearcoatRoughness: 0.1,
+      transmission: 0.08,
     })
 
-    const tumorMesh = new THREE.Mesh(tumorGeo, tumorMaterial)
-    tumorGroupAddNodules(tumorMesh)
-    heroGroup.add(tumorMesh)
+    // Satellite tumor material
+    const satelliteTumorMaterial = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color("#ef4444"),
+      emissive: new THREE.Color("#991b1b"),
+      emissiveIntensity: 0.55,
+      roughness: 0.25,
+      metalness: 0.12,
+      clearcoat: 0.9,
+      clearcoatRoughness: 0.14,
+    })
 
-    // Clustered vascular micro-nodules in crimson red
-    function tumorGroupAddNodules(parent: THREE.Mesh) {
-      const noduleCount = 16
-      const noduleMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color("#dc2626"),
-        emissive: new THREE.Color("#991b1b"),
-        emissiveIntensity: 0.4,
-        roughness: 0.2,
-        clearcoat: 0.9,
-      })
+    // Micro-nodule material
+    const noduleMaterial = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color("#ff3333"),
+      emissive: new THREE.Color("#dc2626"),
+      emissiveIntensity: 0.75,
+      roughness: 0.18,
+      clearcoat: 1.0,
+    })
 
-      for (let n = 0; n < noduleCount; n++) {
-        const rad = 0.35 + Math.random() * 0.5
-        const nGeo = new THREE.SphereGeometry(rad, 24, 24)
+    // Helper to generate an organic, bumpy, nodular tumor mesh
+    function createTumorGeometry(radius: number, segments: number, bumpScale: number) {
+      const geo = new THREE.SphereGeometry(radius, segments, segments)
+      const posAttr = geo.attributes.position!
+      const v = new THREE.Vector3()
+
+      for (let i = 0; i < posAttr.count; i++) {
+        v.fromBufferAttribute(posAttr, i)
+        const len = v.length()
+        const n1 = noise(v.x * 1.5, v.y * 1.5, v.z * 1.5)
+        const n2 = noise(v.x * 3.5, v.y * 3.5, v.z * 3.5) * 0.4
+        const n3 = noise(v.x * 7.0, v.y * 7.0, v.z * 7.0) * 0.15
+        const disp = 1.0 + (n1 + n2 + n3) * bumpScale
+        v.normalize().multiplyScalar(len * disp)
+        posAttr.setXYZ(i, v.x, v.y, v.z)
+      }
+      geo.computeVertexNormals()
+      return geo
+    }
+
+    // Helper to attach clustered micro-papillary nodules
+    function attachNodules(parent: THREE.Object3D, count: number, baseRadius: number) {
+      const v = new THREE.Vector3()
+      for (let n = 0; n < count; n++) {
+        const rad = baseRadius * (0.16 + Math.random() * 0.18)
+        const nGeo = new THREE.SphereGeometry(rad, 18, 18)
         const pAttr = nGeo.attributes.position!
         for (let j = 0; j < pAttr.count; j++) {
-          v3.fromBufferAttribute(pAttr, j)
-          const disp = 1.0 + noise(v3.x * 4, v3.y * 4, v3.z * 4) * 0.25
-          v3.multiplyScalar(disp)
-          pAttr.setXYZ(j, v3.x, v3.y, v3.z)
+          v.fromBufferAttribute(pAttr, j)
+          const disp = 1.0 + noise(v.x * 5, v.y * 5, v.z * 5) * 0.25
+          v.multiplyScalar(disp)
+          pAttr.setXYZ(j, v.x, v.y, v.z)
         }
         nGeo.computeVertexNormals()
 
-        const nMesh = new THREE.Mesh(nGeo, noduleMat)
+        const nMesh = new THREE.Mesh(nGeo, noduleMaterial)
         const phi = Math.random() * Math.PI * 2
         const theta = Math.acos(2 * Math.random() - 1)
-        const dist = 1.7 + Math.random() * 0.35
+        const dist = baseRadius * (0.85 + Math.random() * 0.22)
         nMesh.position.set(
           dist * Math.sin(theta) * Math.cos(phi),
           dist * Math.sin(theta) * Math.sin(phi),
@@ -198,19 +182,30 @@ export function NovaCell3DScene() {
       }
     }
 
+    // -------------------------------------------------------------
+    // 1. PRIMARY HERO TUMOR (Large, organic, vibrant bright red)
+    // -------------------------------------------------------------
+    const heroGroup = new THREE.Group()
+    heroGroup.position.set(1.4, -0.2, 0.5)
+
+    const heroTumorGeo = createTumorGeometry(2.5, 96, 0.42)
+    const heroTumorMesh = new THREE.Mesh(heroTumorGeo, primaryTumorMaterial)
+    attachNodules(heroTumorMesh, 24, 2.5)
+    heroGroup.add(heroTumorMesh)
+
     masterGroup.add(heroGroup)
 
     // -------------------------------------------------------------
-    // 2. SURROUNDING SATELLITE CELLS: PURE WHITE GLASS BALLS
+    // 2. SURROUNDING SATELLITE RED TUMORS (Replacing the balls)
     // -------------------------------------------------------------
-    const satellites = [
-      { x: -2.8, y: 3.0, z: -1.0, r: 1.45, speed: 0.6, offset: 1.2 },
-      { x: 0.2, y: 3.3, z: -2.2, r: 1.05, speed: 0.5, offset: 2.8 },
-      { x: -5.2, y: 1.9, z: -1.4, r: 1.0, speed: 0.7, offset: 3.5 },
-      { x: -7.5, y: 0.8, z: -2.0, r: 0.9, speed: 0.8, offset: 4.1 },
-      { x: -4.8, y: -1.4, z: -0.9, r: 1.15, speed: 0.55, offset: 5.2 },
-      { x: -3.2, y: -2.8, z: -1.8, r: 0.75, speed: 0.65, offset: 6.0 },
-      { x: 5.2, y: 0.4, z: -2.8, r: 0.85, speed: 0.5, offset: 7.1 },
+    const satelliteConfigs = [
+      { x: -2.8, y: 3.0, z: -1.0, r: 1.15, nodules: 12, speed: 0.6, offset: 1.2 },
+      { x: 0.2, y: 3.3, z: -2.2, r: 0.85, nodules: 8, speed: 0.5, offset: 2.8 },
+      { x: -5.2, y: 1.9, z: -1.4, r: 0.8, nodules: 8, speed: 0.7, offset: 3.5 },
+      { x: -7.5, y: 0.8, z: -2.0, r: 0.7, nodules: 6, speed: 0.8, offset: 4.1 },
+      { x: -4.8, y: -1.4, z: -0.9, r: 0.95, nodules: 10, speed: 0.55, offset: 5.2 },
+      { x: -3.2, y: -2.8, z: -1.8, r: 0.65, nodules: 6, speed: 0.65, offset: 6.0 },
+      { x: 5.2, y: 0.4, z: -2.8, r: 0.72, nodules: 7, speed: 0.5, offset: 7.1 },
     ]
 
     const satelliteMeshes: {
@@ -222,33 +217,33 @@ export function NovaCell3DScene() {
       offset: number
     }[] = []
 
-    satellites.forEach((sat) => {
+    satelliteConfigs.forEach((cfg) => {
       const g = new THREE.Group()
-      g.position.set(sat.x, sat.y, sat.z)
+      g.position.set(cfg.x, cfg.y, cfg.z)
 
-      const sGeo = new THREE.SphereGeometry(sat.r, 36, 36)
-      // Pure White Glass Ball (empty inside, no blue)
-      const sMesh = new THREE.Mesh(sGeo, whiteGlassMaterial)
+      const sGeo = createTumorGeometry(cfg.r, 36, 0.35)
+      const sMesh = new THREE.Mesh(sGeo, satelliteTumorMaterial)
+      attachNodules(sMesh, cfg.nodules, cfg.r)
       g.add(sMesh)
 
       masterGroup.add(g)
       satelliteMeshes.push({
         group: g,
-        origX: sat.x,
-        origY: sat.y,
-        origZ: sat.z,
-        speed: sat.speed,
-        offset: sat.offset,
+        origX: cfg.x,
+        origY: cfg.y,
+        origZ: cfg.z,
+        speed: cfg.speed,
+        offset: cfg.offset,
       })
     })
 
-    // Micro floating white dust particles
-    const particleCount = 45
-    const pGeo = new THREE.SphereGeometry(0.08, 12, 12)
+    // Micro floating red cellular fragments in deep space
+    const particleCount = 40
+    const pGeo = new THREE.SphereGeometry(0.06, 8, 8)
     const pMat = new THREE.MeshBasicMaterial({
-      color: 0xffffff,
+      color: 0xff3b3b,
       transparent: true,
-      opacity: 0.4,
+      opacity: 0.5,
     })
     const particleGroup = new THREE.Group()
     const particles: { mesh: THREE.Mesh; origY: number; speed: number }[] = []
@@ -310,24 +305,20 @@ export function NovaCell3DScene() {
       masterGroup.position.x = currentMouseX * 0.45
       masterGroup.position.y = currentMouseY * 0.35 - currentScrollY * 0.002
 
-      // Tumor core rotation & subtle organic morphing
-      tumorMesh.rotation.y += 0.005
-      tumorMesh.rotation.x += 0.003
-      const tumorPulse = 1.0 + Math.sin(elapsedTime * 1.5) * 0.02
-      tumorMesh.scale.set(tumorPulse, tumorPulse, tumorPulse)
-
-      // Outer hero membrane breathing
-      const heroBreath = 1.0 + Math.sin(elapsedTime * 0.8) * 0.015
-      heroGroup.scale.set(heroBreath, heroBreath, heroBreath)
+      // Hero tumor rotation & organic breathing pulse
+      heroTumorMesh.rotation.y += 0.004
+      heroTumorMesh.rotation.x += 0.002
+      const tumorPulse = 1.0 + Math.sin(elapsedTime * 1.5) * 0.03
+      heroTumorMesh.scale.set(tumorPulse, tumorPulse, tumorPulse)
       heroGroup.position.y = -0.2 + Math.sin(elapsedTime * 0.7) * 0.15
 
-      // Satellite floaters animation
+      // Satellite tumors floating & rotating
       satelliteMeshes.forEach((sat) => {
         const time = elapsedTime * sat.speed + sat.offset
         sat.group.position.x = sat.origX + Math.sin(time * 0.8) * 0.16
         sat.group.position.y = sat.origY + Math.cos(time * 0.9) * 0.2
-        sat.group.rotation.x += 0.004
-        sat.group.rotation.y += 0.006
+        sat.group.rotation.x += 0.005
+        sat.group.rotation.y += 0.007
       })
 
       particles.forEach((p) => {
