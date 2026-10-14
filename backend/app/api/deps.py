@@ -17,6 +17,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import Select, or_, select
 from sqlalchemy.orm import Session
 
+from app.services import audit as audit_service
 from app.core.errors import AppError, not_found, unauthorized
 from app.core.security import decode_access_token
 from app.db.models import Role, Study, StudyKind, User
@@ -84,3 +85,13 @@ def get_feature_store(request: Request) -> FeatureStore:
 
 def get_volume_store(request: Request) -> VolumeStore:
     return request.app.state.volume_store
+
+
+Auditor=Callable[..., None]
+
+
+def get_auditor(user: User=Depends(get_current_user), db: Session=Depends(get_db)) -> Auditor:
+    """Records who accessed what in the hash-chained audit log (services/audit.py)."""
+    def audit(action: str, object_id: str | None=None, model_version: str | None=None) -> None:
+        audit_service.record(db, user.id, action, object_id, model_version)
+    return audit

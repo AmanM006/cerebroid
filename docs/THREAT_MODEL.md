@@ -65,6 +65,11 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 - **Information disclosure:** the download file name is the sequence only, never the patient id; responses are `Cache-Control: private`. Volumes are skull-stripped public UCSF-PDGM scans (CC BY 4.0).
 - **Denial of service:** files are streamed from disk, not read into memory; only committed demo volumes are served.
 
+### Audit log (`GET /api/v1/audit/verify` and every patient-data read)
+- **Repudiation:** profile, evidence, doubt, tipping, reveal and volume reads append `{seq, ts, actor, action, object, model_version, prev_hash, hash}`; hash is sha256 over the fields and the previous hash.
+- **Tampering:** editing, deleting or re-hashing an entry breaks the chain at that point (`tests/security/test_audit.py`). A Postgres advisory lock serialises appends so the chain cannot fork. Limitation: someone with database write access could rewrite the entire chain from the start; the head hash would then change, so recording it externally would detect that.
+- **Information disclosure:** entries hold IDs and action names only, never clinical values. Only the `reviewer` role can run the check (403 otherwise).
+
 ### Model artifact loading (startup)
 | STRIDE | Risk | Mitigation | Test |
 |---|---|---|---|

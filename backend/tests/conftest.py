@@ -52,7 +52,7 @@ def _test_database():
 def _clean_tables():
     yield
     with get_engine().begin() as conn:
-        conn.execute(text("TRUNCATE refresh_tokens, studies, users CASCADE"))
+        conn.execute(text("TRUNCATE audit_log, refresh_tokens, studies, users CASCADE"))
 
 
 @pytest.fixture
