@@ -55,6 +55,21 @@ def test_parse_shape_feature_has_no_sequence():
     assert f.group=="shape__ncr__shape"
 
 
+@pytest.mark.parametrize("name, sequence", [
+    ("adc__et__firstorder__Mean", Sequence.ADC),
+    ("asl__ncr__glcm__Contrast", Sequence.ASL),
+])
+def test_physiological_sequences_follow_the_same_convention(name, sequence):
+    f=parse_feature_name(name)
+    assert f.sequence==sequence
+    assert f.kind=="radiomic"
+
+
+def test_missing_physiological_sequence_flag_is_valid():
+    assert parse_feature_name("missing__asl").kind=="missing_flag"
+    assert parse_feature_name("missing__adc").kind=="missing_flag"
+
+
 def test_parse_descriptor_and_missing_flag():
     assert parse_feature_name("desc__edema_to_core_ratio").kind=="descriptor"
     assert parse_feature_name("missing__flair").kind=="missing_flag"

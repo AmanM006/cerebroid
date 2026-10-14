@@ -38,7 +38,7 @@ def ready(request: Request) -> JSONResponse:
         content={
             "status": "ready" if all_ok else "not_ready",
             "checks": checks,
-            "markers": {m.value: s for m, s in registry.status.items()} if registry else {},
+            "markers": dict(registry.status) if registry else {},
         },
     )
 

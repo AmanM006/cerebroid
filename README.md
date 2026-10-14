@@ -84,6 +84,11 @@ docker compose exec api python -m app.cli create-user --username <name> --role c
 ```
 Roles: `clinician`, `reviewer`. Add `--synthetic` for demo/test accounts.
 
+Register a public-dataset patient from the feature table as a demo case (age, sex and biopsy history are copied from its row):
+```bash
+docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-0004
+```
+
 ## 7. Deployment & access details
 - **Docker Compose:** `docker compose up --build`, API on `http://localhost:8000`.
 - **Interactive API docs:** `http://localhost:8000/docs`.
@@ -99,6 +104,7 @@ Roles: `clinician`, `reviewer`. Add `--synthetic` for demo/test accounts.
 | `GET /api/v1/auth/me` | Bearer | Current user |
 | `GET /api/v1/cases` | Bearer | Cases visible to the user (public demo cases + own uploads), paginated |
 | `GET /api/v1/cases/{id}` | Bearer | One case; another user's case returns 404 |
+| `GET /api/v1/studies/{id}/profile` | Bearer | Molecular profile: per marker the call, probability range across the model set, stability verdict, model version and provenance. Optional `known=IDH:1` (repeatable) for lab results already known. |
 
 Example with curl:
 ```bash
@@ -149,7 +155,10 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 Suites: `tests/api` (auth flow, health), `tests/security` (forged/expired tokens, IDOR on cases),
-`tests/unit` (shared contracts, config validation, model registry and artifact integrity, stability verdicts).
+`tests/unit` (shared contracts, config validation, model registry and artifact integrity, stability verdicts),
+`tests/contracts` (the committed feature table and model artifacts: naming convention, leakage columns, one
+pre-operative scan per patient, split/fold rules, models load in the API environment, predictions vary across
+held-out patients; skipped while those files are absent).
 
 ## Model artifacts
 Trained model sets live in `artifacts/models/<marker>/` and are listed with their sha256 in
@@ -201,5 +210,7 @@ Every error response has the shape `{error_code, message, request_id}`.
 | `AUTH_INVALID_TOKEN` | Access or refresh token invalid, expired, revoked or reused |
 | `FORBIDDEN` | Authenticated but the role is not allowed |
 | `NOT_FOUND` | Resource doesn't exist or isn't visible to this user |
+| `INVALID_KNOWN_MARKER` | A `known` value isn't `<IDH\|1p19q\|MGMT\|GRADE>:<0\|1>`, or repeats a marker |
+| `FEATURES_NOT_READY` | No extracted imaging features exist for this study yet |
 | `HTTP_ERROR` | Generic HTTP error (404, 405, ...) |
 | `INTERNAL_ERROR` | Unexpected server error (details only in server logs) |

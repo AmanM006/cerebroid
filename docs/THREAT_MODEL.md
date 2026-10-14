@@ -50,6 +50,15 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | D | Unbounded list queries | `limit` 1–100, `offset` ≤10,000 | `test_pagination_bounds_are_enforced` |
 | I | Patient values without provenance | Age/sex returned as `ProvenancedValue` | `test_case_values_carry_provenance` |
 
+### `GET /api/v1/studies/{id}/profile`
+| STRIDE | Risk | Mitigation | Test |
+|---|---|---|---|
+| E | Reading another user's study profile (IDOR) | Same `get_accessible_study` dependency as cases; foreign = 404 | `test_other_users_study_profile_is_not_found` |
+| T | Label leakage: lab-result columns in the feature table reaching a model | Feature vectors are built only from convention-named feature columns plus the study's age, sex and biopsy history | `test_lab_labels_in_the_feature_table_never_reach_the_models` |
+| T | Malformed or contradictory `known` parameters | Strict `<marker>:<0\|1>` pattern, at most 4, no repeats; a known marker is shown, never predicted | `test_invalid_known_values_are_rejected`, `test_duplicate_known_marker_is_rejected` |
+| R | A prediction that can't be traced or reproduced | Response carries model sha256 per marker, feature-table sha256, input hash and request ID | `test_profile_is_reproducible` |
+| I | A guessed value presented as a prediction | Markers without a deployed set, or whose output fails validation, are `unavailable` with `provenance: missing` | `test_profile_predicts_deployed_markers_and_reports_the_rest_unavailable` |
+
 ### Model artifact loading (startup)
 | STRIDE | Risk | Mitigation | Test |
 |---|---|---|---|
