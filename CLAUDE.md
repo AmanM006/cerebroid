@@ -81,11 +81,12 @@ From multi-sequence brain MRI + tumor segmentation + patient context (age, sex),
 ### 2.3 Mapping to the problem statement (must remain demonstrable)
 | PS requirement | VBX feature |
 |---|---|
-| Combine images with patient information | Radiomics from 4 MRI sequences × 3 tumor sub-regions + age/sex (clinical context) |
+| Combine images with patient information | Radiomics from 4 anatomical MRI sequences + diffusion (ADC) + perfusion (ASL) × 3 tumor sub-regions, + age/sex (clinical context) + known lab results |
 | Identify relationships between sources | Fused vs imaging-only vs clinical-only comparison per patient; evidence-group interactions |
 | Highlight contributing findings | Grouped SHAP (sequence × region × feature-class, plus clinical), with cross-model agreement on the explanation |
 | Strong evidence vs uncertainty/missing | Stability verdicts, doubt decomposition, missing-sequence handling, OOD/data-sparsity flags |
-| Combining reveals what isolated analysis misses | **Context-blind toggle** (imaging-only) and **image-blind toggle** (clinical-only) live in the UI + ablation table in the notebook |
+| Combining reveals what isolated analysis misses | **Context-blind toggle** (imaging-only) and **image-blind toggle** (clinical-only) live in the UI + ablation table in the notebook + **"resolved by combining"** cases (§2.4 item 13) |
+| Lab results as a modality | **Known-result conditioning** (§2.4 item 12): a lab result the clinician already has (e.g. IDH) feeds the prediction of the remaining markers |
 
 ### 2.4 Core innovations (all must be real, computed, and explainable)
 1. **Multiplicity engine** — per marker, train a candidate pool (varied seeds, feature-subset bagging, hyperparameters, model families: LightGBM, elastic-net logistic regression, ExtraTrees). Score each by repeated stratified patient-level CV out-of-fold log-loss. The **near-optimal set** = all models with loss ≤ (1+ε)·best (default ε=0.03; report sensitivity for ε ∈ {0.01, 0.03, 0.05}). Calibrate each model (Platt/isotonic on OOF).
@@ -99,6 +100,8 @@ From multi-sequence brain MRI + tumor segmentation + patient context (age, sex),
 9. **Falsification panel per molecular call.** For each marker: supporting evidence, contradicting evidence (features pushing the other way, from grouped SHAP), the strongest competing call, and "what would overturn this" (the tipping evidence + the confirmatory assay). Generated from structured results by deterministic templates — no free-form LLM text, no claim without a linked evidence item.
 10. **"What does the average hide?" — intra-tumor heterogeneity.** In addition to whole-tumor models, train small near-optimal sets restricted to each sub-region's features (enhancing tumor, necrotic core, peritumoral edema; each + clinical). Per patient, show whether sub-regions agree with the whole-tumor call or tell a different story (e.g. "enhancing rim suggests IDH-wildtype; edema features are uninformative"). Report region-model performance honestly; regions with no signal are labelled as such.
 11. **Next-measurement planning (heuristic, labelled as heuristic).** For CONTESTED/ARBITRARY markers, rank the real confirmatory tests (IDH mutation testing, 1p/19q co-deletion testing, MGMT promoter methylation assay) by (a) current instability of that marker and (b) how many candidate integrated diagnoses it disambiguates. Show the candidate WHO CNS5 adult diffuse-glioma categories consistent with the current marker calls (e.g. IDH status gates whether 1p/19q status is diagnostically decisive) and which single test would collapse them. Do NOT present this as expected information gain or as clinical guidance; label it "decision-support heuristic".
+12. **Known-result conditioning (lab results as an input modality).** Clinicians often already hold one marker result (e.g. IDH from a prior biopsy or immunohistochemistry) while others are pending. The clinician may enter any known marker (provenance `clinical_input`); a known marker is never predicted, and the remaining markers are scored by a `fused_given_<marker>` set trained with that result as an input (`known__idh` etc., §4.5). Training uses the dataset label of the *other* marker only, never the target's own label. Core scope: given IDH → 1p/19q, MGMT, grade. The UI shows how entering the result changes each remaining call and its stability.
+13. **"Resolved by combining."** Per patient and marker, compare the imaging-only set with the fused set: cases where imaging alone is CONTESTED/ARBITRARY but the fused set is STABLE (and the reverse) are counted in the notebook with their accuracy, and flagged per patient in the UI. This is the direct, measurable evidence for "combining reveals what isolated analysis would miss".
 
 ### 2.5 Users & usability
 Neuro-radiologist / neuro-oncologist. Flow: open case (or upload 4 NIfTI sequences + mask + age/sex) → one-screen **Molecular Profile Card**: per marker → call, calibrated probability range, stability verdict, top evidence, tipping evidence, "confirm with tissue?" flag. 3D MRI viewer with tumor overlay. Decision support only — never presented as a diagnosis.
@@ -109,6 +112,7 @@ Neuro-radiologist / neuro-oncologist. Flow: open case (or upload 4 NIfTI sequenc
 
 - **Labels / clinical:** UCSF-PDGM clinical CSV + metadata glossary (TCIA, CC BY 4.0). Fields used as INPUTS: age, sex only. Fields used as TARGETS: IDH status, 1p/19q status, MGMT status, WHO grade (optional output), overall survival (stretch).
 - **Images:** UCSF-PDGM's own skull-stripped, co-registered NIfTI volumes (T1, T1c, T2, FLAIR) and its tumor segmentation (enhancing tumor / necrotic core / edema), same patients and same CC BY 4.0 license as the labels. No cross-dataset join. Verify segmentation label values and file names on one case before the full extraction run. (Decision 2026-10-14, replacing the BraTS 2021 + crosswalk plan; see [docs/ADR/002-data-source.md](docs/ADR/002-data-source.md).)
+- **Physiological MRI (second feature pass):** UCSF-PDGM's diffusion (ADC, cell density) and perfusion (ASL, blood flow) volumes, extracted per tumor region with the same feature classes as the anatomical sequences; sequence codes `adc`, `asl`; a patient without one gets NaN features + `missing__adc` / `missing__asl` = 1. Comes after the first anatomical model sets are deployed. See [docs/ADR/003-physiological-mri.md](docs/ADR/003-physiological-mri.md).
 - **Bulk data never enters the repo or our laptops.** Feature extraction runs in a cloud notebook (Kaggle/Colab). The notebook itself IS committed (`ml/notebooks/`). Only derived artifacts are committed: the radiomics feature table (CSV/Parquet, MBs), trained model artifacts, and 5–8 small hero-case volumes for the demo (compressed NIfTI, each well under GitHub's 100 MB limit; verify license permits redistribution with attribution — ask me if unsure).
 - **Leakage rules (critical — judges may probe this):**
   - NEVER use as inputs: WHO grade, pathology diagnosis, extent of resection, treatment, survival, vital status, MGMT index, any post-operative variable.
@@ -203,6 +207,12 @@ artifacts/models/<idh|1p19q|mgmt|grade>/
 - Verdict: ARBITRARY if agreement ≤ `arbitrary_max_agreement`; STABLE if agreement ≥ `stable_min_agreement` and IQR of set probabilities ≤ `stable_max_iqr`; otherwise CONTESTED. Thresholds are chosen on CV data.
 - **Train with exactly the versions pinned in `backend/requirements.txt`** (numpy, pandas, scikit-learn, scipy, joblib, lightgbm); pickles are version-sensitive.
 - Every file under `artifacts/models/` must appear in `manifest.json` with its sha256; anything unlisted or mismatched is never unpickled.
+- **Variants.** A marker may ship several sets, each in its own directory with its own `meta.json` (`variant`, `given`) and an entry in `ml/configs/markers.yaml` (`marker`, `variant`, `artifact_dir`):
+  - `fused`: imaging + `age`/`sex` (default, required for every marker)
+  - `imaging_only`: no `age`/`sex` columns (context-blind counterfactual; needed for §2.4 item 13)
+  - `clinical_only`: only `age`/`sex` (image-blind counterfactual)
+  - `fused_given_<m>`: fused plus `known__<m>` input columns, `given: [<M>]` listing exactly those markers (e.g. `fused_given_idh`, `known__idh`, `given: ["IDH"]`)
+  The registry enforces these scopes and picks, per patient, the fused set that uses the most of what is already known. Add a `markers.yaml` entry in the same commit as the artifacts it points to; an entry without artifacts makes `/ready` report `missing`.
 
 ---
 
@@ -277,7 +287,7 @@ Team: 2 members. **Only Tanish works for roughly the first hour → Layer 0 must
 | **L9 Red-team & freeze** | → 23:45 | Run `BUGBOUNTY_SELFTEST.md`, fix, finalize Known Limitations, merge to `bugbounty` | `bugbounty` deployed and stable before **00:00 freeze** |
 | Fixing phase | 16 Oct 02:00–03:30 | Branch `fixing` off `bugbounty`, fix reported bugs, merge to `main` after validation | No commits to `bugbounty` until organizers allow |
 
-**Feasibility cut line (if behind schedule, cut from the bottom up):** must-have = multiplicity engine, stability verdicts, profile card, provenance badges, context-/image-blind toggles, security/privacy core · should-have = falsification panel, doubt decomposition, tipping evidence, next-measurement heuristic · could-have = per-sub-region heterogeneity, async queue + MinIO, Locust numbers.
+**Feasibility cut line (if behind schedule, cut from the bottom up):** must-have = multiplicity engine, stability verdicts, profile card, provenance badges, context-/image-blind toggles, "resolved by combining" (§2.4 item 13), security/privacy core · should-have = known-result conditioning given IDH (§2.4 item 12), falsification panel, doubt decomposition, tipping evidence, next-measurement heuristic · could-have = per-sub-region heterogeneity, async queue + MinIO, Locust numbers.
 
 Stretch (only if all DoD met): MONAI pretrained BraTS segmentation for uploads without masks; survival risk (Cox, C-index) as an extra plugin; ε-sensitivity explorer in UI.
 
@@ -310,6 +320,14 @@ Stretch (only if all DoD met): MONAI pretrained BraTS segmentation for uploads w
 | P8 | 02:00 → 03:30 | Fixing phase on `fixing` branch, split by which track owns each reported bug | |
 
 **Branch & merge protocol:** feature branches `feat/ml-*` and `feat/app-*` off `main`; each member pushes a meaningful commit at least every 120 minutes; merge to `main` with normal merge commits (no squash, no force-push) at every phase boundary and before every deadline; whoever merges runs the test suite first.
+
+**Agent coordination channel.** Track APP's agent (Claude Code) and Track ML's agent (Antigravity) coordinate through GitHub, never through side channels:
+- Where: the conversation of the open pull request for the relevant feature branch. If no PR is open, an issue titled `Integration`.
+- Tag every message `[APP→ML]` or `[ML→APP]`. Number requests; reply by number.
+- Every status claim carries evidence: a commit SHA, a CI run, a log excerpt or a printed count. No "done"/"running" without it.
+- At the start of each session, read unanswered messages addressed to your track before doing anything else.
+- A message is posted only after the human owner of that account approves it.
+- Contract changes (`contracts.py`, CLAUDE.md §4.5) are proposed in the thread and approved by the integration owner before code changes.
 
 **Sleep:** stagger ~3-hour sleep windows (one member awake at all times, e.g. ML sleeps ~01:00–04:00, APP ~04:30–07:30) so a commit lands every 120 minutes and nothing stalls before Judging R1.
 

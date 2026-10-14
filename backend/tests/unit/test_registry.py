@@ -115,7 +115,7 @@ def test_loads_and_predicts_with_every_model(artifacts):
     root, config=artifacts
     registry=load_registry(root, config)
 
-    assert registry.status=={Marker.IDH: "loaded"}
+    assert registry.status=={"IDH": "loaded"}
     assert registry.all_loaded
     prediction=registry.get(Marker.IDH).predict_set(_patient(40))
     assert prediction.n_models==3
@@ -144,7 +144,7 @@ def test_tampered_artifact_is_never_unpickled(artifacts, tmp_path):
 
     registry=load_registry(root, config)
 
-    assert registry.status[Marker.IDH]=="integrity_error"
+    assert registry.status["IDH"]=="integrity_error"
     assert registry.get(Marker.IDH) is None
     assert not proof.exists()
 
@@ -176,7 +176,7 @@ def test_no_manifest_means_every_marker_missing(tmp_path):
     root.mkdir()
     config=_write_config(tmp_path, {"IDH": "models/idh", "MGMT": "models/mgmt"})
     registry=load_registry(root, config)
-    assert registry.status=={Marker.IDH: "missing", Marker.MGMT: "missing"}
+    assert registry.status=={"IDH": "missing", "MGMT": "missing"}
     assert not registry.all_loaded
 
 
@@ -184,8 +184,8 @@ def test_one_broken_marker_does_not_block_the_others(artifacts, tmp_path):
     root, _=artifacts
     config=_write_config(tmp_path, {"IDH": "models/idh", "MGMT": "models/mgmt"})
     registry=load_registry(root, config)
-    assert registry.status[Marker.IDH]=="loaded"
-    assert registry.status[Marker.MGMT]=="integrity_error"
+    assert registry.status["IDH"]=="loaded"
+    assert registry.status["MGMT"]=="integrity_error"
     assert not registry.all_loaded
 
 
@@ -201,7 +201,7 @@ def test_invalid_meta_is_rejected(tmp_path, bad_meta):
     _write_marker(root, "models/idh", _train_set(), bad_meta)
     _write_manifest(root)
     registry=load_registry(root, _write_config(tmp_path, {"IDH": "models/idh"}))
-    assert registry.status[Marker.IDH]=="invalid"
+    assert registry.status["IDH"]=="invalid"
 
 
 def test_model_returning_nan_fails_warm_up(tmp_path):
@@ -209,7 +209,7 @@ def test_model_returning_nan_fails_warm_up(tmp_path):
     _write_marker(root, "models/idh", [NaNModel()], _meta(n_models=1))
     _write_manifest(root)
     registry=load_registry(root, _write_config(tmp_path, {"IDH": "models/idh"}))
-    assert registry.status[Marker.IDH]=="invalid"
+    assert registry.status["IDH"]=="invalid"
 
 
 def test_model_returning_nan_at_prediction_time_raises(artifacts):

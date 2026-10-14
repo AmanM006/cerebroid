@@ -9,7 +9,17 @@ import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, CheckConstraint, DateTime, Enum, ForeignKey, Integer, String, func
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -83,6 +93,7 @@ class Study(Base):
             "(kind = 'demo' AND owner_id IS NULL) OR (kind = 'upload' AND owner_id IS NOT NULL)",
             name="ck_studies_owner_matches_kind",
         ),
+        UniqueConstraint("source_patient_id", name="uq_studies_source_patient_id"),
     )
 
     id: Mapped[uuid.UUID]=mapped_column(primary_key=True, default=uuid.uuid4)
@@ -91,5 +102,9 @@ class Study(Base):
     label: Mapped[str]=mapped_column(String(64))
     age: Mapped[int]=mapped_column(Integer)
     sex: Mapped[str]=mapped_column(String(1))
+    prior_biopsy: Mapped[bool | None]=mapped_column(Boolean)
+    # Demo cases only: the public dataset's pseudonymous patient ID, used to look up
+    # that patient's extracted features in artifacts/features/features.parquet.
+    source_patient_id: Mapped[str | None]=mapped_column(String(32))
     status: Mapped[StudyStatus]=mapped_column(_enum(StudyStatus, "study_status"), default=StudyStatus.PENDING)
     created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True), server_default=func.now())
