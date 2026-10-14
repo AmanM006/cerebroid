@@ -19,6 +19,14 @@ function nameMatchingBytes(name: string, buffer: ArrayBuffer): string {
   return !gzipped && name.endsWith(".gz") ? name.slice(0, -3) : name
 }
 
+const COLORMAPS=[
+  { id: "gray", label: "Gray", color: "#9ca3af" },
+  { id: "red", label: "Red", color: "#ef4444" },
+  { id: "hot", label: "Thermal", color: "#f97316" },
+  { id: "copper", label: "Copper", color: "#b45309" },
+  { id: "plasma", label: "Plasma", color: "#a855f7" },
+]
+
 function applySliceType(nv: Niivue, mode: SliceMode) {
   const types: Record<SliceMode, number>={
     render3d: nv.sliceTypeRender,
@@ -33,19 +41,25 @@ function applySliceType(nv: Niivue, mode: SliceMode) {
 export function RealNiiVueViewport({
   volumes,
   sliceType="multiplanar",
+  overlayOpacity=0.45,
 }: {
   volumes: LoadedVolume[]
   sliceType?: SliceMode
+  /** Opacity of the second volume (the tumor segmentation); 0 hides it. */
+  overlayOpacity?: number
 }) {
   const canvasRef=useRef<HTMLCanvasElement>(null)
   const nvRef=useRef<Niivue | null>(null)
   const sliceTypeRef=useRef(sliceType)
   const [state, setState]=useState<"loading" | "ready" | "error">("loading")
   const [error, setError]=useState<unknown>(null)
+  const [colormap, setColormap]=useState("gray")
 
+  const colormapRef=useRef(colormap)
   useEffect(()=>{
     sliceTypeRef.current=sliceType
-  }, [sliceType])
+    colormapRef.current=colormap
+  }, [sliceType, colormap])
 
   useEffect(()=>{
     const canvas=canvasRef.current
@@ -73,7 +87,7 @@ export function RealNiiVueViewport({
           if (cancelled) return
           const volume=nv.volumes[i]
           if (volume) {
-            volume.colormap=v.colormap ?? "gray"
+            volume.colormap=i===0 ? colormapRef.current : (v.colormap ?? "gray")
             volume.opacity=v.opacity ?? 1
           }
         }
@@ -109,8 +123,42 @@ export function RealNiiVueViewport({
     nv.drawScene()
   }, [sliceType, state])
 
+  useEffect(()=>{
+    const overlay=nvRef.current?.volumes[1]
+    if (!overlay || state!=="ready") return
+    nvRef.current!.setOpacity(1, overlayOpacity)
+  }, [overlayOpacity, state])
+
+  // Recolours the MRI on the GPU without reloading it.
+  const changeColor=(cmap: string)=>{
+    setColormap(cmap)
+    const nv=nvRef.current
+    const base=nv?.volumes[0]
+    if (nv && base) {
+      nv.setColormap(base.id, cmap)
+      nv.updateGLVolume()
+    }
+  }
+
   return (
     <div className="relative h-full w-full overflow-hidden bg-black">
+      {state==="ready" && (
+        <div className="absolute top-2 left-2 z-20 flex items-center gap-1 rounded-lg border border-neutral-800 bg-[#0c0c0c]/90 px-2 py-1 backdrop-blur-sm">
+          <span className="font-mono text-[9px] text-neutral-400 mr-1">TISSUE:</span>
+          {COLORMAPS.map((c)=>(
+            <button
+              key={c.id}
+              onClick={()=>changeColor(c.id)}
+              className={`flex items-center gap-1 rounded px-1.5 py-0.5 text-[9px] font-mono transition-colors cursor-pointer ${
+                colormap===c.id ? "bg-neutral-800 text-white font-bold border border-neutral-600" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: c.color }} />
+              <span>{c.label}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <canvas
         ref={canvasRef}
         className="h-full w-full cursor-crosshair touch-none"
