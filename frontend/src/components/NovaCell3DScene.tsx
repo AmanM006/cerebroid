@@ -62,7 +62,8 @@ export function NovaCell3DScene() {
     const height = mount.clientHeight
 
     const scene = new THREE.Scene()
-    scene.fog = new THREE.FogExp2(0xd6effb, 0.018)
+    // Black mist fog for dark theme
+    scene.fog = new THREE.FogExp2(0x05070a, 0.02)
 
     const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100)
     camera.position.set(0, 0, 16)
@@ -75,79 +76,59 @@ export function NovaCell3DScene() {
     renderer.setSize(width, height)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.toneMapping = THREE.ACESFilmicToneMapping
-    renderer.toneMappingExposure = 1.2
+    renderer.toneMappingExposure = 1.3
     mount.appendChild(renderer.domElement)
 
-    // Lighting setup
-    const ambientLight = new THREE.AmbientLight(0xd0eefa, 2.2)
+    // Lighting setup tailored for crisp white glass balls and vibrant red tumor
+    const ambientLight = new THREE.AmbientLight(0x222630, 2.5)
     scene.add(ambientLight)
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 3.8)
+    // Bright specular key light
+    const keyLight = new THREE.DirectionalLight(0xffffff, 4.0)
     keyLight.position.set(-8, 12, 10)
     scene.add(keyLight)
 
-    const fillLight = new THREE.PointLight(0x00c4f0, 80, 50)
-    fillLight.position.set(8, -2, 8)
-    scene.add(fillLight)
-
-    const rimLight = new THREE.DirectionalLight(0x0284c7, 2.5)
-    rimLight.position.set(5, -6, -8)
+    // White rim backlight
+    const rimLight = new THREE.DirectionalLight(0xffffff, 3.0)
+    rimLight.position.set(6, -6, -8)
     scene.add(rimLight)
 
-    // Secondary subtle red/crimson internal emission light for the tumor core
-    const coreLight = new THREE.PointLight(0xef4444, 40, 20)
-    coreLight.position.set(1.5, 0, 1)
-    scene.add(coreLight)
+    // Internal intense red/crimson point light for the tumor core
+    const coreRedLight = new THREE.PointLight(0xff2222, 60, 25)
+    coreRedLight.position.set(1.4, -0.2, 0.5)
+    scene.add(coreRedLight)
 
     const masterGroup = new THREE.Group()
     scene.add(masterGroup)
 
-    // Outer membrane material: Ultra-crisp refractive glass/liquid vesicle
-    const membraneMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#56d0fa"),
-      emissive: new THREE.Color("#0284c7"),
-      emissiveIntensity: 0.12,
-      roughness: 0.05,
-      metalness: 0.05,
-      transmission: 0.85, // Highly transparent glass
-      ior: 1.34,
-      thickness: 1.8,
-      specularIntensity: 1.2,
-      specularColor: new THREE.Color("#ffffff"),
-      transparent: true,
-      opacity: 0.85,
-    })
-
-    // Sub-vesicle material for the satellite cells: identical glass transmission and liquid refraction
-    const floaterMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#56d0fa"),
-      emissive: new THREE.Color("#0284c7"),
-      emissiveIntensity: 0.12,
-      roughness: 0.05,
-      metalness: 0.05,
-      transmission: 0.85,
-      ior: 1.34,
+    // Clear White/Pearl Glass Vesicle Membrane Material
+    const whiteGlassMaterial = new THREE.MeshPhysicalMaterial({
+      color: new THREE.Color("#ffffff"),
+      emissive: new THREE.Color("#334155"),
+      emissiveIntensity: 0.1,
+      roughness: 0.06,
+      metalness: 0.1,
+      transmission: 0.9, // Ultra high crystal transparency
+      ior: 1.45,
       thickness: 1.6,
-      specularIntensity: 1.2,
+      specularIntensity: 1.5,
       specularColor: new THREE.Color("#ffffff"),
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.9,
     })
 
     // -------------------------------------------------------------
-    // 1. PRIMARY HERO VESICLE WITH 3D ORGANIC TUMOR SPHEROID CORE
+    // 1. PRIMARY HERO VESICLE WITH VIBRANT RED 3D TUMOR SPHEROID CORE
     // -------------------------------------------------------------
     const heroGroup = new THREE.Group()
-    // Positioned slightly right of center, exactly matching the reference
     heroGroup.position.set(1.4, -0.2, 0.5)
 
-    // Outer clear fluid sphere
+    // Outer clear white glass sphere
     const heroOuterGeo = new THREE.SphereGeometry(3.6, 64, 64)
-    const heroOuterMesh = new THREE.Mesh(heroOuterGeo, membraneMaterial)
+    const heroOuterMesh = new THREE.Mesh(heroOuterGeo, whiteGlassMaterial)
     heroGroup.add(heroOuterMesh)
 
     // --- INNER 3D TUMOR SPHEROID ---
-    // Multi-lobular nodular tumor core matching the user's uploaded tumor reference
     const noise = createNoise3D()
     const tumorGeo = new THREE.SphereGeometry(2.0, 96, 96)
     const posAttr = tumorGeo.attributes.position!
@@ -159,45 +140,42 @@ export function NovaCell3DScene() {
       const n1 = noise(v3.x * 1.5, v3.y * 1.5, v3.z * 1.5)
       const n2 = noise(v3.x * 3.5, v3.y * 3.5, v3.z * 3.5) * 0.4
       const n3 = noise(v3.x * 7.0, v3.y * 7.0, v3.z * 7.0) * 0.15
-      // Deform sphere into lobulated, nodular micro-papillary tumor morphology
-      const displacement = 1.0 + (n1 + n2 + n3) * 0.38
+      const displacement = 1.0 + (n1 + n2 + n3) * 0.42
       v3.normalize().multiplyScalar(len * displacement)
       posAttr.setXYZ(i, v3.x, v3.y, v3.z)
     }
     tumorGeo.computeVertexNormals()
 
-    // Rich organic tumor material: Deep crimson-ruby & hyper-vascular organic tissue
+    // Highly saturated organic RED tumor material
     const tumorMaterial = new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color("#dc2626"), // Vibrant deep red/crimson
-      emissive: new THREE.Color("#7f1d1d"), // Dark vascular glow
-      emissiveIntensity: 0.4,
-      roughness: 0.35,
-      metalness: 0.15,
-      clearcoat: 0.9,
-      clearcoatRoughness: 0.18,
-      subsurfaceScattering: 0.5,
-      transmission: 0.15, // fleshy translucence
-    } as any)
+      color: new THREE.Color("#ef4444"), // Bright vivid red
+      emissive: new THREE.Color("#b91c1c"), // Deep ruby crimson core
+      emissiveIntensity: 0.55,
+      roughness: 0.28,
+      metalness: 0.1,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.12,
+      transmission: 0.12,
+    })
 
     const tumorMesh = new THREE.Mesh(tumorGeo, tumorMaterial)
     tumorGroupAddNodules(tumorMesh)
     heroGroup.add(tumorMesh)
 
-    // Add satellite tumor micro-nodules around the core
+    // Clustered vascular micro-nodules in crimson red
     function tumorGroupAddNodules(parent: THREE.Mesh) {
-      const noduleCount = 14
+      const noduleCount = 16
       const noduleMat = new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color("#b91c1c"),
+        color: new THREE.Color("#dc2626"),
         emissive: new THREE.Color("#991b1b"),
-        emissiveIntensity: 0.3,
-        roughness: 0.25,
-        clearcoat: 0.8,
+        emissiveIntensity: 0.4,
+        roughness: 0.2,
+        clearcoat: 0.9,
       })
 
       for (let n = 0; n < noduleCount; n++) {
-        const rad = 0.35 + Math.random() * 0.45
+        const rad = 0.35 + Math.random() * 0.5
         const nGeo = new THREE.SphereGeometry(rad, 24, 24)
-        // displace slightly
         const pAttr = nGeo.attributes.position!
         for (let j = 0; j < pAttr.count; j++) {
           v3.fromBufferAttribute(pAttr, j)
@@ -223,16 +201,16 @@ export function NovaCell3DScene() {
     masterGroup.add(heroGroup)
 
     // -------------------------------------------------------------
-    // 2. SURROUNDING SATELLITE CELLS MATCHING NOVACELL REFERENCE
+    // 2. SURROUNDING SATELLITE CELLS: PURE WHITE GLASS BALLS
     // -------------------------------------------------------------
     const satellites = [
-      { x: -2.8, y: 3.0, z: -1.0, r: 1.45, nuclei: 3, speed: 0.6, offset: 1.2 },
-      { x: 0.2, y: 3.3, z: -2.2, r: 1.05, nuclei: 2, speed: 0.5, offset: 2.8 },
-      { x: -5.2, y: 1.9, z: -1.4, r: 1.0, nuclei: 2, speed: 0.7, offset: 3.5 },
-      { x: -7.5, y: 0.8, z: -2.0, r: 0.9, nuclei: 1, speed: 0.8, offset: 4.1 },
-      { x: -4.8, y: -1.4, z: -0.9, r: 1.15, nuclei: 2, speed: 0.55, offset: 5.2 },
-      { x: -3.2, y: -2.8, z: -1.8, r: 0.75, nuclei: 1, speed: 0.65, offset: 6.0 },
-      { x: 5.2, y: 0.4, z: -2.8, r: 0.85, nuclei: 2, speed: 0.5, offset: 7.1 },
+      { x: -2.8, y: 3.0, z: -1.0, r: 1.45, speed: 0.6, offset: 1.2 },
+      { x: 0.2, y: 3.3, z: -2.2, r: 1.05, speed: 0.5, offset: 2.8 },
+      { x: -5.2, y: 1.9, z: -1.4, r: 1.0, speed: 0.7, offset: 3.5 },
+      { x: -7.5, y: 0.8, z: -2.0, r: 0.9, speed: 0.8, offset: 4.1 },
+      { x: -4.8, y: -1.4, z: -0.9, r: 1.15, speed: 0.55, offset: 5.2 },
+      { x: -3.2, y: -2.8, z: -1.8, r: 0.75, speed: 0.65, offset: 6.0 },
+      { x: 5.2, y: 0.4, z: -2.8, r: 0.85, speed: 0.5, offset: 7.1 },
     ]
 
     const satelliteMeshes: {
@@ -249,7 +227,8 @@ export function NovaCell3DScene() {
       g.position.set(sat.x, sat.y, sat.z)
 
       const sGeo = new THREE.SphereGeometry(sat.r, 36, 36)
-      const sMesh = new THREE.Mesh(sGeo, floaterMaterial)
+      // Pure White Glass Ball (empty inside, no blue)
+      const sMesh = new THREE.Mesh(sGeo, whiteGlassMaterial)
       g.add(sMesh)
 
       masterGroup.add(g)
@@ -263,14 +242,13 @@ export function NovaCell3DScene() {
       })
     })
 
-    // Micro floating fluid droplets / particles
-    const particleCount = 40
-    const pGeo = new THREE.SphereGeometry(0.12, 12, 12)
-    const pMat = new THREE.MeshPhysicalMaterial({
-      color: 0x38bdf8,
-      transmission: 0.8,
+    // Micro floating white dust particles
+    const particleCount = 45
+    const pGeo = new THREE.SphereGeometry(0.08, 12, 12)
+    const pMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.4,
     })
     const particleGroup = new THREE.Group()
     const particles: { mesh: THREE.Mesh; origY: number; speed: number }[] = []
@@ -282,7 +260,7 @@ export function NovaCell3DScene() {
         (Math.random() - 0.5) * 16,
         -1 - Math.random() * 8
       )
-      const scale = 0.4 + Math.random() * 1.6
+      const scale = 0.5 + Math.random() * 1.5
       pMesh.scale.set(scale, scale, scale)
       particleGroup.add(pMesh)
       particles.push({

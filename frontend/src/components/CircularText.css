@@ -1,11 +1,11 @@
 .circular-text {
   margin: 0 auto;
   border-radius: 50%;
-  width: 140px;
-  height: 140px;
+  width: 100px;
+  height: 100px;
   position: relative;
   font-weight: 800;
-  color: #082f49;
+  color: #ffffff;
   text-align: center;
   cursor: pointer;
   transform-origin: 50% 50%;
@@ -19,8 +19,8 @@
   right: 0;
   top: 0;
   bottom: 0;
-  font-size: 11px;
+  font-size: 8.5px;
   text-transform: uppercase;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.16em;
   transition: all 0.4s cubic-bezier(0, 0, 0, 1);
 }
