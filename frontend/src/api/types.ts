@@ -93,7 +93,7 @@ export interface MarkerProfile {
 
 export interface Reveal {
   study_id: string
-  results: { marker: MarkerName; value: ProvenancedValue }[]
+  results: { marker: MarkerName; value: ProvenancedValue; detail?: string | null }[]
 }
 
 export type ProfileView="fused" | "imaging_only" | "clinical_only"

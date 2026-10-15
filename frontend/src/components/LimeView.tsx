@@ -5,6 +5,9 @@ import { ErrorNotice } from "./ErrorNotice"
 import { MIN_REGION_EFFECT, useExplainFocus } from "./ExplainFocus"
 
 
+// A factor smaller than this does not count as a reason for the call.
+const MIN_DRIVER_POINTS=3
+
 const REGION_WORDS: [RegExp, string][]=[
   [/enhancing/, "enhancing rim"], [/necrotic/, "dead core (necrosis)"], [/edema/, "swelling (edema)"],
 ]
@@ -59,6 +62,9 @@ export function LimeView({
 
   const labels=MARKER_LABELS[marker]
   const positive=lime.call===labels.positive
+  const drivers=lime.factors.filter((f)=>f.supports_call && Math.abs(f.effect)*100>=MIN_DRIVER_POINTS)
+    .map((f)=>({ id: f.evidence_id, label: plain(f.label), points: Math.abs(f.effect)*100 }))
+    .sort((x, y)=>y.points-x.points).slice(0, 4)
   const regionEffects=Object.fromEntries(
     lime.regions.map((r)=>[r.region, positive ? r.effect : -r.effect]),
   ) as Record<TumorRegion, number>
@@ -84,23 +90,23 @@ export function LimeView({
         </button>
       </div>
 
-      <ol className="space-y-1.5">
-        {[
-          { id: "how-common", label: `Usual result for most patients (${lime.call})`,
-            points: ((positive ? 1 : -1)*Number(lime.typical.value)+(positive ? 0 : 1))*100-50 },
-          ...lime.factors.filter((f)=>f.supports_call).map((f)=>({
-            id: f.evidence_id, label: plain(f.label), points: Math.abs(f.effect)*100,
-          })),
-        ].filter((f)=>f.points>=0.5).sort((x, y)=>y.points-x.points).slice(0, 4).map((f, i)=>(
-          <li key={f.id} className="flex items-baseline justify-between gap-3 text-sm text-neutral-200">
-            <span><span className="text-neutral-500">{i+1}.</span> {f.label}</span>
-            <span className="shrink-0 text-[11px] text-neutral-500">+{f.points.toFixed(0)}</span>
-          </li>
-        ))}
-      </ol>
+      {drivers.length===0 ? (
+        <p className="text-sm text-neutral-200">
+          No strong signs in this scan. The result reflects how common {lime.call} is. Confirm with tissue.
+        </p>
+      ) : (
+        <ol className="space-y-1.5">
+          {drivers.map((f, i)=>(
+            <li key={f.id} className="flex items-baseline justify-between gap-3 text-sm text-neutral-200">
+              <span><span className="text-neutral-500">{i+1}.</span> {f.label}</span>
+              <span className="shrink-0 text-[11px] text-neutral-500">+{f.points.toFixed(0)}</span>
+            </li>
+          ))}
+        </ol>
+      )}
 
       <p className="text-[11px] text-neutral-500" title={`${lime.method} Local fit R² ${lime.fidelity_r2.toFixed(2)}.`}>
-        LIME · what pushes the model toward this result, strongest first
+        LIME · what in this patient pushes the model toward this result, strongest first (probability points)
       </p>
     </div>
   )

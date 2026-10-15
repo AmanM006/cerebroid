@@ -229,7 +229,9 @@ def reveal(
         label=_true_label(marker, row.get(_LABEL_COLUMN[marker]))
         provenance=Provenance.MISSING if label is None else Provenance.MEASURED
         value=ProvenancedValue(value=label, provenance=provenance)
-        results.append(TrueResultOut(marker=marker, value=value))
+        raw=row.get(_LABEL_COLUMN[marker])
+        detail=f"WHO grade {int(float(raw))}" if marker==Marker.GRADE and label is not None else None  # type: ignore[arg-type]
+        results.append(TrueResultOut(marker=marker, value=value, detail=detail))
     return RevealOut(study_id=study.id, results=results)
 
 

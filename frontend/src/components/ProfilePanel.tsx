@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { api, ApiError } from "../api/client"
-import type { MarkerName, Profile, ProfileView, ProvenancedValue, Readiness } from "../api/types"
+import { MARKER_LABELS, type MarkerName, type Profile, type ProfileView, type ProvenancedValue, type Readiness } from "../api/types"
 import { ErrorNotice } from "./ErrorNotice"
 import { KnownResultsForm, type KnownResults } from "./KnownResultsForm"
 import { MarkerCard } from "./MarkerCard"
@@ -50,12 +50,20 @@ export function ProfilePanel({
     }
   }, [key, studyId, known, view])
 
-  const [truth, setTruth] = useState<{ studyId: string; values: Partial<Record<MarkerName, ProvenancedValue>> } | null>(null)
+  const [truth, setTruth] = useState<{
+    studyId: string
+    values: Partial<Record<MarkerName, ProvenancedValue>>
+    details: Partial<Record<MarkerName, string>>
+  } | null>(null)
   const [revealError, setRevealError] = useState<unknown>(null)
 
   function reveal() {
     api.reveal(studyId)
-      .then((r) => setTruth({ studyId, values: Object.fromEntries(r.results.map((x) => [x.marker, x.value])) }))
+      .then((r) => setTruth({
+        studyId,
+        values: Object.fromEntries(r.results.map((x) => [x.marker, x.value])),
+        details: Object.fromEntries(r.results.filter((x) => x.detail).map((x) => [x.marker, x.detail as string])),
+      }))
       .catch(setRevealError)
   }
 
@@ -135,6 +143,42 @@ export function ProfilePanel({
             </button>
           )}
           {revealError !== null && <ErrorNotice error={revealError} />}
+
+          {truth?.studyId === studyId && (
+            <div className="rounded-xl border border-neutral-800 bg-[#0e0e10] p-3 font-mono text-xs">
+              <p className="mb-2 text-[11px] uppercase tracking-wider text-neutral-500">Lab results vs prediction</p>
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-[11px] text-neutral-500">
+                    <th className="pb-1 font-normal">Marker</th>
+                    <th className="pb-1 font-normal">Predicted</th>
+                    <th className="pb-1 font-normal">Lab result</th>
+                    <th className="pb-1 font-normal" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {profile.markers.map((m) => {
+                    const lab = truth.values[m.marker]?.value ?? null
+                    const predicted = m.status === "known" ? `${m.call} (entered)`
+                      : m.low_signal ? "no reliable signal" : (m.call ?? "—")
+                    const comparable = m.status === "predicted" && !m.low_signal && lab != null
+                    return (
+                      <tr key={m.marker} className="border-t border-neutral-800">
+                        <td className="py-1 text-neutral-400">{MARKER_LABELS[m.marker].title}</td>
+                        <td className="py-1 capitalize text-neutral-200">{predicted}</td>
+                        <td className="py-1 capitalize text-white">
+                          {lab == null ? "not recorded" : truth.details[m.marker] ?? lab}
+                        </td>
+                        <td className={`py-1 text-right font-bold ${comparable ? (lab === m.call ? "text-emerald-400" : "text-rose-400") : "text-neutral-600"}`}>
+                          {comparable ? (lab === m.call ? "✓" : "✗") : "–"}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           <div className="space-y-1.5 pt-2 font-mono text-xs text-neutral-300">
             <p className="flex items-center gap-1.5">

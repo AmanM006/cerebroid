@@ -321,6 +321,8 @@ class ProfileOut(_Response):
 class TrueResultOut(_Response):
     marker: Marker
     value: ProvenancedValue
+    # The exact recorded result where it is finer than the model's call (WHO grade 2 or 3 vs "grade 2-3").
+    detail: str | None=None
 
 
 class RevealOut(_Response):
