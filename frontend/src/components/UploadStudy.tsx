@@ -37,6 +37,8 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
   const ready=FILES.every((f)=>files[f.id]) && Number.isInteger(ageNumber) && ageNumber>=18 && ageNumber<=100
     && sex!=="" && !tooLarge
 
+  const [progressStep, setProgressStep] = useState<string>("")
+
   async function onSubmit(event: FormEvent) {
     event.preventDefault()
     if (!ready || phase!=="idle") return
@@ -47,15 +49,20 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
     form.append("sex", sex)
     for (const f of FILES) form.append(f.id, files[f.id] as File)
     setPhase("uploading")
+    setProgressStep("Uploading 3D NIfTI volumes and validating header geometry…")
     try {
       const started=await api.uploadStudy(form)
       setPhase("processing")
+      setProgressStep("Executing 3D feature extraction and radiomics analysis worker…")
       for (let i=0; i<150 && polling.current; i++) {
         await new Promise((resolve)=>setTimeout(resolve, 2000))
         const status=await api.uploadStatus(started.study_id)
         if (status.status==="ready") {
+          setProgressStep("Analysis complete! Opening clinical workstation…")
           onDone()
-          navigate(`/cases/${started.study_id}`)
+          setTimeout(() => {
+            navigate(`/cases/${started.study_id}`)
+          }, 600)
           return
         }
         if (status.status==="failed") {
@@ -65,7 +72,7 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
           return
         }
       }
-      setFailure("Still processing. It will appear in the case list when ready.")
+      setFailure("Processing is taking longer than expected. It will appear in your case list as soon as feature extraction finishes.")
       setPhase("idle")
     } catch (err) {
       setError(err)
@@ -74,57 +81,117 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-3 rounded-2xl border border-neutral-800 bg-[#0c0c0c] p-4 font-mono text-xs">
-      <div>
-        <p className="text-sm font-bold text-white">Analyse a new MRI</p>
-        <p className="text-[11px] text-neutral-400">
-          Skull-stripped, co-registered NIfTI volumes (.nii or .nii.gz, up to {MAX_MB} MB each) on one voxel grid,
-          plus a tumor mask with BraTS labels. Do not upload identifiable data. Uploads are private to your account
-          and deleted after 24 hours.
-        </p>
+    <form onSubmit={onSubmit} className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-[#09090b] p-5 font-mono text-xs shadow-2xl transition-all">
+      {/* Top Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+            <p className="text-sm font-bold tracking-tight text-white uppercase">Analyse a new MRI</p>
+          </div>
+          <p className="text-[11px] text-neutral-400 mt-0.5">
+            Skull-stripped, co-registered NIfTI volumes (.nii or .nii.gz, up to {MAX_MB} MB each) on one voxel grid.
+          </p>
+        </div>
+        <span className="shrink-0 rounded-full border border-neutral-700 bg-neutral-900/80 px-2.5 py-1 text-[10px] text-neutral-300 font-medium">
+          🔒 Private to your account · 24h retention
+        </span>
       </div>
 
-      <div className="grid gap-2 sm:grid-cols-2">
-        {FILES.map((f)=>(
-          <label key={f.id} className="space-y-1">
-            <span className="text-[11px] text-neutral-300">{f.label}</span>
-            <input
-              type="file"
-              accept=".nii,.gz,application/gzip"
-              disabled={phase!=="idle"}
-              onChange={(e)=>setFiles((prev)=>({ ...prev, [f.id]: e.target.files?.[0] }))}
-              className="block w-full text-[11px] text-neutral-400 file:mr-2 file:rounded-md file:border file:border-neutral-700 file:bg-neutral-900 file:px-2 file:py-1 file:text-neutral-200"
+      {/* Inputs Grid */}
+      <div className="grid gap-3 pt-3 sm:grid-cols-2 lg:grid-cols-3">
+        {FILES.map((f)=>{
+          const selected = Boolean(files[f.id])
+          return (
+            <label key={f.id} className={`flex flex-col justify-between rounded-xl border p-2.5 transition-all cursor-pointer ${
+              selected ? "border-cyan-500/60 bg-[#0c1622]/60 text-white" : "border-neutral-800 bg-[#0f0f12] text-neutral-400 hover:border-neutral-700 hover:text-neutral-200"
+            }`}>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[11px] font-semibold text-neutral-300">{f.label}</span>
+                {selected && <span className="text-cyan-400 font-bold text-xs">✓</span>}
+              </div>
+              <input
+                type="file"
+                accept=".nii,.gz,application/gzip"
+                disabled={phase!=="idle"}
+                onChange={(e)=>setFiles((prev)=>({ ...prev, [f.id]: e.target.files?.[0] }))}
+                className="block w-full text-[10.5px] text-neutral-400 file:mr-2 file:rounded-md file:border file:border-neutral-700 file:bg-neutral-800 file:px-2 file:py-1 file:text-xs file:font-semibold file:text-neutral-200 file:cursor-pointer"
+              />
+            </label>
+          )
+        })}
+        
+        {/* Patient Demographics */}
+        <div className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-[#0f0f12] p-2.5">
+          <label className="flex-1 space-y-1">
+            <span className="text-[11px] font-semibold text-neutral-300 block">Age (18–100)</span>
+            <input 
+              type="number" min={18} max={100} required value={age} disabled={phase!=="idle"} placeholder="Age"
+              onChange={(e)=>setAge(e.target.value)}
+              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 text-xs text-white placeholder-neutral-500 font-mono focus:border-cyan-500 focus:outline-none" 
             />
           </label>
-        ))}
-        <div className="flex gap-3">
-          <label className="space-y-1">
-            <span className="text-[11px] text-neutral-300">Age</span>
-            <input type="number" min={18} max={100} required value={age} disabled={phase!=="idle"}
-              onChange={(e)=>setAge(e.target.value)}
-              className="block w-20 rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-white" />
-          </label>
-          <label className="space-y-1">
-            <span className="text-[11px] text-neutral-300">Sex</span>
-            <select required value={sex} disabled={phase!=="idle"}
+          <label className="flex-1 space-y-1">
+            <span className="text-[11px] font-semibold text-neutral-300 block">Sex</span>
+            <select 
+              required value={sex} disabled={phase!=="idle"}
               onChange={(e)=>setSex(e.target.value as "" | "M" | "F")}
-              className="block rounded-md border border-neutral-700 bg-neutral-900 px-2 py-1 text-white">
-              <option value="">–</option>
-              <option value="F">Female</option>
-              <option value="M">Male</option>
+              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-xs text-white font-mono focus:border-cyan-500 focus:outline-none"
+            >
+              <option value="">– Select –</option>
+              <option value="F">Female (F)</option>
+              <option value="M">Male (M)</option>
             </select>
           </label>
         </div>
       </div>
 
-      {tooLarge && <p className="text-[11px] text-rose-300">A file is larger than {MAX_MB} MB; compress it as .nii.gz.</p>}
-      {failure && <p className="text-[11px] text-rose-300">{failure}</p>}
-      {error!==null && <ErrorNotice error={error} />}
+      {/* Processing / Loading State Overlay */}
+      {phase !== "idle" && (
+        <div className="mt-3 rounded-xl border border-cyan-500/30 bg-cyan-950/20 p-4 shadow-lg backdrop-blur-sm animate-pulse">
+          <div className="flex items-center gap-3">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
+            <div className="flex-1">
+              <p className="text-xs font-bold text-cyan-200 tracking-wide uppercase">
+                {phase === "uploading" ? "1/2 Uploading Patient Scans" : "2/2 Extracting Radiomics & Predicting Molecular Targets"}
+              </p>
+              <p className="text-[11px] text-cyan-400/90 mt-0.5">{progressStep}</p>
+            </div>
+          </div>
+          <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-neutral-800">
+            <div className={`h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-500 ${phase === "uploading" ? "w-1/3" : "w-4/5"}`} />
+          </div>
+        </div>
+      )}
 
-      <button type="submit" disabled={!ready || phase!=="idle"}
-        className="rounded-lg border border-white bg-white px-4 py-2 text-xs font-bold uppercase tracking-wider text-black disabled:cursor-not-allowed disabled:opacity-40">
-        {phase==="uploading" ? "Uploading…" : phase==="processing" ? "Extracting features…" : "Upload and analyse"}
-      </button>
+      {/* Error & Alerts */}
+      {tooLarge && (
+        <div className="rounded-lg border border-rose-800/60 bg-rose-950/30 px-3 py-2 text-[11px] text-rose-300">
+          ⚠️ One or more files exceeds the {MAX_MB} MB limit; please compress with gzip (.nii.gz).
+        </div>
+      )}
+      {failure && (
+        <div className="rounded-lg border border-amber-800/60 bg-amber-950/30 px-3 py-2 text-[11px] text-amber-300">
+          ⚠️ {failure}
+        </div>
+      )}
+      {error !== null && <ErrorNotice error={error} />}
+
+      {/* Action Button */}
+      <div className="flex items-center justify-between pt-2">
+        <span className="text-[11px] text-neutral-400">
+          {!ready ? "Select all 5 NIfTI files, age and sex to run analysis" : "All 5 co-registered volumes and clinical context verified"}
+        </span>
+        <button 
+          type="submit" 
+          disabled={!ready || phase!=="idle"}
+          className="flex items-center gap-2 rounded-xl border border-white bg-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider text-black transition-all hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer shadow-md"
+        >
+          {phase === "uploading" && <span className="h-3 w-3 animate-spin rounded-full border-2 border-black border-t-transparent" />}
+          {phase === "processing" && <span className="h-3 w-3 animate-spin rounded-full border-2 border-black border-t-transparent" />}
+          {phase === "uploading" ? "Uploading Scans…" : phase === "processing" ? "Extracting Features…" : "Upload & Run Analysis"}
+        </button>
+      </div>
     </form>
   )
 }
