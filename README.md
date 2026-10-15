@@ -101,13 +101,16 @@ done
 ```
 
 ## 7. Deployment & access details
-- **Public deployment (Render, free tier):** one Docker web service built from
-  [ops/render/Dockerfile](ops/render/Dockerfile) (the API also serves the built frontend, so the app is one origin)
-  plus a free Postgres, both defined in [render.yaml](render.yaml). To recreate it: Render dashboard → New →
-  Blueprint → this repository; enter the two test-account passwords below when asked. Migrations, the nine demo
-  cases and the test accounts are created automatically at start-up (`python -m app.cli seed`, idempotent).
-  The free tier sleeps after 15 idle minutes; [keepalive.yml](.github/workflows/keepalive.yml) pings `/health`
-  every 10 minutes once the repository variable `VBX_PUBLIC_URL` is set.
+- **Public URL: https://cerebroid-app.onrender.com** (deployed from the `bugbounty` branch, kept identical to
+  `main`). Sign in with a test account below.
+- **How it is hosted (Render, free tier):** one Docker web service built from the root [Dockerfile](Dockerfile) (identical to [ops/render/Dockerfile](ops/render/Dockerfile), which the blueprint uses)
+  (the API also serves the built frontend, so the app is one origin) plus a free Postgres, both defined in
+  [render.yaml](render.yaml). To recreate it: Render dashboard → New → Blueprint → this repository; enter the
+  test-account passwords below when asked. Migrations, the eight demo cases and the test accounts are created at
+  start-up (`python -m app.cli seed`, idempotent; demo cases not in `VBX_SEED_DEMO_CASES` are removed). After
+  start-up the demo cases' profiles are precomputed in the background, so first views are fast.
+- **Cold start:** the free tier sleeps after 15 idle minutes; the first request then takes about a minute.
+  GitHub Actions workflows are manual-only (the organizers pay for runner minutes), so there is no scheduled ping.
 - **Docker Compose:** `docker compose up --build`, app on `http://localhost:8080` (set `WEB_PORT` to change it),
   API also reachable directly on `http://localhost:8000`.
 - **Interactive API docs:** `http://localhost:8000/docs`.
@@ -119,6 +122,7 @@ A synthetic, non-admin clinician account for evaluators. It sees the public demo
 |---|---|---|
 | `evaluator` | `vbx-eval-fcd664d1` | clinician |
 | `reviewer` | `vbx-review-718d0a59` | reviewer (can also run the audit-log check) |
+| `doctor` | `doctor-clinical-demo-2026` | clinician (same rights as `evaluator`; one-click fill on the login page) |
 
 On a fresh local stack, create it with the command below and enter the password from the table when prompted:
 ```bash
