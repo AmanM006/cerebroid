@@ -24,7 +24,13 @@ DISCLAIMER=(
     "Research decision-support prototype. Not a diagnostic device. Trained on public de-identified data."
 )
 LIMITATIONS=[
-    "Trained and tested on one public cohort (UCSF-PDGM, one institution); performance elsewhere is unknown.",
+    "Trained on one institution (UCSF-PDGM). On 167 external TCGA patients from many hospitals "
+    "(models unchanged), IDH AUC fell from 0.98 to 0.79 and 1p/19q did not transfer (AUC 0.39); "
+    "grade ranking held (AUC 0.90) but "
+    "57 of 65 grade 2-3 tumors were called grade 4, a scanner-intensity shift. Stable IDH calls stayed more "
+    "accurate (80% vs 73%). See ml/notebooks/04_external_validation_tcga.ipynb.",
+    "Race: absent from UCSF-PDGM; on TCGA, Black (11-12 per marker) and Asian (2-3) patients are too few for "
+    "statistically meaningful per-race comparisons. Race is evaluated, never used as a model input.",
     "Only 15 1p/19q co-deleted patients in the cohort (13 of 323 training patients, 4.0%), so calibrated "
     "probabilities stay below the 0.5 call threshold: good ranking (AUC 0.90) but no positive calls yet.",
     "MGMT methylation is barely predictable from these MRI features; the model card's held-out AUC shows it.",
