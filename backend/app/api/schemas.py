@@ -313,4 +313,8 @@ class ModelCardOut(_Response):
     held_out_patients: int | None
     model_sets: list[ModelSetCardOut]
     limitations: list[str]
+    # Who the models were trained on, how they do per subgroup, and on an external cohort.
+    training_population: dict
+    subgroups: dict | None
+    external_validation: dict | None
     request_id: str | None

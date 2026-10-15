@@ -1,0 +1,331 @@
+{
+  "cohort": "UCSF-PDGM held-out test split",
+  "patients": 99,
+  "markers": {
+    "IDH": {
+      "overall": {
+        "n": 99,
+        "positives": 20,
+        "accuracy": 0.9394,
+        "auc": 0.9772,
+        "balanced_accuracy": 0.8687,
+        "stable_n": 90,
+        "stable_accuracy": 0.9778
+      },
+      "by_sex": {
+        "female": {
+          "n": 41,
+          "positives": 8,
+          "accuracy": 0.9024,
+          "auc": 0.9583,
+          "balanced_accuracy": 0.7973,
+          "stable_n": 35,
+          "stable_accuracy": 0.9714
+        },
+        "male": {
+          "n": 58,
+          "positives": 12,
+          "accuracy": 0.9655,
+          "auc": 0.9873,
+          "balanced_accuracy": 0.9167,
+          "stable_n": 55,
+          "stable_accuracy": 0.9818
+        }
+      },
+      "by_age_band": {
+        "45-64": {
+          "n": 49,
+          "positives": 6,
+          "accuracy": 0.9184,
+          "auc": 0.9109,
+          "balanced_accuracy": 0.7384,
+          "stable_n": 43,
+          "stable_accuracy": 0.9767
+        },
+        "65+": {
+          "n": 33,
+          "positives": 1,
+          "accuracy": 0.9697,
+          "auc": 1.0,
+          "balanced_accuracy": 0.5,
+          "stable_n": 32,
+          "stable_accuracy": 1.0
+        },
+        "under 45": {
+          "n": 17,
+          "positives": 13,
+          "accuracy": 0.9412,
+          "auc": 0.9808,
+          "balanced_accuracy": 0.9615,
+          "stable_n": 15,
+          "stable_accuracy": 0.9333
+        }
+      },
+      "by_tumor_type": {
+        "IDH-mutant, codeleted": {
+          "n": 2,
+          "positives": 2,
+          "accuracy": 0.5
+        },
+        "IDH-mutant, not codeleted": {
+          "n": 18,
+          "positives": 18,
+          "accuracy": 0.7778,
+          "stable_n": 14,
+          "stable_accuracy": 0.8571
+        },
+        "IDH-wildtype": {
+          "n": 79,
+          "positives": 0,
+          "accuracy": 0.9873,
+          "stable_n": 76,
+          "stable_accuracy": 1.0
+        }
+      }
+    },
+    "1p19q": {
+      "overall": {
+        "n": 80,
+        "positives": 2,
+        "accuracy": 0.975,
+        "auc": 0.8974,
+        "balanced_accuracy": 0.5,
+        "stable_n": 80,
+        "stable_accuracy": 0.975
+      },
+      "by_sex": {
+        "female": {
+          "n": 35,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 35,
+          "stable_accuracy": 1.0
+        },
+        "male": {
+          "n": 45,
+          "positives": 2,
+          "accuracy": 0.9556,
+          "auc": 0.8953,
+          "balanced_accuracy": 0.5,
+          "stable_n": 45,
+          "stable_accuracy": 0.9556
+        }
+      },
+      "by_age_band": {
+        "45-64": {
+          "n": 37,
+          "positives": 2,
+          "accuracy": 0.9459,
+          "auc": 0.9143,
+          "balanced_accuracy": 0.5,
+          "stable_n": 37,
+          "stable_accuracy": 0.9459
+        },
+        "65+": {
+          "n": 27,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 27,
+          "stable_accuracy": 1.0
+        },
+        "under 45": {
+          "n": 16,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 16,
+          "stable_accuracy": 1.0
+        }
+      },
+      "by_tumor_type": {
+        "IDH-mutant, codeleted": {
+          "n": 2,
+          "positives": 2,
+          "accuracy": 0.0,
+          "stable_n": 2,
+          "stable_accuracy": 0.0
+        },
+        "IDH-mutant, not codeleted": {
+          "n": 16,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 16,
+          "stable_accuracy": 1.0
+        },
+        "IDH-wildtype": {
+          "n": 62,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 62,
+          "stable_accuracy": 1.0
+        }
+      }
+    },
+    "MGMT": {
+      "overall": {
+        "n": 84,
+        "positives": 59,
+        "accuracy": 0.7024,
+        "auc": 0.5525,
+        "balanced_accuracy": 0.5,
+        "stable_n": 84,
+        "stable_accuracy": 0.7024
+      },
+      "by_sex": {
+        "female": {
+          "n": 33,
+          "positives": 23,
+          "accuracy": 0.697,
+          "auc": 0.5391,
+          "balanced_accuracy": 0.5,
+          "stable_n": 33,
+          "stable_accuracy": 0.697
+        },
+        "male": {
+          "n": 51,
+          "positives": 36,
+          "accuracy": 0.7059,
+          "auc": 0.5574,
+          "balanced_accuracy": 0.5,
+          "stable_n": 51,
+          "stable_accuracy": 0.7059
+        }
+      },
+      "by_age_band": {
+        "45-64": {
+          "n": 44,
+          "positives": 29,
+          "accuracy": 0.6591,
+          "auc": 0.5747,
+          "balanced_accuracy": 0.5,
+          "stable_n": 44,
+          "stable_accuracy": 0.6591
+        },
+        "65+": {
+          "n": 30,
+          "positives": 22,
+          "accuracy": 0.7333,
+          "auc": 0.4489,
+          "balanced_accuracy": 0.5,
+          "stable_n": 30,
+          "stable_accuracy": 0.7333
+        },
+        "under 45": {
+          "n": 10,
+          "positives": 8,
+          "accuracy": 0.8,
+          "auc": 0.875,
+          "balanced_accuracy": 0.5,
+          "stable_n": 10,
+          "stable_accuracy": 0.8
+        }
+      },
+      "by_tumor_type": {
+        "IDH-mutant, not codeleted": {
+          "n": 11,
+          "positives": 10,
+          "accuracy": 0.9091,
+          "auc": 0.7,
+          "balanced_accuracy": 0.5,
+          "stable_n": 11,
+          "stable_accuracy": 0.9091
+        },
+        "IDH-wildtype": {
+          "n": 73,
+          "positives": 49,
+          "accuracy": 0.6712,
+          "auc": 0.5442,
+          "balanced_accuracy": 0.5,
+          "stable_n": 73,
+          "stable_accuracy": 0.6712
+        }
+      }
+    },
+    "GRADE": {
+      "overall": {
+        "n": 99,
+        "positives": 78,
+        "accuracy": 0.9596,
+        "auc": 0.9988,
+        "balanced_accuracy": 0.9048,
+        "stable_n": 90,
+        "stable_accuracy": 0.9889
+      },
+      "by_sex": {
+        "female": {
+          "n": 41,
+          "positives": 33,
+          "accuracy": 0.9756,
+          "auc": 1.0,
+          "balanced_accuracy": 0.9375,
+          "stable_n": 38,
+          "stable_accuracy": 0.9737
+        },
+        "male": {
+          "n": 58,
+          "positives": 45,
+          "accuracy": 0.9483,
+          "auc": 0.9966,
+          "balanced_accuracy": 0.8846,
+          "stable_n": 52,
+          "stable_accuracy": 1.0
+        }
+      },
+      "by_age_band": {
+        "45-64": {
+          "n": 49,
+          "positives": 41,
+          "accuracy": 0.9388,
+          "auc": 1.0,
+          "balanced_accuracy": 0.8125,
+          "stable_n": 47,
+          "stable_accuracy": 0.9787
+        },
+        "65+": {
+          "n": 33,
+          "positives": 30,
+          "accuracy": 1.0,
+          "auc": 1.0,
+          "balanced_accuracy": 1.0,
+          "stable_n": 32,
+          "stable_accuracy": 1.0
+        },
+        "under 45": {
+          "n": 17,
+          "positives": 7,
+          "accuracy": 0.9412,
+          "auc": 1.0,
+          "balanced_accuracy": 0.95,
+          "stable_n": 11,
+          "stable_accuracy": 1.0
+        }
+      },
+      "by_tumor_type": {
+        "IDH-mutant, codeleted": {
+          "n": 2,
+          "positives": 0,
+          "accuracy": 0.5,
+          "stable_n": 1,
+          "stable_accuracy": 1.0
+        },
+        "IDH-mutant, not codeleted": {
+          "n": 18,
+          "positives": 7,
+          "accuracy": 0.8333,
+          "auc": 1.0,
+          "balanced_accuracy": 0.8636,
+          "stable_n": 12,
+          "stable_accuracy": 0.9167
+        },
+        "IDH-wildtype": {
+          "n": 79,
+          "positives": 71,
+          "accuracy": 1.0,
+          "auc": 1.0,
+          "balanced_accuracy": 1.0,
+          "stable_n": 77,
+          "stable_accuracy": 1.0
+        }
+      }
+    }
+  }
+}
