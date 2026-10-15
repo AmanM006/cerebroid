@@ -86,12 +86,18 @@ export function LimeView({
 
       <Contributions
         call={lime.call}
-        steps={top.slice(0, 5).map((f)=>({ id: f.evidence_id, label: short(f.label), full: f.label,
-          delta: (f.supports_call ? 1 : -1)*Math.abs(f.effect)*100 }))}
+        steps={[
+          // Before reading the scan, the models lean toward whichever result is common in training.
+          { id: "how-common", label: "How common", prior: true,
+            full: `How common ${lime.call} is in the training data, before looking at this scan (from 50/50)`,
+            delta: ((positive ? 1 : -1)*Number(lime.typical.value)+(positive ? 0 : 1))*100-50 },
+          ...top.slice(0, 5).map((f)=>({ id: f.evidence_id, label: short(f.label), full: f.label,
+            delta: (f.supports_call ? 1 : -1)*Math.abs(f.effect)*100 })),
+        ]}
       />
 
       <p className="text-[11px] text-neutral-500" title={`${lime.method} Local fit R² ${lime.fidelity_r2.toFixed(2)}.`}>
-        LIME · how much each factor pushed this prediction, in % points
+        LIME · % points pushing this prediction from 50/50 · first bar: how common the result is
       </p>
     </div>
   )
@@ -100,7 +106,7 @@ export function LimeView({
 /** The top factors behind this prediction and how much each pushed it, toward or against the call. */
 function Contributions({ call, steps }: {
   call: string
-  steps: { id: string; label: string; full: string; delta: number }[]
+  steps: { id: string; label: string; full: string; delta: number; prior?: boolean }[]
 }) {
   const rows=steps.filter((s)=>Math.abs(s.delta)>=0.05)
   if (rows.length===0) {
@@ -121,10 +127,10 @@ function Contributions({ call, steps }: {
         return (
           <div key={r.id} className="flex items-center gap-2"
             title={`${r.full}: ${up ? "+" : "−"}${Math.abs(r.delta).toFixed(1)} points ${up ? "toward" : "against"} ${call}`}>
-            <span className="w-28 shrink-0 truncate text-[11px] text-neutral-300">{r.label}</span>
+            <span className={`w-28 shrink-0 truncate text-[11px] ${r.prior ? "italic text-neutral-400" : "text-neutral-300"}`}>{r.label}</span>
             <div className="relative h-2.5 flex-1">
               <div className="absolute inset-y-0 left-1/2 w-px bg-neutral-700" aria-hidden="true" />
-              <div className={`absolute top-0 h-2.5 rounded-sm ${up ? "bg-emerald-500" : "bg-rose-500"}`}
+              <div className={`absolute top-0 h-2.5 rounded-sm ${r.prior ? (up ? "bg-emerald-800" : "bg-rose-900") : up ? "bg-emerald-500" : "bg-rose-500"}`}
                 style={up ? { left: "50%", width: `${half}%` } : { right: "50%", width: `${half}%` }} />
             </div>
             <span className="w-10 shrink-0 text-right text-[11px] text-neutral-300">
