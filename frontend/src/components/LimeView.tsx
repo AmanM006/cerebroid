@@ -96,7 +96,7 @@ export function LimeView({
       />
 
       <p className="text-[11px] text-neutral-500" title={`${lime.method} Local fit R² ${lime.fidelity_r2.toFixed(2)}.`}>
-        LIME · % {lime.call}, from a typical patient to this one · dashed line = call flips
+        LIME · % {lime.call}: average patient → this patient · dashed line = call flips
       </p>
     </div>
   )
@@ -118,7 +118,7 @@ function Waterfall({ call, typical, patient, steps }: {
     <div className="relative space-y-1.5">
       <div className="pointer-events-none absolute bottom-0 top-0 border-l border-dashed border-neutral-600"
         style={{ left: "calc(7.5rem + (100% - 7.5rem - 3rem) * 0.5)" }} aria-hidden="true" />
-      <Row label="Typical" value={`${typical}%`} from={0} to={typical} tone="bg-neutral-500" title={`Typical patient: ${typical}% ${call}`} />
+      <Row label="Average patient" value={`${typical}%`} from={0} to={typical} tone="bg-neutral-500" title={`An imaginary average training patient (middle value of every input, not this patient): ${typical}% ${call}`} />
       {rows.map((s)=>{
         const from=level
         level=level+s.delta
