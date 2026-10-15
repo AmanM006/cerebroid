@@ -129,22 +129,22 @@ export function ProfilePanel({
           {truth?.studyId !== studyId && (
             <button
               onClick={reveal}
-              className="w-full rounded-xl border border-[#262335] bg-[#14121d] py-2 text-xs font-medium text-slate-200 transition-all hover:border-[#38334d] hover:bg-[#1a1726] hover:text-white cursor-pointer"
+              className="w-full rounded-xl border border-neutral-800 bg-[#121214] py-2.5 text-xs font-semibold text-white transition-all hover:border-neutral-600 hover:bg-[#1a1a1d] cursor-pointer shadow-sm"
             >
               Reveal true lab results
             </button>
           )}
           {revealError !== null && <ErrorNotice error={revealError} />}
 
-          <div className="space-y-1 pt-2 font-mono text-[10.5px] text-[#716c87]">
+          <div className="space-y-1.5 pt-2 font-mono text-xs text-neutral-300">
             <p className="flex items-center gap-1.5">
-              Biopsy prior to MRI: <span className="text-white">{profile.inputs.prior_biopsy.value ?? "not recorded"}</span>
+              Biopsy prior to MRI: <span className="text-white font-semibold">{profile.inputs.prior_biopsy.value ?? "not recorded"}</span>
               <ProvenanceBadge provenance={profile.inputs.prior_biopsy.provenance} />
             </p>
             {profile.missing_inputs.length > 0 && (
-              <p>Missing inputs: {profile.missing_inputs.join(", ")} (uncertainty higher)</p>
+              <p className="text-amber-200/90 font-medium">Missing inputs: {profile.missing_inputs.join(", ")} (uncertainty higher)</p>
             )}
-            <p className="w-fit cursor-help text-[#565169]"
+            <p className="w-fit cursor-help text-neutral-400 hover:text-white transition-colors"
               title={`Features ${short(profile.feature_pipeline_version)} · input ${short(profile.input_hash)}`
                 + (profile.request_id ? ` · request ${profile.request_id}` : "")}>
               ⓘ Reproducibility details
