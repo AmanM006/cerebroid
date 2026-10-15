@@ -138,7 +138,8 @@ def rotate_session(db: Session, raw_token: str | None) -> IssuedSession:
         raise _invalid_session()
 
     user=db.get(User, record.user_id)
-    record_expires = record.expires_at.replace(tzinfo=UTC) if record.expires_at.tzinfo is None else record.expires_at
+    # SQLite returns naive datetimes; they are stored in UTC.
+    record_expires=record.expires_at if record.expires_at.tzinfo else record.expires_at.replace(tzinfo=UTC)
     if record_expires<=datetime.now(UTC) or user is None or not user.is_active:
         logger.info("refresh_failed", reason="expired_or_inactive", user_id=str(record.user_id))
         raise _invalid_session()
