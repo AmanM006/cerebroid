@@ -8,7 +8,7 @@ from pathlib import Path
 import nibabel as nib
 import numpy as np
 
-PATIENTS = ["0018", "0026", "0061", "0073", "0232", "0243"]
+PATIENTS = ["0018", "0026", "0061", "0232", "0243"]
 SEQ_MAP = {
     "T1": "t1.nii.gz",
     "T1c": "t1c.nii.gz",

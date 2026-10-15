@@ -93,9 +93,9 @@ Register a public-dataset patient from the feature table as a demo case (age, se
 docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-0004
 ```
 
-To reproduce the deployed demo on a fresh stack, register the nine held-out test patients:
+To reproduce the deployed demo on a fresh stack, register the eight held-out test patients:
 ```bash
-for p in 0061 0073 0243 0018 0026 0232 0162 0282 0327; do
+for p in 0232 0026 0018 0327 0061 0243 0162 0282; do
   docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-$p
 done
 ```

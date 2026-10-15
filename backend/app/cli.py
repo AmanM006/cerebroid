@@ -8,16 +8,18 @@ as a command-line argument (it would end up in shell history and `ps`).
 
 `seed` runs at container start, for hosts without a shell. It is idempotent and
 driven only by environment variables:
-    VBX_SEED_DEMO_CASES      comma-separated patient IDs, e.g. UCSF-PDGM-0061,UCSF-PDGM-0162
+    VBX_SEED_DEMO_CASES      comma-separated patient IDs, e.g. UCSF-PDGM-0061,UCSF-PDGM-0162; demo cases
+                             not in the list are removed, so the list is the single source of truth
     VBX_EVALUATOR_PASSWORD   creates the synthetic clinician account "evaluator"
     VBX_REVIEWER_PASSWORD    creates the synthetic reviewer account "reviewer" (audit check)
+    VBX_DOCTOR_PASSWORD      creates the synthetic clinician account "doctor"
 """
 import argparse
 import getpass
 import os
 import sys
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 
 from app.core.config import get_settings
 from app.core.security import hash_password
@@ -88,6 +90,14 @@ def seed() -> None:
     if patient_ids:
         store=load_feature_store(get_settings().feature_table_path)
         with get_session_factory()() as db:
+            stale=db.scalars(select(Study.id).where(
+                Study.kind==StudyKind.DEMO,
+                (Study.source_patient_id.is_(None)) | (Study.source_patient_id.not_in(patient_ids)),
+            )).all()
+            if stale:
+                db.execute(delete(Study).where(Study.id.in_(stale)))
+                db.commit()
+                print(f"Removed {len(stale)} demo case(s) not in VBX_SEED_DEMO_CASES.")
             existing=set(db.scalars(select(Study.source_patient_id)))
         for patient_id in patient_ids:
             if patient_id in existing:
@@ -100,8 +110,8 @@ def seed() -> None:
         _ensure_user("evaluator", Role.CLINICIAN, password)
     if password:=os.environ.get("VBX_REVIEWER_PASSWORD"):
         _ensure_user("reviewer", Role.REVIEWER, password)
-    doctor_pwd = os.environ.get("VBX_DOCTOR_PASSWORD", "doctor-clinical-demo-2026")
-    _ensure_user("doctor", Role.CLINICIAN, doctor_pwd)
+    if password:=os.environ.get("VBX_DOCTOR_PASSWORD"):
+        _ensure_user("doctor", Role.CLINICIAN, password)
 
 
 def main() -> None:
