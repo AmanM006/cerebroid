@@ -199,3 +199,30 @@ export interface ErrorBody {
   message: string
   request_id: string | null
 }
+
+export interface SubgroupMetrics {
+  n: number
+  positives: number
+  accuracy?: number
+  auc?: number
+  balanced_accuracy?: number
+  stable_n?: number
+  stable_accuracy?: number
+}
+
+export interface GroupReport {
+  cohort: string
+  patients: number
+  markers: Record<string, Record<string, Record<string, SubgroupMetrics>>>
+}
+
+export interface ModelCard {
+  disclaimer: string
+  training_population: {
+    site?: string; patients?: number; female?: number; male?: number; age_median?: number
+    age_range?: [number, number]; grade_4_share?: number; race?: string
+  }
+  subgroups: GroupReport | null
+  external_validation: GroupReport | null
+  limitations: string[]
+}

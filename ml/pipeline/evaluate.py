@@ -97,7 +97,7 @@ def evaluate_set(marker: str, artifact_dir: Path, test: pd.DataFrame) -> tuple[d
     }
     result.update(_bootstrap(y, median, call) if len(np.unique(y))>1 else {})
     per_patient=pd.DataFrame(
-        {"call": call, "label": y, "verdict": verdicts}, index=rows["patient_id"].to_numpy(),
+        {"call": call, "label": y, "verdict": verdicts, "prob": median}, index=rows["patient_id"].to_numpy(),
     )
     return result, per_patient
 
