@@ -257,6 +257,7 @@ pip-audit -r requirements.txt
 ```
 
 ## 11. Known limitations
+The same list, grouped by bug report category: [VOID.md](VOID.md).
 - **Other hospitals and race.** The models are trained on UCSF-PDGM (395 patients, one hospital, no race field)
   plus 70% of a TCGA cohort from many US hospitals (116 patients; 103 White, 9 Black, 1 Asian, 3 other or not
   reported). The other 30% (51 patients) is held out ([ml/pipeline/external_validation.py](ml/pipeline/external_validation.py),
@@ -276,7 +277,9 @@ pip-audit -r requirements.txt
 - **Tumor outline errors.** Features are measured inside the segmentation; shifting or shrinking it by one voxel
   changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC.
 - Brute-force protection: per-account lockout (5 failures → 15 minutes) plus a per-client-IP login limit
-  (30 failed attempts per 5 minutes, then `429 RATE_LIMITED` with `Retry-After`; successful sign-ins never count). Anyone who knows a username can still
+  (30 failed attempts per 5 minutes, then wrong passwords get `429 RATE_LIMITED` with `Retry-After`; successful
+  sign-ins never count, and a correct password still signs in from a limited address, since many people share one
+  public address). Anyone who knows a username can still
   lock that account for 15 minutes. The synthetic test accounts (`evaluator`, `reviewer`, `doctor`) are exempt from
   lockout: their passwords are published here, so locking them would only let anyone lock evaluators out. The
   IP limit is in memory, so it resets when the server restarts.
