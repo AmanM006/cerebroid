@@ -23,6 +23,8 @@ from app.ingest.nifti_validate import UploadError
 from app.services import uploads
 
 router=APIRouter(prefix="/api/v1/studies", tags=["uploads"])
+# Letters, digits, spaces and a few separators: no markup, no control characters.
+LABEL_PATTERN=r"^[A-Za-z0-9 ._#()\-]{1,40}$"
 UPLOAD_PATH="/api/v1/studies"
 
 
@@ -48,6 +50,12 @@ def upload_study(
     t2: UploadFile=File(),
     flair: UploadFile=File(),
     seg: UploadFile=File(description="Tumor mask: 1 necrotic core, 2 edema, 4 enhancing tumor"),
+    label: str | None=Form(default=None, max_length=40, pattern=LABEL_PATTERN,
+                           description="Optional case label for your list. Not a patient name."),
+    lab_idh: Literal["mutant", "wildtype"] | None=Form(default=None),
+    lab_1p19q: Literal["codeleted", "intact"] | None=Form(default=None),
+    lab_mgmt: Literal["methylated", "unmethylated"] | None=Form(default=None),
+    lab_grade: Literal["2", "3", "4"] | None=Form(default=None),
     user: User=Depends(require_role(Role.CLINICIAN)),
     db: Session=Depends(get_db),
     store: FeatureStore=Depends(get_feature_store),
@@ -76,11 +84,15 @@ def upload_study(
 
     study=Study(
         id=study_id, kind=StudyKind.UPLOAD, owner_id=user.id,
-        label=f"Upload {datetime.now(UTC):%d %b %H:%M} UTC", age=age, sex=sex, prior_biopsy=None,
+        label=(label or "").strip() or f"Upload {datetime.now(UTC):%d %b %H:%M} UTC", age=age, sex=sex,
+        prior_biopsy=None,
         source_patient_id=patient_id, status=StudyStatus.PROCESSING,
     )
     db.add(study)
     db.commit()
+    # Lab results the uploader already has: shown by /reveal for comparison, never a model input.
+    uploads.save_reference(patient_id, {"IDH": lab_idh, "1p19q": lab_1p19q, "MGMT": lab_mgmt,
+                                        "GRADE": int(lab_grade) if lab_grade else None})
     uploads.start(study_id, patient_id, store)
     return _status_out(study, request)
 

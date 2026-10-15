@@ -118,3 +118,37 @@ def test_upload_rules(client, make_user, deployed):  # noqa: F811
     assert _post(client, headers, _study(), sex="X").status_code==422
     assert _post(client, login(client, "rita"), _study()).status_code==403
     assert client.post("/api/v1/studies", data={"age": "40", "sex": "M"}).status_code==401
+
+
+def test_upload_label_and_entered_lab_results_are_shown_on_reveal(client, make_user, deployed):  # noqa: F811
+    make_user("alice")
+    headers=login(client, "alice")
+    files=_study()
+    r=client.post(
+        "/api/v1/studies", headers=headers,
+        data={"age": "41", "sex": "F", "label": "Case A - TCGA 289", "lab_idh": "mutant", "lab_grade": "2"},
+        files={k: (f"{k}.nii.gz", io.BytesIO(v), "application/gzip") for k, v in files.items()},
+    )
+    assert r.status_code==202, r.text
+    study_id=r.json()["study_id"]
+    assert _wait(client, headers, study_id)["status"]=="ready"
+    case=client.get(f"/api/v1/cases/{study_id}", headers=headers).json()
+    assert case["label"]=="Case A - TCGA 289"
+    revealed=client.get(f"/api/v1/studies/{study_id}/reveal", headers=headers).json()["results"]
+    reveal={x["marker"]: x for x in revealed}
+    assert reveal["IDH"]["value"]=={"value": "mutant", "provenance": "clinical_input"}
+    assert reveal["GRADE"]["value"]["value"]=="grade 2-3" and reveal["GRADE"]["detail"]=="WHO grade 2"
+    assert reveal["MGMT"]["value"]["provenance"]=="missing"
+    # The entered results never reach the models: the profile has no known markers.
+    profile=client.get(f"/api/v1/studies/{study_id}/profile", headers=headers).json()
+    assert all(m["status"]!="known" for m in profile["markers"])
+
+
+def test_upload_label_rejects_markup(client, make_user, deployed):  # noqa: F811
+    make_user("alice")
+    r=client.post(
+        "/api/v1/studies", headers=login(client, "alice"),
+        data={"age": "41", "sex": "F", "label": "<script>"},
+        files={k: (f"{k}.nii.gz", io.BytesIO(v), "application/gzip") for k, v in _study().items()},
+    )
+    assert r.status_code==422

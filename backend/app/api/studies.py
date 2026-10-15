@@ -45,6 +45,7 @@ from app.api.schemas import (
 from app.core.errors import AppError
 from app.db.models import Study, StudyKind
 from app.core.compute import heavy_slot
+from app.services import uploads as uploads_service
 from app.core.ratelimit import limit_analysis
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue
 from app.domain.doubt import decompose, primary
@@ -217,7 +218,25 @@ def reveal(
     audit: Auditor=Depends(get_auditor),
     store: FeatureStore=Depends(get_feature_store),
 ) -> RevealOut:
-    """True lab results for demo cases only; kept out of /profile so they can never feed a prediction."""
+    """Lab results for comparison, never a model input: the dataset's for demo cases, or the ones the
+    uploader entered for an upload (provenance clinical_input)."""
+    if study.kind==StudyKind.UPLOAD:
+        reference=uploads_service.reference_of(study.source_patient_id or "")
+        if not reference:
+            raise AppError(
+                "NO_GROUND_TRUTH", "No lab results were entered with this upload.", status.HTTP_409_CONFLICT,
+            )
+        audit("reveal.read", str(study.id))
+        entered=[]
+        for marker in Marker:
+            raw=reference.get(marker.value)
+            label=None if raw is None else (_true_label(marker, raw) if marker==Marker.GRADE else str(raw))
+            provenance=Provenance.MISSING if label is None else Provenance.CLINICAL_INPUT
+            detail=f"WHO grade {int(raw)}" if marker==Marker.GRADE and raw is not None else None
+            entered.append(TrueResultOut(
+                marker=marker, value=ProvenancedValue(value=label, provenance=provenance), detail=detail,
+            ))
+        return RevealOut(study_id=study.id, results=entered)
     if study.kind!=StudyKind.DEMO or not store.has(study.source_patient_id):
         raise AppError(
             "NO_GROUND_TRUTH", "No lab results are available for this study.", status.HTTP_409_CONFLICT,

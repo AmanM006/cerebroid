@@ -23,6 +23,10 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
   const [files, setFiles]=useState<Partial<Record<FileId, File>>>({})
   const [age, setAge]=useState("")
   const [sex, setSex]=useState<"" | "M" | "F">("")
+  const [label, setLabel]=useState("")
+  // Lab results the user already has, kept only to compare against on "Reveal lab results".
+  const [lab, setLab]=useState<Record<string, string>>({})
+  const labelOk=label==="" || /^[A-Za-z0-9 ._#()-]{1,40}$/.test(label)
   const [phase, setPhase]=useState<"idle" | "uploading" | "processing">("idle")
   const [error, setError]=useState<unknown>(null)
   const [failure, setFailure]=useState<string | null>(null)
@@ -37,7 +41,7 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
 
   const ageNumber=Number(age)
   const tooLarge=Object.values(files).some((f)=>f && f.size>MAX_MB*1024*1024)
-  const ready=FILES.every((f)=>files[f.id]) && Number.isInteger(ageNumber) && ageNumber>=18 && ageNumber<=100
+  const ready=FILES.every((f)=>files[f.id]) && Number.isInteger(ageNumber) && ageNumber>=18 && ageNumber<=100 && labelOk
     && sex!=="" && !tooLarge
 
   const [progressStep, setProgressStep] = useState<string>("")
@@ -51,6 +55,8 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
     const form=new FormData()
     form.append("age", String(ageNumber))
     form.append("sex", sex)
+    if (label.trim()) form.append("label", label.trim())
+    for (const [k, v] of Object.entries(lab)) if (v) form.append(k, v)
     for (const f of FILES) form.append(f.id, files[f.id] as File)
     setPhase("uploading")
     setProgressStep("Uploading 3D NIfTI volumes and validating header geometry…")
@@ -149,6 +155,68 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
               <option value="M">Male (M)</option>
             </select>
           </label>
+        </div>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
+        <label className="space-y-1 rounded-xl border border-neutral-800 bg-[#0f0f12] p-2.5">
+          <span className="text-[11px] font-semibold text-neutral-300 block">Case label (optional)</span>
+          <input
+            type="text" maxLength={40} value={label} disabled={phase!=="idle"} placeholder="e.g. Case A - TCGA 289"
+            onChange={(e)=>setLabel(e.target.value)}
+            className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-1.5 text-xs text-white placeholder-neutral-500 font-mono focus:border-cyan-500 focus:outline-none"
+          />
+          <span className={`block text-[10px] ${labelOk ? "text-neutral-500" : "text-rose-300"}`}>
+            {labelOk ? "Not a real name. Letters, numbers, spaces and . _ # ( ) -" : "Only letters, numbers, spaces and . _ # ( ) - (max 40)"}
+          </span>
+        </label>
+        <div className="space-y-1.5 rounded-xl border border-neutral-800 bg-[#0f0f12] p-2.5">
+          <span className="text-[11px] font-semibold text-neutral-300 block">
+            Lab results to compare (optional, not used by the model)
+          </span>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <label className="space-y-1">
+            <span className="text-[11px] text-neutral-400 block">IDH</span>
+            <select value={lab.lab_idh ?? ""} disabled={phase!=="idle"}
+              onChange={(e)=>setLab((prev)=>({ ...prev, lab_idh: e.target.value }))}
+              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-xs text-white font-mono focus:border-cyan-500 focus:outline-none">
+              <option value="">Unknown</option>
+              <option value="mutant">Mutant</option>
+              <option value="wildtype">Wildtype</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="text-[11px] text-neutral-400 block">1p/19q</span>
+            <select value={lab.lab_1p19q ?? ""} disabled={phase!=="idle"}
+              onChange={(e)=>setLab((prev)=>({ ...prev, lab_1p19q: e.target.value }))}
+              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-xs text-white font-mono focus:border-cyan-500 focus:outline-none">
+              <option value="">Unknown</option>
+              <option value="codeleted">Codeleted</option>
+              <option value="intact">Intact</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="text-[11px] text-neutral-400 block">MGMT</span>
+            <select value={lab.lab_mgmt ?? ""} disabled={phase!=="idle"}
+              onChange={(e)=>setLab((prev)=>({ ...prev, lab_mgmt: e.target.value }))}
+              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-xs text-white font-mono focus:border-cyan-500 focus:outline-none">
+              <option value="">Unknown</option>
+              <option value="methylated">Methylated</option>
+              <option value="unmethylated">Unmethylated</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="text-[11px] text-neutral-400 block">WHO grade</span>
+            <select value={lab.lab_grade ?? ""} disabled={phase!=="idle"}
+              onChange={(e)=>setLab((prev)=>({ ...prev, lab_grade: e.target.value }))}
+              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-1.5 text-xs text-white font-mono focus:border-cyan-500 focus:outline-none">
+              <option value="">Unknown</option>
+              <option value="2">Grade 2</option>
+              <option value="3">Grade 3</option>
+              <option value="4">Grade 4</option>
+            </select>
+          </label>
+          </div>
         </div>
       </div>
 

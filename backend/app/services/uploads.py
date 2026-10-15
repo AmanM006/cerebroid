@@ -59,6 +59,21 @@ def save_files(patient_id: str, files: dict[str, BinaryIO]) -> None:
             raise UploadError("NIFTI_INVALID", f"{name} is empty.")
 
 
+def save_reference(patient_id: str, results: dict[str, object]) -> None:
+    """Stores lab results entered with the upload, for comparison on reveal only."""
+    entered={k: v for k, v in results.items() if v is not None}
+    if entered:
+        (study_dir(patient_id)/"reference.json").write_text(json.dumps(entered), encoding="utf-8")
+
+
+def reference_of(patient_id: str) -> dict:
+    try:
+        data=json.loads((study_dir(patient_id)/"reference.json").read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
 def result_of(patient_id: str) -> dict | None:
     path=study_dir(patient_id)/"result.json"
     try:
