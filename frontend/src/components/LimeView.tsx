@@ -6,9 +6,17 @@ import { MIN_REGION_EFFECT, useExplainFocus } from "./ExplainFocus"
 
 const SHOWN=6
 
-/** Percentage points of probability, signed: "+12.3" means toward the positive class. */
-function points(effect: number) {
-  return `${effect>0 ? "+" : "−"}${Math.abs(effect*100).toFixed(1)}`
+const REGION_SHORT: [RegExp, string][]=[[/enhancing/, "rim"], [/necrotic/, "core"], [/edema/, "swelling"]]
+
+/** Short chart label for an evidence group, e.g. "T1 contrast · edema" -> "Swelling · T1c". */
+function short(label: string): string {
+  const [first="", second]=label.split(" · ")
+  const region=(text: string | undefined)=>REGION_SHORT.find(([re])=>re.test(text ?? ""))?.[1] ?? text ?? ""
+  if (first==="Shape and size") return `Shape · ${region(second)}`
+  if (second) return `${region(second).replace(/^./, (c)=>c.toUpperCase())} · ${first.replace("T1 contrast", "T1c")}`
+  if (label.startsWith("Tumor composition")) return "Composition"
+  if (label.startsWith("Tumor parts")) return "Missing parts"
+  return label
 }
 
 /**
@@ -51,10 +59,6 @@ export function LimeView({
   const labels=MARKER_LABELS[marker]
   const positive=lime.call===labels.positive
   const top=lime.factors.slice(0, SHOWN)
-  const largest=Math.max(0, ...top.map((f)=>Math.abs(f.effect)))
-  // Bars share a fixed scale (a full bar is 10 probability points), so small effects look small.
-  const scale=Math.max(0.10, largest)
-  const other=positive ? labels.negative : labels.positive
   const forCall=(p: number)=>Math.round((positive ? p : 1-p)*100)
   const typicalPct=forCall(Number(lime.typical.value))
   const patientPct=forCall(Number(lime.probability.value))
@@ -83,51 +87,64 @@ export function LimeView({
         </button>
       </div>
 
-      <p className="text-xs text-neutral-200 leading-relaxed font-medium">
-        A typical training patient: <span className="text-white font-bold">{typicalPct}% {lime.call}</span>
-        {" → "}this patient: <span className="text-white font-bold">{patientPct}% {lime.call}</span>.
-        {" "}
-        {largest<0.01
-          ? "Nothing in this scan moves it: the models give almost every patient this answer, so it reflects how common this result is in the training data, not something seen in this tumor. Confirm with tissue."
-          : "The bars show what moves this patient away from typical."}
+      <Waterfall
+        call={lime.call}
+        typical={typicalPct}
+        patient={patientPct}
+        steps={top.slice(0, 4).map((f)=>({ id: f.evidence_id, label: short(f.label), full: f.label,
+          delta: (f.supports_call ? 1 : -1)*Math.abs(f.effect)*100 }))}
+      />
+
+      <p className="text-[11px] text-neutral-500" title={`${lime.method} Local fit R² ${lime.fidelity_r2.toFixed(2)}.`}>
+        LIME · % {lime.call}, from a typical patient to this one · dashed line = call flips
       </p>
+    </div>
+  )
+}
 
-      {largest>=0.01 && (
-        <ul className="space-y-2 pt-1">
-          {top.map((f)=>{
-            const supports=f.supports_call
-            const width=`${Math.max(2, Math.round(Math.abs(f.effect)/scale*100))}%`
-            return (
-              <li key={f.evidence_id} className="space-y-1 rounded-lg border border-neutral-850 bg-[#121214] p-2"
-                title={`${points(f.effect)} probability points toward ${labels.positive}`
-                  +(f.agreement!=null ? `; ${Math.round(f.agreement*100)}% of models agree on the direction` : "")}>
-                <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-neutral-200 font-semibold">{f.label}</span>
-                  <span className={`shrink-0 font-bold ${supports ? "text-emerald-400" : "text-rose-400"}`}>
-                    {Math.abs(f.effect*100).toFixed(1)} pts toward {supports ? lime.call : other}
-                  </span>
-                </div>
-                <div className="h-2 w-full rounded-full bg-neutral-800">
-                  <div className={`h-2 rounded-full ${supports ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"}`} style={{ width }} />
-                </div>
-              </li>
-            )
-          })}
-        </ul>
-      )}
+/** Typical patient -> each factor's push -> this patient, on a 0-100% scale for the call. */
+function Waterfall({ call, typical, patient, steps }: {
+  call: string
+  typical: number
+  patient: number
+  steps: { id: string; label: string; full: string; delta: number }[]
+}) {
+  const shown=steps.filter((s)=>Math.abs(s.delta)>=0.05)
+  const rest=patient-typical-shown.reduce((sum, s)=>sum+s.delta, 0)
+  const rows=[...shown, ...(Math.abs(rest)>=0.5 ? [{ id: "rest", label: "Other", full: "All other inputs", delta: rest }] : [])]
+  let level=typical
+  const clamp=(x: number)=>Math.min(100, Math.max(0, x))
+  return (
+    <div className="relative space-y-1.5">
+      <div className="pointer-events-none absolute bottom-0 top-0 border-l border-dashed border-neutral-600"
+        style={{ left: "calc(7.5rem + (100% - 7.5rem - 3rem) * 0.5)" }} aria-hidden="true" />
+      <Row label="Typical" value={`${typical}%`} from={0} to={typical} tone="bg-neutral-500" title={`Typical patient: ${typical}% ${call}`} />
+      {rows.map((s)=>{
+        const from=level
+        level=level+s.delta
+        return (
+          <Row key={s.id} label={s.label} value={`${s.delta>0 ? "+" : "−"}${Math.abs(s.delta).toFixed(1)}`}
+            from={clamp(from)} to={clamp(level)} tone={s.delta>0 ? "bg-emerald-500" : "bg-rose-500"}
+            title={`${s.full}: ${s.delta>0 ? "+" : "−"}${Math.abs(s.delta).toFixed(1)} points toward ${s.delta>0 ? call : "the other result"}`} />
+        )
+      })}
+      <Row label="This patient" value={`${patient}%`} from={0} to={patient} tone="bg-white" title={`This patient: ${patient}% ${call}`} strong />
+    </div>
+  )
+}
 
-      {largest>=0.01 && (
-        <p className="text-xs text-neutral-200 leading-relaxed font-medium">
-          Together these move it {Math.abs(patientPct-typicalPct)} points
-          {patientPct>=50 && <> · it would take about {patientPct-50} more points toward {other} to change the call</>}.
-        </p>
-      )}
-
-      <p className="text-xs text-neutral-400 font-medium pt-1" title={lime.method}>
-        Local fit R² {lime.fidelity_r2.toFixed(2)} across {lime.n_samples} variations
-        {lime.explanation_agreement != null && <> · {Math.round(Math.max(0, lime.explanation_agreement) * 100)}% model agreement</>}
-        {" "}· compared with a typical training patient · model sensitivity, not cause
-      </p>
+function Row({ label, value, from, to, tone, title, strong=false }: {
+  label: string; value: string; from: number; to: number; tone: string; title: string; strong?: boolean
+}) {
+  const left=Math.min(from, to)
+  const width=Math.max(0.6, Math.abs(to-from))
+  return (
+    <div className="flex items-center gap-2" title={title}>
+      <span className={`w-28 shrink-0 truncate text-[11px] ${strong ? "font-bold text-white" : "text-neutral-400"}`}>{label}</span>
+      <div className="relative h-3 flex-1 rounded-sm bg-neutral-900">
+        <div className={`absolute top-0 h-3 rounded-sm ${tone}`} style={{ left: `${left}%`, width: `${width}%` }} />
+      </div>
+      <span className={`w-10 shrink-0 text-right text-[11px] ${strong ? "font-bold text-white" : "text-neutral-300"}`}>{value}</span>
     </div>
   )
 }
