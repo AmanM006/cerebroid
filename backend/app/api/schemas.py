@@ -141,6 +141,10 @@ class LimeOut(_Response):
     n_samples: int
     fidelity_r2: float
     explanation_agreement: float | None
+    # What the set predicts for a typical training patient (every input group at the cohort median),
+    # and for this patient: LIME's factors explain the difference between the two.
+    typical: ProvenancedValue
+    probability: ProvenancedValue
     factors: list[LimeFactorOut]
     regions: list[LimeRegionOut]
     model_version: str

@@ -51,7 +51,13 @@ export function LimeView({
   const labels=MARKER_LABELS[marker]
   const positive=lime.call===labels.positive
   const top=lime.factors.slice(0, SHOWN)
-  const largest=Math.max(0.01, ...top.map((f)=>Math.abs(f.effect)))
+  const largest=Math.max(0, ...top.map((f)=>Math.abs(f.effect)))
+  // Bars share a fixed scale (a full bar is 10 probability points), so small effects look small.
+  const scale=Math.max(0.10, largest)
+  const other=positive ? labels.negative : labels.positive
+  const forCall=(p: number)=>Math.round((positive ? p : 1-p)*100)
+  const typicalPct=forCall(Number(lime.typical.value))
+  const patientPct=forCall(Number(lime.probability.value))
   const regionEffects=Object.fromEntries(
     lime.regions.map((r)=>[r.region, positive ? r.effect : -r.effect]),
   ) as Record<TumorRegion, number>
@@ -77,23 +83,28 @@ export function LimeView({
         </button>
       </div>
 
-      {top.length===0 || largest<=0.01 ? (
-        <p className="text-[10.5px] text-[#c9c5d8]">
-          A very confident call: no single group of inputs moves it by more than one percentage point.
-        </p>
-      ) : (
+      <p className="text-[10.5px] text-[#c9c5d8]">
+        A typical training patient: <span className="text-white">{typicalPct}% {lime.call}</span>
+        {" → "}this patient: <span className="text-white">{patientPct}% {lime.call}</span>.
+        {" "}
+        {largest<0.01
+          ? "No group of this patient's inputs moves it by even one point: the call mostly reflects what is typical in the training data, not this tumor."
+          : "The bars show what moves this patient away from typical."}
+      </p>
+
+      {largest>=0.01 && (
         <ul className="space-y-1">
           {top.map((f)=>{
             const supports=f.supports_call
-            const width=`${Math.max(4, Math.round(Math.abs(f.effect)/largest*100))}%`
+            const width=`${Math.max(2, Math.round(Math.abs(f.effect)/scale*100))}%`
             return (
               <li key={f.evidence_id} className="space-y-0.5"
                 title={`${points(f.effect)} probability points toward ${labels.positive}`
                   +(f.agreement!=null ? `; ${Math.round(f.agreement*100)}% of models agree on the direction` : "")}>
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-[#c9c5d8]">{f.label}</span>
-                  <span className={supports ? "text-emerald-300" : "text-rose-300"}>
-                    {supports ? "supports" : "against"} {lime.call}
+                  <span className={`shrink-0 ${supports ? "text-emerald-300" : "text-rose-300"}`}>
+                    {Math.abs(f.effect*100).toFixed(1)} pts toward {supports ? lime.call : other}
                   </span>
                 </div>
                 <div className="h-1.5 w-full rounded bg-[#1b1826]">

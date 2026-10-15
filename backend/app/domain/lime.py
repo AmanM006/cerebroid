@@ -51,6 +51,7 @@ class LimeResult:
     fidelity_r2: float
     explanation_agreement: float | None
     n_samples: int
+    typical_probability: float  # median P(positive) across models with every group at the cohort median
 
 
 def region_of(group: str) -> Region | None:
@@ -92,13 +93,16 @@ def explain_lime(predictor, features: FeatureVector) -> LimeResult:
         off=patterns[:, g]==0
         rows[np.ix_(off, idx)]=medians[columns].to_numpy(dtype=float)
     frame=pd.DataFrame(rows, columns=meta.feature_columns)
+    typical=pd.DataFrame([medians[meta.feature_columns].to_numpy(dtype=float)], columns=meta.feature_columns)
 
     coefficients=[]
+    typical_probabilities=[]
     fidelities=[]
     for model in predictor.models:
         p=np.asarray(model.predict_proba(frame)[:, 1], dtype=float)
         if not np.all(np.isfinite(p)):
             raise ValueError(f"{meta.marker.value} model returned a non-finite probability in LIME")
+        typical_probabilities.append(float(model.predict_proba(typical)[0, 1]))
         surrogate=Ridge(alpha=1.0).fit(patterns, p, sample_weight=weights)
         coefficients.append(surrogate.coef_)
         fidelities.append(surrogate.score(patterns, p, sample_weight=weights) if np.ptp(p)>0 else 1.0)
@@ -125,4 +129,5 @@ def explain_lime(predictor, features: FeatureVector) -> LimeResult:
         fidelity_r2=float(np.median(fidelities)),
         explanation_agreement=_rank_agreement(np.abs(matrix)),
         n_samples=N_SAMPLES,
+        typical_probability=float(np.median(typical_probabilities)),
     )

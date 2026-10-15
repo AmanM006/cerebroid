@@ -393,6 +393,12 @@ def get_lime(
         fidelity_r2=round(result.fidelity_r2, 4),
         explanation_agreement=None if result.explanation_agreement is None
         else round(result.explanation_agreement, 4),
+        typical=ProvenancedValue(
+            value=round(result.typical_probability, 4), provenance=Provenance.REFERENCE_COHORT,
+        ),
+        probability=ProvenancedValue(
+            value=round(prediction.prob_median, 4), provenance=Provenance.MODEL_INFERRED,
+        ),
         factors=[
             LimeFactorOut(
                 evidence_id=f"{prefix}:{f.group}", group=f.group, label=f.label, region=f.region,

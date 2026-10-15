@@ -497,6 +497,7 @@ def test_lime_explains_the_call_with_provenance_and_region_map(client, make_user
     for item in body["factors"]+body["regions"]:
         assert item["provenance"]=="model_inferred" and item["evidence_id"].startswith("IDH:")
     assert body["reference"]["provenance"]=="reference_cohort"
+    assert body["typical"]["provenance"]=="reference_cohort" and 0<=body["typical"]["value"]<=1
 
 
 def test_lime_requires_access_to_the_study(client, make_user, deployed):

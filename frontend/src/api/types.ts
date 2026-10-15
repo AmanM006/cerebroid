@@ -255,6 +255,10 @@ export interface Lime {
   /** Weighted R² of the local linear surrogate: how faithfully it mimics the models here. */
   fidelity_r2: number
   explanation_agreement: number | null
+  /** P(positive) for a typical training patient (every input group at the cohort median). */
+  typical: ProvenancedValue
+  /** P(positive) for this patient; the factors explain the gap from the typical patient. */
+  probability: ProvenancedValue
   factors: {
     evidence_id: string; group: string; label: string; region: TumorRegion | null
     /** Median change in P(positive) across the set: + toward the positive class. */
