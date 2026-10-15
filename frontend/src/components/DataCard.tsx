@@ -51,7 +51,7 @@ function GroupTable({ title, data, group }: { title: string; data: ModelCard["su
   )
 }
 
-/** Who the models were trained on, and how they perform per group, including by race on an external cohort. */
+/** Who the models were trained on, and how they perform per group, at the training hospital and at other hospitals. */
 export function DataCard() {
   const [card, setCard]=useState<ModelCard | null>(null)
   const [error, setError]=useState<unknown>(null)
@@ -73,7 +73,6 @@ export function DataCard() {
           {pop.patients} patients · {pop.site} · {pop.male} male / {pop.female} female · median age {pop.age_median}
           {" "}({pop.age_range?.[0]}–{pop.age_range?.[1]}) · {Math.round((pop.grade_4_share ?? 0)*100)}% grade 4
         </p>
-        <p className="text-[11px] text-amber-200/90">Race: {pop.race}.</p>
       </div>
 
       {card.subgroups && (
@@ -88,7 +87,7 @@ export function DataCard() {
 
       <div className="space-y-2">
         <p className="text-[10px] uppercase tracking-wider text-neutral-500">
-          Held-out TCGA patients (other hospitals), by race
+          Held-out TCGA patients (other hospitals)
         </p>
         {external ? (
           <>
@@ -98,7 +97,8 @@ export function DataCard() {
             <p className="text-[11px] text-neutral-300">
               All patients: {MARKERS.map((m, i)=><span key={m}>{i>0 && " · "}{NAMES[m]} {cell(overall(external, m))}</span>)}
             </p>
-            <GroupTable title="Race" data={external} group="race" />
+            <GroupTable title="Sex" data={external} group="sex" />
+            <GroupTable title="Age" data={external} group="age_band" />
             <p className="text-[11px] text-neutral-500">
               Accuracy counts calls at the model's cut-off; AUC measures how well patients are ranked (0.5 = chance,
               1 = perfect). Groups under {MIN_GROUP} patients are too small to compare.
