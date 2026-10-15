@@ -158,30 +158,6 @@ export interface NextMeasurements {
   request_id: string | null
 }
 
-export interface Claim {
-  /** A few words for the card; text is the full templated sentence. */
-  short: string
-  text: string
-  evidence_ids: string[]
-  provenance: Provenance
-}
-
-export interface Falsification {
-  study_id: string
-  marker: MarkerName
-  variant: string
-  call: string
-  verdict: Verdict
-  supporting: Claim[]
-  contradicting: Claim[]
-  competing: Claim
-  overturn: Claim[]
-  confirmatory_test: string
-  model_version: string
-  request_id: string | null
-  latency_ms: number
-}
-
 export type DoubtLevel="low" | "medium" | "high" | "unknown"
 
 export interface DoubtComponent {

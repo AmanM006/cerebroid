@@ -2,7 +2,6 @@ import { useState } from "react"
 import { MARKER_LABELS, type MarkerName, type MarkerProfile, type ProvenancedValue } from "../api/types"
 import { DoubtView } from "./DoubtView"
 import { EvidenceView } from "./EvidenceView"
-import { FalsificationView } from "./FalsificationView"
 import { ProbabilityRange } from "./ProbabilityRange"
 import { ProvenanceBadge } from "./ProvenanceBadge"
 import { VerdictBadge } from "./VerdictBadge"
@@ -23,7 +22,6 @@ function verdictMeaning(marker: MarkerProfile): string {
 const TABS = [
   { id: "why", label: "Why" },
   { id: "doubt", label: "Uncertainty" },
-  { id: "case", label: "For & against" },
 ] as const
 type Tab = (typeof TABS)[number]["id"]
 
@@ -139,7 +137,6 @@ export function MarkerCard({
                   </div>
                   {tab === "why" && <EvidenceView studyId={studyId} marker={marker.marker} known={known} />}
                   {tab === "doubt" && <DoubtView studyId={studyId} marker={marker.marker} known={known} />}
-                  {tab === "case" && <FalsificationView studyId={studyId} marker={marker.marker} known={known} />}
                 </>
               )}
             </div>
