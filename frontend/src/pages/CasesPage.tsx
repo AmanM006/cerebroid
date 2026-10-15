@@ -40,10 +40,30 @@ export function CasesPage() {
   const processingCount = cases?.items.filter(c => c.status === "processing").length ?? 0
   const readyCount = cases?.items.filter(c => c.status === "ready").length ?? 0
 
+  // Demo cases are shared by every account, so they are hidden per browser instead of deleted.
+  const [hidden, setHidden] = useState<string[]>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("cerebroid_hidden_cases") ?? "[]")
+      return Array.isArray(saved) ? saved.filter((x): x is string => typeof x === "string") : []
+    } catch {
+      return []
+    }
+  })
+  const [showHidden, setShowHidden] = useState(false)
+  const saveHidden = (ids: string[]) => {
+    setHidden(ids)
+    try {
+      localStorage.setItem("cerebroid_hidden_cases", JSON.stringify(ids))
+    } catch {
+      // Not remembered across visits; still hidden now.
+    }
+  }
+  const hiddenCount = cases?.items.filter((c) => hidden.includes(c.id)).length ?? 0
+
   const filteredItems = cases?.items.filter((c) => {
     const matchesSearch = c.label.toLowerCase().includes(search.toLowerCase())
     const matchesFilter = filterStatus === "ALL" || c.status.toUpperCase() === filterStatus
-    return matchesSearch && matchesFilter
+    return matchesSearch && matchesFilter && (showHidden || !hidden.includes(c.id))
   }) ?? []
 
   return (
@@ -167,6 +187,14 @@ export function CasesPage() {
                 <span className="text-neutral-400">Active Cases:</span>
                 <span className="font-bold text-white">{filteredItems.length}</span>
               </div>
+              {hiddenCount > 0 && (
+                <button
+                  onClick={() => setShowHidden((v) => !v)}
+                  className="rounded-xl border border-neutral-800 bg-[#101010] px-3.5 py-1.5 text-neutral-400 hover:text-white cursor-pointer"
+                >
+                  {showHidden ? "Hide removed" : `Show removed (${hiddenCount})`}
+                </button>
+              )}
             </div>
           </div>
 
@@ -281,6 +309,27 @@ export function CasesPage() {
                           >
                             {deleting === c.id ? "Deleting…" : "Delete"}
                           </button>
+                        )}
+                        {c.kind === "demo" && (
+                          hidden.includes(c.id) ? (
+                            <button
+                              type="button"
+                              onClick={() => saveHidden(hidden.filter((x) => x !== c.id))}
+                              className="ml-2 inline-flex items-center rounded-xl border border-neutral-700 bg-[#141414] px-3 py-1.5 text-[11px] font-semibold text-neutral-300 hover:text-white cursor-pointer"
+                            >
+                              Restore
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => saveHidden([...hidden, c.id])}
+                              title="Remove from your list (demo cases are shared, so they are hidden, not deleted)"
+                              aria-label={`Remove ${c.label} from your list`}
+                              className="ml-2 inline-flex items-center rounded-xl border border-rose-900/60 bg-rose-950/30 px-3 py-1.5 text-[11px] font-semibold text-rose-300 transition-all hover:border-rose-500/60 hover:text-rose-200 cursor-pointer"
+                            >
+                              Remove
+                            </button>
+                          )
                         )}
                       </td>
                     </tr>
