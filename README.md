@@ -109,10 +109,10 @@ The three held-out demo patients (UCSF-PDGM-0232, 0327, 0243) are registered aut
   start-up the demo cases' profiles are precomputed in the background, so first views are fast.
 - **Cold start:** the free tier sleeps after 15 idle minutes; the first request then takes about a minute.
   GitHub Actions workflows are manual-only (the organizers pay for runner minutes), so there is no scheduled ping.
-- **Docker Compose:** `docker compose up --build`, app on `http://localhost:8080` (set `WEB_PORT` to change it),
-  API also reachable directly on `http://localhost:8000`.
-- **Interactive API docs:** `http://localhost:8000/docs` (development). The public deployment serves the
-  machine-readable `/openapi.json` only: the interactive pages need third-party scripts our CSP does not allow.
+- **Docker Compose:** `docker compose up --build`, app and API on `http://localhost:8080` (set `WEB_PORT` to change
+  it). The API container is not published on its own port: every request goes through nginx.
+- **API description:** `http://localhost:8080/openapi.json` (OpenAPI 3). There are no interactive docs pages: they
+  need third-party scripts our CSP does not allow.
 
 ### Test account
 A synthetic, non-admin clinician account for evaluators. It sees the public demo cases and its own uploads only.
@@ -156,9 +156,9 @@ These accounts are created automatically at start-up on every stack, local or de
 
 Example with curl:
 ```bash
-curl -c cookies.txt -X POST http://localhost:8000/api/v1/auth/login -H "Content-Type: application/json" -d '{"username":"<name>","password":"<password>"}'
-curl http://localhost:8000/api/v1/cases -H "Authorization: Bearer <access_token>"
-curl -b cookies.txt -c cookies.txt -X POST http://localhost:8000/api/v1/auth/refresh
+curl -c cookies.txt -X POST http://localhost:8080/api/v1/auth/login -H "Content-Type: application/json" -d '{"username":"<name>","password":"<password>"}'
+curl http://localhost:8080/api/v1/cases -H "Authorization: Bearer <access_token>"
+curl -b cookies.txt -c cookies.txt -X POST http://localhost:8080/api/v1/auth/refresh
 ```
 
 ### Auth design

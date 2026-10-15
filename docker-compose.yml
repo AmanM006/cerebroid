@@ -3,8 +3,10 @@ services:
     build:
       context: .
       dockerfile: backend/Dockerfile
-    ports:
-      - "8000:8000"
+    # Not published to the host: nginx (web) is the only way in, so the client address it appends to
+    # X-Forwarded-For can be trusted. A published API port would let any client forge that header.
+    expose:
+      - "8000"
     environment:
       APP_ENV: ${APP_ENV:-development}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
