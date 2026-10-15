@@ -10,7 +10,7 @@
  *   request_id, so a user can report the exact request that failed.
  */
 import type {
-  Case, CaseList, Doubt, ErrorBody, Evidence, ModelCard, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes, MetricsSummary, Lime } from "./types"
+  Case, CaseList, Doubt, ErrorBody, Evidence, ModelCard, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes, MetricsSummary, Lime, UploadStatus } from "./types"
 
 export class ApiError extends Error {
   readonly status: number
@@ -169,6 +169,17 @@ export const api={
     const params=new URLSearchParams({ marker })
     for (const [m, value] of Object.entries(known)) params.append("known", `${m}:${value}`)
     return getJson<Lime>(`/api/v1/studies/${encodeURIComponent(id)}/lime?${params}`)
+  },
+
+  /** Uploads four MRI sequences and a tumor mask; processing continues in the background. */
+  async uploadStudy(form: FormData): Promise<UploadStatus> {
+    return (await send("/api/v1/studies", { method: "POST", body: form }, true)).json() as Promise<UploadStatus>
+  },
+
+  uploadStatus: (id: string)=>getJson<UploadStatus>(`/api/v1/studies/${encodeURIComponent(id)}/status`),
+
+  async deleteUpload(id: string): Promise<void> {
+    await send(`/api/v1/studies/${encodeURIComponent(id)}`, { method: "DELETE" }, true)
   },
 
   /** Public held-out headline numbers for the landing page (no sign-in needed). */

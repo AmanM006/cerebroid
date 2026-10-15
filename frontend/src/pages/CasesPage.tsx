@@ -4,6 +4,7 @@ import { api } from "../api/client"
 import type { CaseList } from "../api/types"
 import { AppShell } from "../components/AppShell"
 import { DataCard } from "../components/DataCard"
+import { UploadStudy } from "../components/UploadStudy"
 import { ErrorNotice } from "../components/ErrorNotice"
 import { ProvenanceBadge } from "../components/ProvenanceBadge"
 
@@ -11,6 +12,10 @@ export function CasesPage() {
   const [cases, setCases] = useState<CaseList | null>(null)
   const [error, setError] = useState<unknown>(null)
   const [showData, setShowData] = useState(false)
+  const [showUpload, setShowUpload] = useState(false)
+  const reload = () => {
+    api.listCases().then(setCases).catch(setError)
+  }
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("ALL")
 
@@ -109,6 +114,13 @@ export function CasesPage() {
 
             <div className="flex items-center gap-3 font-mono text-xs">
               <button
+                onClick={() => setShowUpload((v) => !v)}
+                aria-expanded={showUpload}
+                className="rounded-xl border border-white bg-white px-3.5 py-1.5 font-bold text-black hover:bg-neutral-200 cursor-pointer"
+              >
+                {showUpload ? "Close upload" : "Upload MRI"}
+              </button>
+              <button
                 onClick={() => setShowData((v) => !v)}
                 aria-expanded={showData}
                 className="rounded-xl border border-neutral-800 bg-[#101010] px-3.5 py-1.5 text-neutral-300 hover:text-white cursor-pointer"
@@ -122,6 +134,7 @@ export function CasesPage() {
             </div>
           </div>
 
+          {showUpload && <UploadStudy onDone={reload} />}
           {showData && <DataCard />}
 
           {/* Quick Filter Search Bar */}

@@ -83,6 +83,16 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | T | A model emitting NaN/out-of-range probabilities shown as a result | Every probability checked to be finite and within [0, 1]; otherwise an error, never a value | `test_model_returning_nan_at_prediction_time_raises` |
 | E | API process modifying its own code or models at runtime | Files in the image are root-owned and read-only to the non-root `vbx` user | manual check in container |
 
+### `POST /api/v1/studies` (upload), `GET .../status`, `DELETE /api/v1/studies/{id}`
+| | Threat | Mitigation | Test |
+|---|---|---|---|
+| T | Malicious NIfTI crashing or exploiting the parser | Header checked by our own code before any image library reads it (magic, 3D, dimensions, data type, spacing, file length); parsing runs in a separate worker process with a CPU limit and a timeout | `test_bad_uploads_fail_with_a_clear_error` |
+| D | Gzip bomb / huge uploads | 40 MB per file while copying, 160 MB decompressed (stream-decompressed with a hard cap), 150 MB request, one upload processed at a time, 10 per hour and 10 stored per user | `test_gzip_bomb_is_stopped_while_decompressing` |
+| T | Path traversal through file names | Client file names are never used: files are stored under server-generated names in a server-generated directory | `test_upload_is_processed_and_analysed_like_a_demo_case` |
+| I | Faces in head MRI; identifying header text | Skull-stripping heuristic rejects non-stripped volumes; saved volumes are rebuilt from voxels and geometry only, raw files deleted after processing | `test_bad_uploads_fail_with_a_clear_error` |
+| E | Reading or deleting another user's upload | Shared ownership check (`get_accessible_study`); delete requires owner and upload kind | `test_upload_is_processed_and_analysed_like_a_demo_case` |
+| E | Reviewer or anonymous upload | Clinician role required | `test_upload_rules` |
+
 ### Global (all routes)
 - **Request size (D):** bodies over 1 MB get `413 PAYLOAD_TOO_LARGE` before parsing, declared or chunked (`test_oversized_body_is_rejected_before_parsing`, `test_chunked_oversized_body_is_rejected`).
 - **Resource consumption (D):** studies routes are limited per user and client IP; at most 2 heavy computations run at once, others get `503 SERVER_BUSY` (`test_analysis_requests_are_limited_per_user_and_ip`, `test_heavy_computation_returns_busy_when_all_slots_are_taken`).

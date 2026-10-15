@@ -5,6 +5,7 @@ because settings and the engine are cached on first use.
 """
 import os
 import secrets
+import tempfile
 from pathlib import Path
 
 from sqlalchemy.engine import make_url
@@ -15,6 +16,7 @@ os.environ["DATABASE_URL"]=TEST_DB_URL.render_as_string(hide_password=False)
 os.environ["JWT_SECRET_KEY"]=secrets.token_urlsafe(48)
 os.environ["APP_ENV"]="test"
 os.environ["WARMUP_PROFILES"]="false"
+os.environ["UPLOAD_DIR"]=tempfile.mkdtemp(prefix="cerebroid-test-uploads-")
 os.environ["LOGIN_RATE_LIMIT"]="100000"  # tests log in constantly; the limits have their own tests
 os.environ["ANALYSIS_RATE_LIMIT"]="100000"
 

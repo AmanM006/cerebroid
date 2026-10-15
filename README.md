@@ -147,6 +147,9 @@ docker compose exec api python -m app.cli create-user --username evaluator --rol
 | `GET /api/v1/studies/{id}/tipping?marker=IDH` | Bearer | For each clinician-verifiable input (age, tumor volume, enhancing and necrotic share, edema-to-core ratio): the nearest plausible value that flips the majority call, and the call across the whole plausible range. Model sensitivity, not cause. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/falsification?marker=IDH` | Bearer | The case for and against the call (strongest input groups each way), the competing call with its model votes, what change to a verifiable input would overturn it, and the lab test that settles it. Every sentence is a fixed template over computed results and lists its evidence IDs. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/next-measurements` | Bearer | Decision-support heuristic: the WHO CNS5 adult diffuse-glioma categories still consistent with the settled markers (lab results, or Stable calls with real signal) and the lab tests ranked by how far they would narrow them. MGMT is listed as treatment-relevant only. Also returns, for each possible type, the guideline treatment pathway (EANO 2021 guideline; FDA 2024 vorasidenib label) with how MGMT and grade change it, labelled as a summary for tumor-board discussion, not a recommendation. Accepts `known=`. |
+| `POST /api/v1/studies` | Bearer (clinician) | Upload a new study: multipart form with `age` (18-100), `sex` (`M`/`F`) and five NIfTI files `t1`, `t1c`, `t2`, `flair`, `seg` (skull-stripped, co-registered, one voxel grid; `.nii` or `.nii.gz`, 40 MB each; mask labels 1 necrotic core, 2 edema, 4 enhancing). Returns 202; processing runs in an isolated worker process, one upload at a time. The study then works with every analysis route. |
+| `GET /api/v1/studies/{id}/status` | Bearer | Processing state of an upload (`processing`, `ready`, `failed` with `error_code`). |
+| `DELETE /api/v1/studies/{id}` | Bearer (owner) | Delete one of your own uploads (files and record). |
 | `GET /api/v1/studies/{id}/lime?marker=` | Bearer | Explainable AI: LIME (Ribeiro et al., 2016) local explanation of one marker's call. Each evidence group (sequence × tumor region, shape, composition, age, sex) is switched between the patient's values and the cohort median in 400 random patterns; a weighted linear model per set member gives each group's effect, plus the surrogate's local fit (R²), model agreement, and a per-region map (enhancing / necrotic / edema) that the viewer paints onto the tumor. |
 | `GET /api/v1/metrics/summary` | none | Public headline numbers for the landing page: held-out AUC per deployed model set (only for the exact deployed model files) and the number of demo cases. |
 | `GET /api/v1/model-card` | Bearer | Intended use, data source and cohort counts, limitations, and per deployed model set: size, families, CV loss, skill, verdict thresholds, library versions and held-out test metrics (AUC with 95% CI, error rate per verdict). Metrics are shown only for the exact model file they were computed on. |
@@ -276,7 +279,14 @@ pip-audit -r requirements.txt
   lock that account for 15 minutes. The synthetic test accounts (`evaluator`, `reviewer`, `doctor`) are exempt from
   lockout: their passwords are published here, so locking them would only let anyone lock evaluators out. The
   IP limit is in memory, so it resets when the server restarts.
-- Request bodies over 1 MB are rejected with `413 PAYLOAD_TOO_LARGE` before parsing.
+- Request bodies over 1 MB are rejected with `413 PAYLOAD_TOO_LARGE` before parsing (uploads: 150 MB, streamed to disk).
+- **Uploads.** A tumor mask is required (there is no automatic segmentation). Volumes must be skull-stripped and
+  co-registered; the skull-stripping check is a heuristic (the volume's outer border must be background), so a tightly
+  cropped head scan could pass and a stripped brain touching the edge could be rejected. Uploads are kept on the
+  server's temporary disk and deleted after 24 hours; on the free host they are also lost on every redeploy. Uploads
+  are visible to the account that made them; the shared test accounts therefore see each other's uploads, so do not
+  upload anything identifiable. Features of uploads are extracted with the training code (mode `v1`); for scanners
+  unlike the training sites the out-of-distribution flag will usually be raised.
 - Analysis routes (`/api/v1/studies/*`) allow 300 requests per minute per user and client IP (`429 RATE_LIMITED`).
   At most 2 heavy computations (uncached profiles, tipping sweeps) run at once; others wait up to 20 s, then get
   `503 SERVER_BUSY` with `Retry-After`. Repeat views are served from a cache and never wait.
@@ -321,6 +331,15 @@ Every error response has the shape `{error_code, message, request_id}`.
 | `FORBIDDEN` | Authenticated but the role is not allowed |
 | `RATE_LIMITED` | Too many sign-in attempts or analysis requests from this client; retry after `Retry-After` seconds |
 | `PAYLOAD_TOO_LARGE` | Request body over 1 MB |
+| `UPLOAD_TOO_LARGE` | An uploaded file is over 40 MB, or over 160 MB once decompressed |
+| `NIFTI_INVALID` | A file is not a valid 3D NIfTI-1 volume (wrong format, dimensions, data type, spacing, truncated) |
+| `NIFTI_SHAPE_MISMATCH` | A sequence is not on the tumor mask's voxel grid |
+| `MASK_INVALID` | The mask has labels other than 0/1/2/4, or fewer than 100 tumor voxels |
+| `NOT_SKULL_STRIPPED` | A volume's outer border is not background: upload brain-extracted volumes only |
+| `MISSING_SEQUENCE` | One of the five files is missing |
+| `EXTRACTION_FAILED` / `EXTRACTION_TIMEOUT` | Processing failed or took longer than 4 minutes |
+| `UPLOAD_LIMIT` | 10 uploads are already kept for this account |
+| `LENGTH_REQUIRED` | An upload without a declared size |
 | `SERVER_BUSY` | All heavy-computation slots are in use; retry after `Retry-After` seconds |
 | `NOT_FOUND` | Resource doesn't exist or isn't visible to this user |
 | `INVALID_KNOWN_MARKER` | A `known` value isn't `<IDH\|1p19q\|MGMT\|GRADE>:<0\|1>`, or repeats a marker |

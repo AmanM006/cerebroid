@@ -272,3 +272,11 @@ export interface Lime {
   }[]
   model_version: string
 }
+
+/** Processing state of an uploaded study (backend app/api/uploads.py). */
+export interface UploadStatus {
+  study_id: string
+  status: "pending" | "processing" | "ready" | "failed"
+  error_code: string | null
+  message: string | null
+}

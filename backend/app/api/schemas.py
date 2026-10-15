@@ -52,6 +52,14 @@ class CaseOut(_Response):
     created_at: datetime
 
 
+class UploadStatusOut(_Response):
+    study_id: uuid.UUID
+    status: StudyStatus
+    error_code: str | None
+    message: str | None
+    request_id: str | None
+
+
 class KnownMarkerIn(_Response):
     marker: Marker
     value: ProvenancedValue

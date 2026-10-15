@@ -88,7 +88,7 @@ export function LimeView({
         {" → "}this patient: <span className="text-white">{patientPct}% {lime.call}</span>.
         {" "}
         {largest<0.01
-          ? "No group of this patient's inputs moves it by even one point: the call mostly reflects what is typical in the training data, not this tumor."
+          ? "Nothing in this scan moves it: the models give almost every patient this answer, so it reflects how common this result is in the training data, not something seen in this tumor. Confirm with tissue."
           : "The bars show what moves this patient away from typical."}
       </p>
 
@@ -114,6 +114,13 @@ export function LimeView({
             )
           })}
         </ul>
+      )}
+
+      {largest>=0.01 && (
+        <p className="text-[10.5px] text-[#c9c5d8]">
+          Together these move it {Math.abs(patientPct-typicalPct)} points
+          {patientPct>=50 && <> · it would take about {patientPct-50} more points toward {other} to change the call</>}.
+        </p>
       )}
 
       <p className="text-[9.5px] text-[#615c75]" title={lime.method}>

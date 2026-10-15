@@ -33,7 +33,7 @@ def client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def _hit(bucket: str, key: str, limit: int, window_s: int, message: str) -> None:
+def hit(bucket: str, key: str, limit: int, window_s: int, message: str) -> None:
     now=time.monotonic()
     with _lock:
         window=_attempts.setdefault((bucket, key), deque())
@@ -53,14 +53,14 @@ def _hit(bucket: str, key: str, limit: int, window_s: int, message: str) -> None
 def limit_login(request: Request) -> None:
     """FastAPI dependency: 429 once a client IP exceeds the allowed login attempts in the window."""
     s=get_settings()
-    _hit("login", client_ip(request), s.login_rate_limit, s.login_rate_window_seconds,
+    hit("login", client_ip(request), s.login_rate_limit, s.login_rate_window_seconds,
          "Too many sign-in attempts. Please wait and try again.")
 
 
 def limit_analysis(request: Request, user: User=Depends(get_current_user)) -> None:
     """FastAPI dependency: 429 once one user from one client IP exceeds the analysis request rate."""
     s=get_settings()
-    _hit("analysis", f"{user.id}|{client_ip(request)}", s.analysis_rate_limit, s.analysis_rate_window_seconds,
+    hit("analysis", f"{user.id}|{client_ip(request)}", s.analysis_rate_limit, s.analysis_rate_window_seconds,
          "Too many requests. Please wait a moment and try again.")
 
 

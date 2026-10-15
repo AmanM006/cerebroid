@@ -4,6 +4,7 @@ A factory function (rather than a module-level `app`) so tests can build a
 fresh app per test if settings ever need overriding, without import-order
 tricks. Model artifacts are loaded once at startup, not per request.
 """
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
@@ -14,7 +15,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import audit, auth, cases, health, model_card, studies
+from app.api import audit, auth, cases, health, model_card, studies, uploads
 from app.core.config import get_settings
 from app.core.errors import not_found, register_exception_handlers
 from app.core.logging import configure_logging
@@ -22,6 +23,7 @@ from app.core.middleware import BodySizeLimitMiddleware, RequestIDMiddleware
 from app.domain.feature_store import load_feature_store
 from app.domain.registry import load_registry
 from app.domain.volume_store import VolumeStore
+from app.services import uploads as uploads_service
 from app.services import warmup
 
 
@@ -30,7 +32,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     settings=get_settings()
     app.state.registry=load_registry(settings.artifacts_root, settings.markers_config_path)
     app.state.feature_store=load_feature_store(settings.feature_table_path)
-    app.state.volume_store=VolumeStore(settings.volumes_root)
+    app.state.volume_store=VolumeStore(settings.volumes_root, settings.uploads_root)
+    try:
+        uploads_service.restore(app.state.feature_store)
+    except Exception as exc:  # noqa: BLE001 - uploads must never stop the API starting
+        logging.getLogger("uploads").warning("upload_restore_failed: %s", type(exc).__name__)
     if settings.warmup_profiles:
         warmup.start(app.state.registry, app.state.feature_store)
     yield
@@ -43,7 +49,10 @@ def create_app() -> FastAPI:
     app=FastAPI(title="Cerebroid API", version="0.1.0", lifespan=lifespan)
 
     # Added first so it runs inside RequestIDMiddleware: a 413 still gets the request ID and headers.
-    app.add_middleware(BodySizeLimitMiddleware, max_body_bytes=settings.max_body_bytes)
+    app.add_middleware(
+        BodySizeLimitMiddleware, max_body_bytes=settings.max_body_bytes,
+        large_routes={("POST", uploads.UPLOAD_PATH): settings.upload_max_body_bytes},
+    )
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(
         CORSMiddleware,
@@ -58,6 +67,7 @@ def create_app() -> FastAPI:
     app.include_router(health.router)
     app.include_router(auth.router)
     app.include_router(cases.router)
+    app.include_router(uploads.router)
     app.include_router(studies.router)
     app.include_router(audit.router)
     app.include_router(model_card.router)

@@ -10,6 +10,7 @@ from enum import StrEnum
 from pathlib import Path
 
 _PATIENT_ID_RE=re.compile(r"^UCSF-PDGM-\d{3,4}$")
+_UPLOAD_ID_RE=re.compile(r"^upload-[0-9a-f]{12}$")
 
 
 class Sequence(StrEnum):
@@ -21,15 +22,26 @@ class Sequence(StrEnum):
 
 
 class VolumeStore:
-    def __init__(self, root: Path):
+    """Demo volumes under root/<patient id>/; uploads under uploads_root/<upload id>/volumes/
+    (written by app/ingest/worker.py from voxel data only)."""
+
+    def __init__(self, root: Path, uploads_root: Path | None=None):
         self.root=root.resolve()
+        self.uploads_root=uploads_root.resolve() if uploads_root else None
 
     def path_for(self, patient_id: str | None, sequence: Sequence) -> Path | None:
         """The volume file, or None when this patient has no such volume."""
-        if patient_id is None or not _PATIENT_ID_RE.match(patient_id):
+        if patient_id is None:
             return None
-        path=(self.root/patient_id/f"{sequence.value}.nii.gz").resolve()
-        if not path.is_relative_to(self.root) or not path.is_file():
+        if _PATIENT_ID_RE.match(patient_id):
+            base=self.root
+            path=(base/patient_id/f"{sequence.value}.nii.gz").resolve()
+        elif _UPLOAD_ID_RE.match(patient_id) and self.uploads_root is not None:
+            base=self.uploads_root
+            path=(base/patient_id/"volumes"/f"{sequence.value}.nii.gz").resolve()
+        else:
+            return None
+        if not path.is_relative_to(base) or not path.is_file():
             return None
         return path
 

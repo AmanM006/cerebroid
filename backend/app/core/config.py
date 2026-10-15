@@ -3,6 +3,7 @@
 Kept as a single pydantic-settings object so every module reads config the
 same way instead of calling os.environ directly all over the codebase.
 """
+import tempfile
 from functools import lru_cache
 from pathlib import Path
 
@@ -31,6 +32,14 @@ class Settings(BaseSettings):
     # waits for a free slot before getting 503 SERVER_BUSY.
     heavy_concurrency: int=2
     heavy_wait_seconds: float=20.0
+    # MRI uploads: where they are processed and kept, size, rate and retention limits.
+    upload_dir: str=""
+    upload_max_body_bytes: int=150_000_000
+    upload_rate_limit: int=10
+    upload_rate_window_seconds: int=3600
+    upload_max_per_user: int=10
+    upload_ttl_hours: int=24
+    upload_timeout_seconds: int=240
     cors_origins: str="http://localhost:5173"
 
     database_url: str="postgresql+psycopg://vbx:vbx@localhost:5432/vbx"
@@ -82,6 +91,11 @@ class Settings(BaseSettings):
     @property
     def volumes_root(self) -> Path:
         return self.artifacts_root/"volumes"
+
+    @property
+    def uploads_root(self) -> Path:
+        """Uploaded studies live here (temporary; purged after upload_ttl_hours)."""
+        return Path(self.upload_dir) if self.upload_dir else Path(tempfile.gettempdir())/"cerebroid-uploads"
 
     @property
     def markers_config_path(self) -> Path:
