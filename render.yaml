@@ -3,7 +3,7 @@
 # Render asks for the values marked sync: false (the README lists the test account passwords).
 services:
   - type: web
-    name: vbx
+    name: cerebroid-app
     runtime: docker
     plan: free
     dockerfilePath: ./ops/render/Dockerfile
@@ -30,7 +30,7 @@ services:
       - key: VBX_EVALUATOR_PASSWORD
         value: vbx-eval-fcd664d1
       - key: VBX_REVIEWER_PASSWORD
-        value: vbx-review-9e1208a4
+        value: vbx-review-718d0a59
 
 databases:
   - name: vbx-db
