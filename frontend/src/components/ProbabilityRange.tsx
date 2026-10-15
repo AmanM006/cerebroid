@@ -24,18 +24,26 @@ export function ProbabilityRange({ min, median, max, positiveLabel, negativeLabe
         <span className="ml-1.5 text-xs text-neutral-400 font-medium">(models range {pct(low)}–{pct(high)})</span>
       </p>
       <div
-        className="relative h-2.5 rounded-full bg-[#181624] border border-[#262335]"
+        className="relative h-3 rounded-full bg-neutral-800/80 border border-neutral-600 shadow-inner overflow-hidden"
         role="img"
         aria-label={`Probability ${positiveLabel}: ${pct(min)} to ${pct(max)}, median ${pct(median)}`}
       >
-        <div className="absolute inset-y-0 w-px bg-[#3b364e]" style={{ left: "50%" }} />
+        {/* Subtle center line at 50% decision boundary */}
+        <div className="absolute inset-y-0 w-0.5 bg-neutral-500 z-10" style={{ left: "50%" }} />
+        
+        {/* Uncertainty Spread across models */}
         <div
-          className="absolute inset-y-0 rounded-full bg-slate-400/50"
-          style={{ left: `${min * 100}%`, width: `${Math.max((max - min) * 100, 1.5)}%` }}
+          className="absolute inset-y-0 rounded-full bg-gradient-to-r from-cyan-600/70 via-cyan-400/80 to-cyan-500/70 border border-cyan-300/40 shadow-[0_0_8px_rgba(6,182,212,0.4)]"
+          style={{ left: `${min * 100}%`, width: `${Math.max((max - min) * 100, 2)}%` }}
         />
-        <div className="absolute -inset-y-0.5 w-1 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.7)]" style={{ left: `${median * 100}%` }} />
+        
+        {/* Median indicator needle */}
+        <div 
+          className="absolute -inset-y-0.5 w-1.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,1)] z-20 border border-neutral-900" 
+          style={{ left: `calc(${median * 100}% - 3px)` }} 
+        />
       </div>
-      <div className="flex justify-between font-mono text-xs capitalize text-neutral-400 font-medium">
+      <div className="flex justify-between font-mono text-xs font-semibold uppercase tracking-wider text-neutral-300">
         <span>{negativeLabel}</span>
         <span>{positiveLabel}</span>
       </div>
