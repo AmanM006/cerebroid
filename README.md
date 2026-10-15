@@ -42,6 +42,9 @@ docs/       threat model, data provenance, model card, ADRs
 | Resource | Use | License |
 |---|---|---|
 | UCSF-PDGM (TCIA) | Clinical metadata, molecular labels, skull-stripped MRI volumes and tumor segmentations | CC BY 4.0 |
+| BraTS 2020 training set (TCGA-GBM/LGG scans, Menze 2015; Bakas 2017, 2018), Kaggle mirror `awsaf49/brats20-dataset-training-validation` | External validation only: pre-operative MRI and expert segmentations of 167 TCGA patients; only derived features are committed | TCIA CC BY 3.0 for the TCGA images; BraTS terms require citing the papers listed |
+| cBioPortal `lgggbm_tcga_pub` (Ceccarelli et al., Cell 2016) | External validation labels: IDH, 1p/19q, MGMT, grade, age, sex | TCGA open-access data |
+| NCI Genomic Data Commons, TCGA demographic records | Race of the external validation patients | NIH open-access data |
 | Python packages (`backend/requirements.txt`) | Backend runtime | MIT / BSD / Apache-2.0 |
 
 Full data provenance: [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md).
@@ -244,6 +247,14 @@ pip-audit -r requirements.txt
 ```
 
 ## 11. Known limitations
+- **Other hospitals and race.** Training data is one institution (UCSF-PDGM), whose public release has no race
+  field. External check ([ml/pipeline/external_validation.py](ml/pipeline/external_validation.py),
+  [04 notebook](ml/notebooks/04_external_validation_tcga.ipynb), `artifacts/metrics/external_tcga.json`): the
+  deployed models, unchanged, on 167 TCGA patients from many US hospitals (147 White, 12 Black, 3 Asian, 5 other or
+  not reported). IDH AUC 0.79 (UCSF held-out 0.98); Stable IDH calls 80% accurate vs 73% for all calls. Grade AUC
+  0.90, but 57 of 65 grade 2-3 tumors were called grade 4 (scanner-intensity shift). 1p/19q AUC 0.39 and MGMT 0.59:
+  no useful transfer. Black and Asian groups are too small for statistically meaningful per-race comparisons.
+  Race is evaluated, never used as a model input.
 - **Scanner intensity.** The deployed features are extracted in mode `v1` ([ml/pipeline/extract.py](ml/pipeline/extract.py)):
   texture uses 32 grey levels normalized within each tumor region and shape/composition features don't depend on
   intensity, but first-order intensity statistics use raw scanner values. All patients come from one institution with

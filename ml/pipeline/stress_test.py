@@ -42,7 +42,8 @@ def _brain_sd(volume: np.ndarray) -> float:
 def _bias_field(shape: tuple[int, ...], strength: float) -> np.ndarray:
     """Smooth multiplicative shading, like a coil sensitivity field: 1 +/- strength across the head."""
     z, y, x=(np.linspace(-1, 1, n) for n in shape)
-    field=np.cos(np.pi/2*z)[:, None, None]*0.5+np.sin(np.pi/2*y)[None, :, None]*0.3+np.cos(np.pi/2*x)[None, None, :]*0.2
+    field=(np.cos(np.pi/2*z)[:, None, None]*0.5+np.sin(np.pi/2*y)[None, :, None]*0.3
+           +np.cos(np.pi/2*x)[None, None, :]*0.2)
     field=(field-field.min())/(field.max()-field.min())
     return 1.0+strength*(2*field-1)
 
