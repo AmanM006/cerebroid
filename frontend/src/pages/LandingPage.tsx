@@ -65,7 +65,7 @@ export function LandingPage() {
         <div className="absolute bottom-0 right-0 w-[700px] h-[700px] bg-red-950/20 rounded-full blur-3xl pointer-events-none" />
 
         {/* 
-          HUGE WATERMARK TEXT "MEET CELL" 
+          HUGE WATERMARK TEXT "CEREBROID" 
           Spanning full viewport width in ultra-faint white display typography
         */}
         <div 
@@ -74,8 +74,8 @@ export function LandingPage() {
             transform: `translate(calc(-50% + ${mousePos.x * 0.3}px), calc(-50% + ${mousePos.y * 0.3}px))`,
           }}
         >
-          <span className="text-[14vw] font-black tracking-wider text-white/[0.04] uppercase whitespace-nowrap block">
-            MEET CELL
+          <span className="text-[13vw] font-black tracking-wider text-white/[0.04] uppercase whitespace-nowrap block">
+            CEREBROID
           </span>
         </div>
 
@@ -88,13 +88,13 @@ export function LandingPage() {
         {/* TOP NAVBAR: Edge-to-edge */}
         <header className="relative z-30 flex items-center justify-between px-8 sm:px-14 lg:px-20 pt-8 sm:pt-10">
           
-          {/* Clean normal bold NovaCell wordmark on the top left */}
+          {/* Clean normal bold Cerebroid wordmark on the top left */}
           <a href="/" className="flex items-center gap-2 group">
             <span
               className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white"
               style={{ fontFamily: "'Plus Jakarta Sans', 'Inter', sans-serif" }}
             >
-              NovaCell
+              Cerebroid
             </span>
           </a>
 
