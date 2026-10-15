@@ -5,11 +5,13 @@ real worker, extractor and model sets run end to end."""
 import gzip
 import io
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pytest
 import SimpleITK as sitk
 
+from app.core.config import get_settings
 from app.db.models import Role
 from tests.api.test_profile import deployed  # noqa: F401  (fixture: small real model sets)
 from tests.conftest import login
@@ -161,3 +163,18 @@ def test_upload_label_rejects_markup(client, make_user, deployed):  # noqa: F811
         files={k: (f"{k}.nii.gz", io.BytesIO(v), "application/gzip") for k, v in _study().items()},
     )
     assert r.status_code==422
+
+
+def test_uploads_sent_at_once_cannot_exceed_the_account_limit(client, make_user, deployed, monkeypatch):  # noqa: F811
+    """Race: without the lock every request would see the count below the limit."""
+    make_user("alice")
+    headers=login(client, "alice")
+    monkeypatch.setattr(get_settings(), "upload_max_per_user", 2)
+    files=_study()
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        codes=list(pool.map(lambda _: _post(client, headers, files).status_code, range(6)))
+    assert sorted(codes)==[202, 202, 409, 409, 409, 409], codes
+    uploaded=[c for c in client.get("/api/v1/cases", headers=headers).json()["items"] if c["kind"]=="upload"]
+    assert len(uploaded)==2
+    for case in uploaded:
+        _wait(client, headers, case["id"])

@@ -3,6 +3,7 @@
 The uploaded study then works with every /api/v1/studies/{id}/... analysis route, exactly like a
 demo case: the same feature extraction and the same model sets. Only its owner can see it.
 """
+import threading
 import uuid
 from datetime import UTC, datetime
 from typing import Literal
@@ -26,6 +27,9 @@ router=APIRouter(prefix="/api/v1/studies", tags=["uploads"])
 # Letters, digits, spaces and a few separators: no markup, no control characters.
 LABEL_PATTERN=r"^[A-Za-z0-9 ._#()\-]{1,40}$"
 UPLOAD_PATH="/api/v1/studies"
+# Counting an account's uploads and recording the new one happen under one lock, so uploads sent at the
+# same moment cannot all see "under the limit" and together exceed it.
+_quota_lock=threading.Lock()
 
 
 def _status_out(study: Study, request: Request) -> UploadStatusOut:
@@ -65,31 +69,35 @@ def upload_study(
     hit("upload", f"{user.id}|{client_ip(request)}", settings.upload_rate_limit,
         settings.upload_rate_window_seconds, "Too many uploads. Please wait and try again.")
     uploads.purge_expired()
-    owned=db.scalar(select(func.count()).select_from(Study).where(
-        Study.kind==StudyKind.UPLOAD, Study.owner_id==user.id)) or 0
-    if owned>=settings.upload_max_per_user:
-        raise AppError("UPLOAD_LIMIT", f"At most {settings.upload_max_per_user} uploads are kept per "
-                       "account; delete one first.", status.HTTP_409_CONFLICT)
-
     study_id=uuid.uuid4()
     patient_id=uploads.patient_id_for(study_id)
-    try:
-        uploads.save_files(patient_id, {"t1": t1.file, "t1c": t1c.file, "t2": t2.file,
-                                        "flair": flair.file, "seg": seg.file})
-    except UploadError as exc:
-        uploads.delete_dir(patient_id)
-        status_code=status.HTTP_413_CONTENT_TOO_LARGE if exc.error_code=="UPLOAD_TOO_LARGE" \
-            else status.HTTP_422_UNPROCESSABLE_CONTENT
-        raise AppError(exc.error_code, exc.message, status_code) from exc
+    with _quota_lock:
+        # The row lock does the same across API processes (PostgreSQL); the commit releases it.
+        db.execute(select(User.id).where(User.id==user.id).with_for_update())
+        owned=db.scalar(select(func.count()).select_from(Study).where(
+            Study.kind==StudyKind.UPLOAD, Study.owner_id==user.id)) or 0
+        if owned>=settings.upload_max_per_user:
+            db.rollback()
+            raise AppError("UPLOAD_LIMIT", f"At most {settings.upload_max_per_user} uploads are kept per "
+                           "account; delete one first.", status.HTTP_409_CONFLICT)
+        try:
+            uploads.save_files(patient_id, {"t1": t1.file, "t1c": t1c.file, "t2": t2.file,
+                                            "flair": flair.file, "seg": seg.file})
+        except UploadError as exc:
+            db.rollback()
+            uploads.delete_dir(patient_id)
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE if exc.error_code=="UPLOAD_TOO_LARGE" \
+                else status.HTTP_422_UNPROCESSABLE_CONTENT
+            raise AppError(exc.error_code, exc.message, status_code) from exc
 
-    study=Study(
-        id=study_id, kind=StudyKind.UPLOAD, owner_id=user.id,
-        label=(label or "").strip() or f"Upload {datetime.now(UTC):%d %b %H:%M} UTC", age=age, sex=sex,
-        prior_biopsy=None,
-        source_patient_id=patient_id, status=StudyStatus.PROCESSING,
-    )
-    db.add(study)
-    db.commit()
+        study=Study(
+            id=study_id, kind=StudyKind.UPLOAD, owner_id=user.id,
+            label=(label or "").strip() or f"Upload {datetime.now(UTC):%d %b %H:%M} UTC", age=age, sex=sex,
+            prior_biopsy=None,
+            source_patient_id=patient_id, status=StudyStatus.PROCESSING,
+        )
+        db.add(study)
+        db.commit()
     # Lab results the uploader already has: shown by /reveal for comparison, never a model input.
     uploads.save_reference(patient_id, {"IDH": lab_idh, "1p19q": lab_1p19q, "MGMT": lab_mgmt,
                                         "GRADE": int(lab_grade) if lab_grade else None})
