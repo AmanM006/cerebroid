@@ -219,6 +219,13 @@ class TestSuggestionOut(_Response):
     reason: str
 
 
+class PathwayOut(_Response):
+    category: str
+    steps: list[str]
+    mgmt_note: str
+    grade_note: str | None
+
+
 class NextMeasurementsOut(_Response):
     study_id: uuid.UUID
     input_hash: str
@@ -226,6 +233,9 @@ class NextMeasurementsOut(_Response):
     marker_states: list[MarkerStateOut]
     candidate_categories: list[str]
     tests: list[TestSuggestionOut]
+    pathways: list[PathwayOut]
+    pathway_label: str
+    pathway_sources: list[str]
     request_id: str | None
 
 
