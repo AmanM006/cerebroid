@@ -48,15 +48,15 @@ export function MarkerCard({
   const predicted = marker.status === "predicted" && marker.prob_min != null && marker.prob_median != null && marker.prob_max != null
 
   return (
-    <article className="rounded-xl border border-[#1e1b2b] bg-[#0c0a13] p-3.5 shadow-sm transition-all hover:border-[#2e2a40]">
+    <article className="rounded-xl border border-neutral-800 bg-[#0d0d0f] p-4 shadow-sm transition-all hover:border-neutral-700">
       <header className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-[11px] font-mono uppercase tracking-wider text-[#8c889e]">{labels.title}</h3>
-          <p className={`mt-0.5 text-lg font-bold capitalize ${marker.low_signal ? "text-[#716c87]" : "text-white"}`}>
+          <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-300 font-bold">{labels.title}</h3>
+          <p className={`mt-1 text-xl font-black capitalize tracking-tight ${marker.low_signal ? "text-neutral-300" : "text-white"}`}>
             {marker.call ?? "No call"}
           </p>
           {marker.status === "predicted" && (
-            <p className="font-mono text-[10px] text-[#716c87]">
+            <p className="mt-0.5 font-mono text-xs text-neutral-300 font-medium">
               {verdictMeaning(marker)}
             </p>
           )}
@@ -106,29 +106,31 @@ export function MarkerCard({
           <button
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
-            className="font-mono text-[10.5px] text-[#8c889e] hover:text-white cursor-pointer"
+            className="font-mono text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer"
           >
             {open ? "▾ Hide details" : "▸ Details"}
           </button>
 
           {open && (
-            <div className="space-y-2.5 border-t border-[#1b1926] pt-2">
-              <p className="font-mono text-[10.5px] text-[#716c87]">
-                {agreeing != null && <>{agreeing}/{marker.n_models} models say {marker.call}</>}
-                {marker.imaging_only_verdict && <> · MRI alone: {marker.imaging_only_call}</>}
-                {marker.variant === "fused_given_idh" && <> · uses the known IDH result</>}
+            <div className="space-y-3 border-t border-neutral-800 pt-3">
+              <p className="font-mono text-xs text-neutral-300 font-semibold leading-relaxed">
+                {agreeing != null && <span className="text-white font-bold">{agreeing}/{marker.n_models} models say {marker.call}</span>}
+                {marker.imaging_only_verdict && <span className="text-neutral-400"> · MRI alone: <span className="text-neutral-200">{marker.imaging_only_call}</span></span>}
+                {marker.variant === "fused_given_idh" && <span className="text-neutral-400"> · uses the known IDH result</span>}
               </p>
               {explainable && (
                 <>
-                  <div role="tablist" className="flex flex-wrap gap-1">
+                  <div role="tablist" className="flex flex-wrap gap-2 pt-0.5">
                     {TABS.map((t) => (
                       <button
                         key={t.id}
                         role="tab"
                         aria-selected={tab === t.id}
                         onClick={() => setTab(t.id)}
-                        className={`rounded-md border px-2 py-0.5 font-mono text-[10px] transition-colors cursor-pointer ${
-                          tab === t.id ? "border-cyan-700 bg-cyan-950/50 text-cyan-200" : "border-[#2a2638] text-[#8c889e] hover:text-white"
+                        className={`rounded-lg border px-3 py-1 font-mono text-xs font-bold transition-all cursor-pointer ${
+                          tab === t.id
+                            ? "border-cyan-500 bg-cyan-950/80 text-cyan-200 shadow-sm"
+                            : "border-neutral-800 bg-[#121214] text-neutral-400 hover:text-white hover:border-neutral-700"
                         }`}
                       >
                         {t.label}

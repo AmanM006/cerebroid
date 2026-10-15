@@ -19,12 +19,12 @@ export function ProbabilityRange({ min, median, max, positiveLabel, negativeLabe
   const [low, high] = positive ? [min, max] : [1 - max, 1 - min]
   return (
     <div className="space-y-1.5">
-      <p className={`font-mono text-xs ${muted ? "text-[#716c87]" : "text-[#c9c5d8]"}`}>
-        <span className={`text-base font-bold ${muted ? "text-[#8c889e]" : "text-white"}`}>{pct(likelihood)}</span> likely {call}
-        <span className="ml-1.5 text-[10px] text-[#615c75]">(models range {pct(low)}–{pct(high)})</span>
+      <p className={`font-mono text-xs ${muted ? "text-neutral-300" : "text-neutral-200"}`}>
+        <span className="text-base font-bold text-white">{pct(likelihood)}</span> likely {call}
+        <span className="ml-1.5 text-xs text-neutral-400 font-medium">(models range {pct(low)}–{pct(high)})</span>
       </p>
       <div
-        className="relative h-2 rounded-full bg-[#181624] border border-[#262335]"
+        className="relative h-2.5 rounded-full bg-[#181624] border border-[#262335]"
         role="img"
         aria-label={`Probability ${positiveLabel}: ${pct(min)} to ${pct(max)}, median ${pct(median)}`}
       >
@@ -35,7 +35,7 @@ export function ProbabilityRange({ min, median, max, positiveLabel, negativeLabe
         />
         <div className="absolute -inset-y-0.5 w-1 rounded-full bg-white shadow-[0_0_6px_rgba(255,255,255,0.7)]" style={{ left: `${median * 100}%` }} />
       </div>
-      <div className="flex justify-between font-mono text-[9.5px] capitalize text-[#615c75]">
+      <div className="flex justify-between font-mono text-xs capitalize text-neutral-400 font-medium">
         <span>{negativeLabel}</span>
         <span>{positiveLabel}</span>
       </div>

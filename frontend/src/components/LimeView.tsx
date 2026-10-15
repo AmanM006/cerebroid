@@ -65,9 +65,9 @@ export function LimeView({
   const painted=focus?.marker===marker
 
   return (
-    <div className="space-y-2 font-mono text-[11px]">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-[10px] uppercase tracking-wider text-[#8c889e]">Explainable AI · LIME</p>
+    <div className="space-y-3 font-mono text-xs">
+      <div className="flex items-center justify-between gap-2 border-b border-neutral-800 pb-2">
+        <p className="text-xs font-bold uppercase tracking-wider text-neutral-300">Explainable AI · LIME</p>
         <button
           type="button"
           disabled={!paintable}
@@ -75,17 +75,17 @@ export function LimeView({
           onClick={()=>setFocus(painted ? null : { marker, call: lime.call, regions: regionEffects })}
           title={paintable ? "Colour the tumor regions in the MRI viewer by how they push this call"
             : "No tumor region moves this call noticeably"}
-          className={`rounded-md border px-2 py-0.5 text-[10px] ${painted
-            ? "border-amber-600 bg-amber-950/50 text-amber-200"
-            : "border-[#2a2638] text-[#8c889e] hover:text-white"} disabled:cursor-not-allowed disabled:opacity-40`}
+          className={`rounded-lg border px-3 py-1 text-xs font-bold transition-all cursor-pointer ${painted
+            ? "border-amber-500 bg-amber-950/80 text-amber-200 shadow-sm"
+            : "border-neutral-700 bg-[#141416] text-neutral-300 hover:text-white hover:border-neutral-600"} disabled:cursor-not-allowed disabled:opacity-40`}
         >
           {painted ? "Showing on MRI" : "Show on MRI"}
         </button>
       </div>
 
-      <p className="text-[10.5px] text-[#c9c5d8]">
-        A typical training patient: <span className="text-white">{typicalPct}% {lime.call}</span>
-        {" → "}this patient: <span className="text-white">{patientPct}% {lime.call}</span>.
+      <p className="text-xs text-neutral-200 leading-relaxed font-medium">
+        A typical training patient: <span className="text-white font-bold">{typicalPct}% {lime.call}</span>
+        {" → "}this patient: <span className="text-white font-bold">{patientPct}% {lime.call}</span>.
         {" "}
         {largest<0.01
           ? "Nothing in this scan moves it: the models give almost every patient this answer, so it reflects how common this result is in the training data, not something seen in this tumor. Confirm with tissue."
@@ -93,22 +93,22 @@ export function LimeView({
       </p>
 
       {largest>=0.01 && (
-        <ul className="space-y-1">
+        <ul className="space-y-2 pt-1">
           {top.map((f)=>{
             const supports=f.supports_call
             const width=`${Math.max(2, Math.round(Math.abs(f.effect)/scale*100))}%`
             return (
-              <li key={f.evidence_id} className="space-y-0.5"
+              <li key={f.evidence_id} className="space-y-1 rounded-lg border border-neutral-850 bg-[#121214] p-2"
                 title={`${points(f.effect)} probability points toward ${labels.positive}`
                   +(f.agreement!=null ? `; ${Math.round(f.agreement*100)}% of models agree on the direction` : "")}>
                 <div className="flex items-baseline justify-between gap-2">
-                  <span className="text-[#c9c5d8]">{f.label}</span>
-                  <span className={`shrink-0 ${supports ? "text-emerald-300" : "text-rose-300"}`}>
+                  <span className="text-neutral-200 font-semibold">{f.label}</span>
+                  <span className={`shrink-0 font-bold ${supports ? "text-emerald-400" : "text-rose-400"}`}>
                     {Math.abs(f.effect*100).toFixed(1)} pts toward {supports ? lime.call : other}
                   </span>
                 </div>
-                <div className="h-1.5 w-full rounded bg-[#1b1826]">
-                  <div className={`h-1.5 rounded ${supports ? "bg-emerald-500/80" : "bg-rose-500/80"}`} style={{ width }} />
+                <div className="h-2 w-full rounded-full bg-neutral-800">
+                  <div className={`h-2 rounded-full ${supports ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"}`} style={{ width }} />
                 </div>
               </li>
             )
@@ -117,15 +117,15 @@ export function LimeView({
       )}
 
       {largest>=0.01 && (
-        <p className="text-[10.5px] text-[#c9c5d8]">
+        <p className="text-xs text-neutral-200 leading-relaxed font-medium">
           Together these move it {Math.abs(patientPct-typicalPct)} points
           {patientPct>=50 && <> · it would take about {patientPct-50} more points toward {other} to change the call</>}.
         </p>
       )}
 
-      <p className="text-[9.5px] text-[#615c75]" title={lime.method}>
+      <p className="text-xs text-neutral-400 font-medium pt-1" title={lime.method}>
         Local fit R² {lime.fidelity_r2.toFixed(2)} across {lime.n_samples} variations
-        {lime.explanation_agreement!=null && ` · models agree on the ranking ${Math.round(Math.max(0, lime.explanation_agreement)*100)}%`}
+        {lime.explanation_agreement != null && <> · {Math.round(Math.max(0, lime.explanation_agreement) * 100)}% model agreement</>}
         {" "}· compared with a typical training patient · model sensitivity, not cause
       </p>
     </div>
