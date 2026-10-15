@@ -30,6 +30,7 @@ from app.api.schemas import (
     ClaimOut,
     FalsificationOut,
     MarkerStateOut,
+    PathwayOut,
     NextMeasurementsOut,
     TestSuggestionOut,
     TippingItemOut,
@@ -44,6 +45,8 @@ from app.domain.doubt import decompose, primary
 from app.domain.explain import explain_set
 from app.domain.falsification import Claim, build_falsification
 from app.domain.next_measurement import plan
+from app.domain.pathways import LABEL as PATHWAY_LABEL
+from app.domain.pathways import SOURCES as PATHWAY_SOURCES
 from app.domain.tipping import find_tipping_points
 from app.domain.feature_store import FeatureStore
 from app.domain.profile import MarkerResult, build_profile, known_label
@@ -514,6 +517,12 @@ def get_next_measurements(
             )
             for s in result.states
         ],
+        pathways=[
+            PathwayOut(category=p.category, steps=p.steps, mgmt_note=p.mgmt_note, grade_note=p.grade_note)
+            for p in result.pathways
+        ],
+        pathway_label=PATHWAY_LABEL,
+        pathway_sources=list(PATHWAY_SOURCES),
         candidate_categories=result.candidates,
         tests=[
             TestSuggestionOut(

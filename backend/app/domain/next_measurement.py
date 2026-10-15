@@ -17,6 +17,7 @@ from dataclasses import dataclass
 
 from app.domain.contracts import Marker, StabilityVerdict
 from app.domain.falsification import CONFIRMATORY_TEST
+from app.domain.pathways import Pathway, pathway
 from app.domain.profile import MarkerResult
 
 
@@ -69,6 +70,7 @@ class Plan:
     states: list[MarkerState]
     candidates: list[str]
     tests: list[TestSuggestion]
+    pathways: list[Pathway]
 
 
 def marker_state(result: MarkerResult) -> MarkerState:
@@ -120,4 +122,7 @@ def plan(results: list[MarkerResult]) -> Plan:
             Marker.MGMT, CONFIRMATORY_TEST[Marker.MGMT], mgmt.settled, None,
             f"{mgmt.reason}; does not change the category but informs temozolomide response",
         ))
-    return Plan(states=states, candidates=[c.name for c in candidates], tests=tests)
+    grade=settled.get(Marker.GRADE)
+    mgmt_call=settled.get(Marker.MGMT)
+    pathways=[pathway(c.name, grade, mgmt_call) for c in candidates]
+    return Plan(states=states, candidates=[c.name for c in candidates], tests=tests, pathways=pathways)
