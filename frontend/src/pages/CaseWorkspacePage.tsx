@@ -1,13 +1,14 @@
 import { useEffect, useState, type CSSProperties, type DragEvent } from "react"
 import { useParams, Link } from "react-router-dom"
 import { api } from "../api/client"
-import type { Case, MarkerName, Readiness } from "../api/types"
+import type { Case, Readiness } from "../api/types"
 import { AppShell } from "../components/AppShell"
 import { ErrorNotice } from "../components/ErrorNotice"
 import { RealNiiVueViewport, type SliceMode } from "../components/RealNiiVueViewport"
 import { SEQUENCE_LABELS, useCaseVolumes, type AnatomicalSequence } from "../components/useCaseVolumes"
-import { ProfilePanel } from "../components/ProfilePanel"
 import { NextStepPanel } from "../components/NextStepPanel"
+import { ProfilePanel } from "../components/ProfilePanel"
+import type { KnownResults } from "../components/KnownResultsForm"
 import { ProvenanceBadge } from "../components/ProvenanceBadge"
 
 export type Plane2D = "sagittal" | "axial" | "coronal"
@@ -19,7 +20,7 @@ export function CaseWorkspacePage() {
   const { caseId } = useParams<{ caseId: string }>()
   const [study, setStudy] = useState<Case | null>(null)
   const [readiness, setReadiness] = useState<Readiness | null>(null)
-  const [known, setKnown] = useState<Partial<Record<MarkerName, 0 | 1>>>({})
+  const [known, setKnown] = useState<KnownResults>({})
   const [error, setError] = useState<unknown>(null)
 
   // Block positions in a modular 2x2 grid (all 4 fit immediately in the 100vh viewport)
@@ -301,7 +302,6 @@ export function CaseWorkspacePage() {
             [Drag / Swap]
           </span>
         </div>
-        <span className="text-[10px] text-emerald-400">WHO 2021 CNS</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -466,10 +466,10 @@ export function CaseWorkspacePage() {
             <div className="flex items-center gap-2 font-mono">
               <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-white">
-                Molecular Biomarker & Clinical Evidence Analysis
+                Tumor profile
               </h2>
-              <span className="rounded bg-[#161616] border border-neutral-800 px-2 py-0.5 text-[10px] text-neutral-400">
-                WHO 2021 CNS Taxonomy · Platt Calibrated Multiplicity
+              <span className="text-[11px] text-neutral-500">
+                Predicted from the MRI, age and sex · each result is checked by a panel of equally good models
               </span>
             </div>
             <a

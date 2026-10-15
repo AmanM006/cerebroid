@@ -219,6 +219,13 @@ class TestSuggestionOut(_Response):
     reason: str
 
 
+class PathwayOut(_Response):
+    category: str
+    steps: list[str]
+    mgmt_note: str
+    grade_note: str | None
+
+
 class NextMeasurementsOut(_Response):
     study_id: uuid.UUID
     input_hash: str
@@ -226,6 +233,9 @@ class NextMeasurementsOut(_Response):
     marker_states: list[MarkerStateOut]
     candidate_categories: list[str]
     tests: list[TestSuggestionOut]
+    pathways: list[PathwayOut]
+    pathway_label: str
+    pathway_sources: list[str]
     request_id: str | None
 
 
@@ -303,4 +313,8 @@ class ModelCardOut(_Response):
     held_out_patients: int | None
     model_sets: list[ModelSetCardOut]
     limitations: list[str]
+    # Who the models were trained on, how they do per subgroup, and on an external cohort.
+    training_population: dict
+    subgroups: dict | None
+    external_validation: dict | None
     request_id: str | None

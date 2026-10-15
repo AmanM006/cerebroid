@@ -460,3 +460,13 @@ def test_next_measurements_is_labelled_a_heuristic(client, make_user, deployed, 
     assert idh["from_lab"] and idh["provenance"]=="clinical_input"
     assert "Glioblastoma, IDH-wildtype" not in body["candidate_categories"]
     assert all(t["marker"]!="IDH" for t in body["tests"])
+
+
+def test_next_measurements_carry_guideline_pathways(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    r=client.get(f"/api/v1/studies/{study.id}/next-measurements", headers=login(client, "alice"))
+    body=r.json()
+    assert [p["category"] for p in body["pathways"]]==body["candidate_categories"]
+    assert all(p["steps"] for p in body["pathways"])
+    assert "not a treatment recommendation" in body["pathway_label"]

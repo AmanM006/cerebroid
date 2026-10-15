@@ -10,7 +10,7 @@
  *   request_id, so a user can report the exact request that failed.
  */
 import type {
-  Case, CaseList, Doubt, ErrorBody, Evidence, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes,
+  Case, CaseList, Doubt, ErrorBody, Evidence, ModelCard, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes,
 } from "./types"
 
 export class ApiError extends Error {
@@ -160,6 +160,9 @@ export const api={
 
   /** The dataset's true lab results, for held-out demo cases only. */
   reveal: (id: string)=>getJson<Reveal>(`/api/v1/studies/${encodeURIComponent(id)}/reveal`),
+
+  /** Data, limitations and per-group performance of the deployed models. */
+  modelCard: ()=>getJson<ModelCard>("/api/v1/model-card"),
 
   /** MRI volumes stored for a study; the viewer loads them with volume(). */
   listVolumes: (id: string)=>getJson<Volumes>(`/api/v1/studies/${encodeURIComponent(id)}/volumes`),

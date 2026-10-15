@@ -90,6 +90,26 @@ export function NextStepPanel({
         </div>
       )}
 
+      {plan.pathways && plan.pathways.length>0 && (
+        <div className="space-y-2 border-t border-neutral-800 pt-3">
+          <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+            Typical treatment pathway{plan.pathways.length>1 ? " for each possible type" : ""}
+          </p>
+          {plan.pathways.map((p, i)=>(
+            <details key={p.category} open={i===0} className="rounded-xl border border-neutral-800 bg-[#101010] px-3 py-2">
+              <summary className="cursor-pointer text-xs font-bold text-neutral-100">{p.category}</summary>
+              <ol className="mt-1.5 list-decimal space-y-1 pl-4 text-[11px] text-neutral-300">
+                {p.steps.map((s)=><li key={s}>{s}</li>)}
+              </ol>
+              <p className="mt-1.5 text-[10.5px] text-amber-200/90">{p.mgmt_note}</p>
+              {p.grade_note && <p className="text-[10.5px] text-cyan-200/90">{p.grade_note}</p>}
+            </details>
+          ))}
+          <p className="text-[9.5px] text-neutral-500" title={plan.pathway_sources?.join(" · ")}>
+            {plan.pathway_label} Sources: EANO 2021 guideline; FDA 2024 vorasidenib label.
+          </p>
+        </div>
+      )}
       <p className="text-[9.5px] text-neutral-600">Decision-support heuristic, not clinical guidance.</p>
     </div>
   )

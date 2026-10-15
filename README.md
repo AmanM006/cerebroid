@@ -98,6 +98,13 @@ done
 ```
 
 ## 7. Deployment & access details
+- **Public deployment (Render, free tier):** one Docker web service built from
+  [ops/render/Dockerfile](ops/render/Dockerfile) (the API also serves the built frontend, so the app is one origin)
+  plus a free Postgres, both defined in [render.yaml](render.yaml). To recreate it: Render dashboard → New →
+  Blueprint → this repository; enter the two test-account passwords below when asked. Migrations, the nine demo
+  cases and the test accounts are created automatically at start-up (`python -m app.cli seed`, idempotent).
+  The free tier sleeps after 15 idle minutes; [keepalive.yml](.github/workflows/keepalive.yml) pings `/health`
+  every 10 minutes once the repository variable `VBX_PUBLIC_URL` is set.
 - **Docker Compose:** `docker compose up --build`, app on `http://localhost:8080` (set `WEB_PORT` to change it),
   API also reachable directly on `http://localhost:8000`.
 - **Interactive API docs:** `http://localhost:8000/docs`.
@@ -108,6 +115,7 @@ A synthetic, non-admin clinician account for evaluators. It sees the public demo
 | Username | Password | Role |
 |---|---|---|
 | `evaluator` | `vbx-eval-fcd664d1` | clinician |
+| `reviewer` | `vbx-review-718d0a59` | reviewer (can also run the audit-log check) |
 
 On a fresh local stack, create it with the command below and enter the password from the table when prompted:
 ```bash
@@ -131,7 +139,7 @@ docker compose exec api python -m app.cli create-user --username evaluator --rol
 | `GET /api/v1/studies/{id}/doubt?marker=IDH` | Bearer | Why that marker's call is uncertain, split into model disagreement, closeness to the decision boundary, distance from the training patients, missing inputs and weak imaging signal; each rated low/medium/high with the action it calls for. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/tipping?marker=IDH` | Bearer | For each clinician-verifiable input (age, tumor volume, enhancing and necrotic share, edema-to-core ratio): the nearest plausible value that flips the majority call, and the call across the whole plausible range. Model sensitivity, not cause. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/falsification?marker=IDH` | Bearer | The case for and against the call (strongest input groups each way), the competing call with its model votes, what change to a verifiable input would overturn it, and the lab test that settles it. Every sentence is a fixed template over computed results and lists its evidence IDs. Accepts `known=`. |
-| `GET /api/v1/studies/{id}/next-measurements` | Bearer | Decision-support heuristic: the WHO CNS5 adult diffuse-glioma categories still consistent with the settled markers (lab results, or Stable calls with real signal) and the lab tests ranked by how far they would narrow them. MGMT is listed as treatment-relevant only. Accepts `known=`. |
+| `GET /api/v1/studies/{id}/next-measurements` | Bearer | Decision-support heuristic: the WHO CNS5 adult diffuse-glioma categories still consistent with the settled markers (lab results, or Stable calls with real signal) and the lab tests ranked by how far they would narrow them. MGMT is listed as treatment-relevant only. Also returns, for each possible type, the guideline treatment pathway (EANO 2021 guideline; FDA 2024 vorasidenib label) with how MGMT and grade change it, labelled as a summary for tumor-board discussion, not a recommendation. Accepts `known=`. |
 | `GET /api/v1/model-card` | Bearer | Intended use, data source and cohort counts, limitations, and per deployed model set: size, families, CV loss, skill, verdict thresholds, library versions and held-out test metrics (AUC with 95% CI, error rate per verdict). Metrics are shown only for the exact model file they were computed on. |
 | `GET /api/v1/audit/verify` | Bearer (reviewer) | Recomputes the hash-chained audit log; returns whether it is intact, the entry count and the first tampered entry. Every profile, evidence, doubt, tipping, falsification, reveal and volume read is recorded with IDs only. |
 | `GET /api/v1/studies/{id}/volumes` | Bearer | MRI sequences stored for the study (`t1`, `t1c`, `t2`, `flair`, `seg`) |
@@ -164,6 +172,9 @@ See [.env.example](.env.example).
 | `LOG_LEVEL` | Log level, e.g. `INFO` |
 | `CORS_ORIGINS` | Comma-separated allowlist of frontend origins |
 | `WEB_PORT` | Host port of the web container (default 8080) |
+| `FRONTEND_DIST` | Built frontend directory for the API to serve itself (single-service hosting; unset in compose) |
+| `VBX_SEED_DEMO_CASES` | Comma-separated patient IDs registered as demo cases at start-up |
+| `VBX_EVALUATOR_PASSWORD` / `VBX_REVIEWER_PASSWORD` | Create the synthetic `evaluator` / `reviewer` accounts at start-up |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres credentials |
 | `DATABASE_URL` | SQLAlchemy connection string |
 | `JWT_SECRET_KEY` | **Required.** JWT signing key, ≥32 random characters |
@@ -193,6 +204,22 @@ pre-operative scan per patient, split/fold rules, models load in the API environ
 held-out patients; skipped while those files are absent).
 
 ## Model artifacts
+[ml/notebooks/02_training_multiplicity.ipynb](ml/notebooks/02_training_multiplicity.ipynb) documents the model sets: their
+cross-validated losses and skill, held-out AUCs of every variant, out-of-fold predictions on the training patients, the
+verdict cut-offs and the 1p/19q threshold evaluated on them. Every table is computed when it runs.
+
+[ml/notebooks/03_inference_demo.ipynb](ml/notebooks/03_inference_demo.ipynb) is the committed, executed demonstration of the trained
+models: the deployed sets, inference on held-out patients (every model's vote, verdict and call next to the true result), a
+known lab result re-scoring the other markers, evidence, tipping points, doubt, held-out metrics and "resolved by
+combining". Every number in it is computed when it runs. To re-run: `pip install -r backend/requirements-dev.txt`, then
+`jupyter nbconvert --to notebook --execute --inplace ml/notebooks/03_inference_demo.ipynb` (or run it cell by cell).
+
+Golden regression set: `backend/tests/golden/expected.json` freezes the profile (call, verdict, median probability,
+variant, low-signal flag, top IDH evidence group) for 10 held-out patients, with and without a known IDH result. CI fails
+if predictions drift. After an intended model update, regenerate it in the same commit:
+```bash
+cd backend && .venv/Scripts/python -m tests.golden.snapshot --write
+```
 Held-out metrics are computed by [ml/pipeline/evaluate.py](ml/pipeline/evaluate.py) on the 99 test-split patients and written to
 `artifacts/metrics/heldout.json` (rerun it after every model update; the model card hides metrics whose model file changed):
 ```bash
@@ -217,13 +244,23 @@ pip-audit -r requirements.txt
 ```
 
 ## 11. Known limitations
-
-- **Pre-extracted evaluation cohort (no live NIfTI file upload in the Bug Bounty build):** To prevent arbitrary file-upload decompression bombs and resource exhaustion on the shared evaluation server, live NIfTI upload (`POST /api/v1/studies`) and per-sub-region heterogeneity (`GET /api/v1/studies/{id}/heterogeneity`) are intentionally omitted in this build. The deployed application evaluates the pre-extracted UCSF-PDGM cohort (`artifacts/features/features.parquet`) and streams the 9 committed skull-stripped NIfTI demo patient volumes (`0018`, `0026`, `0061`, `0073`, `0162`, `0232`, `0243`, `0282`, `0327`).
-- **Brute-force lockout & synthetic evaluator exemption:** Standard user accounts lock for 15 minutes after 5 failed password attempts; there is no per-IP rate limiting. Synthetic test accounts (`is_synthetic=true`, such as `evaluator`) intentionally bypass the 5-attempt lockout so concurrent peer evaluators cannot lock each other out of the shared test account during the Bug Bounty round.
-- **1p/19q co-deletion class imbalance (`balanced_accuracy = 0.50` at threshold `0.50`):** Only 15 patients in the UCSF-PDGM cohort have 1p/19q co-deletion (12 train, 2 test — ~3.7% base rate). While the near-optimal model sets achieve strong ranking discrimination (held-out AUC `0.8974` fused, `0.9744` fused-given-IDH), calibrated probabilities on this rare class remain below the default `0.50` decision threshold, yielding conservative majority-class (`intact`) calls and `0.50` balanced accuracy at threshold `0.50`.
-- **MGMT promoter methylation low signal:** MGMT methylation is barely predictable from structural MRI features (held-out AUC `0.5525`, CV skill `0.40% < 5%`). By design, all MGMT sets trigger `low_signal=true` ("No reliable signal") and recommend tissue confirmation.
-- **In-memory access token & multi-tab refresh rotation:** Access tokens are kept exclusively in JavaScript memory (never `localStorage`/`sessionStorage`) to prevent token theft via XSS. Opening a new browser tab or reloading triggers a refresh-token rotation via the `HttpOnly` `SameSite=Strict` cookie (`vbx_refresh`, which uses the `Secure` attribute only when `APP_ENV=production`). Concurrent refresh requests across tabs are serialized via `navigator.locks`, but if a rotated refresh token is replayed outside the lock, reuse detection revokes the session family and requires signing in again.
-- **Single-institution training cohort:** Trained and evaluated on adult (18+) pre-operative scans from UCSF-PDGM; external multi-scanner generalization is unvalidated.
+- **Scanner intensity.** The deployed features are extracted in mode `v1` ([ml/pipeline/extract.py](ml/pipeline/extract.py)):
+  texture uses 32 grey levels normalized within each tumor region and shape/composition features don't depend on
+  intensity, but first-order intensity statistics use raw scanner values. All patients come from one institution with
+  the same preprocessing, so this holds within the cohort but would not transfer to another scanner. The stress test
+  ([ml/pipeline/stress_test.py](ml/pipeline/stress_test.py), results in `artifacts/metrics/robustness.json`, 9 demo
+  patients) measured: simulated noise (5-10%) and bias-field shading (15%) changed 0 of 36 calls; a scanner gain change
+  left only 33% of first-order features in agreement (Lin's CCC >= 0.9) under `v1` versus 100% under the brain-normalized
+  `v2` mode. Retraining on `v2` features is the planned fix.
+- **Tumor outline errors.** Features are measured inside the segmentation; shifting or shrinking it by one voxel
+  changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC yet.
+- Brute-force protection is per-account lockout (5 failures → 15 minutes); there is no per-IP rate limiting.
+  Anyone who knows a username can therefore lock that account for 15 minutes. The synthetic test accounts
+  (`evaluator`, `reviewer`) are exempt: their passwords are published here, so locking them would only let anyone
+  lock evaluators out.
+- The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
+- Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
+  out; the user signs in again.
 
 ## 12. AI tool disclosure
 See [AI_USAGE.md](AI_USAGE.md): each AI tool used, its purpose, what it generated, and what was human-reviewed.
@@ -268,5 +305,3 @@ Every error response has the shape `{error_code, message, request_id}`.
 | `VOLUME_NOT_AVAILABLE` | The study has no stored volume for that sequence |
 | `HTTP_ERROR` | Generic HTTP error (404, 405, ...) |
 | `INTERNAL_ERROR` | Unexpected server error (details only in server logs) |
-
-<!-- pipeline sync: 2026-10-14T22:53:19.068468 -->

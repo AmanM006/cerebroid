@@ -3,12 +3,14 @@ import { Link } from "react-router-dom"
 import { api } from "../api/client"
 import type { CaseList } from "../api/types"
 import { AppShell } from "../components/AppShell"
+import { DataCard } from "../components/DataCard"
 import { ErrorNotice } from "../components/ErrorNotice"
 import { ProvenanceBadge } from "../components/ProvenanceBadge"
 
 export function CasesPage() {
   const [cases, setCases] = useState<CaseList | null>(null)
   const [error, setError] = useState<unknown>(null)
+  const [showData, setShowData] = useState(false)
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("ALL")
 
@@ -106,12 +108,21 @@ export function CasesPage() {
             </div>
 
             <div className="flex items-center gap-3 font-mono text-xs">
+              <button
+                onClick={() => setShowData((v) => !v)}
+                aria-expanded={showData}
+                className="rounded-xl border border-neutral-800 bg-[#101010] px-3.5 py-1.5 text-neutral-300 hover:text-white cursor-pointer"
+              >
+                {showData ? "Hide" : "Training data & fairness"}
+              </button>
               <div className="flex items-center gap-2 rounded-xl border border-neutral-800 bg-[#101010] px-3.5 py-1.5 text-neutral-300">
                 <span className="text-neutral-400">Active Cases:</span>
                 <span className="font-bold text-white">{filteredItems.length}</span>
               </div>
             </div>
           </div>
+
+          {showData && <DataCard />}
 
           {/* Quick Filter Search Bar */}
           <div className="shrink-0 flex items-center gap-3">

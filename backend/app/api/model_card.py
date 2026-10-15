@@ -37,6 +37,37 @@ LIMITATIONS=[
 ]
 
 
+def _population(store: FeatureStore) -> dict:
+    """Training-cohort makeup, so users can judge whether a patient resembles it."""
+    rows=[r for r in store.rows.values() if r.get("split")=="train"]
+    if not rows:
+        return {}
+    ages=sorted(float(r["age"]) for r in rows)
+    def types(r: dict) -> str:
+        if r.get("idh")==0:
+            return "IDH-wildtype"
+        if r.get("idh")==1:
+            return "IDH-mutant, 1p/19q codeleted" if r.get("codeletion_1p19q")==1 else "IDH-mutant"
+        return "IDH not recorded"
+    counts: dict[str, int]={}
+    for r in rows:
+        counts[types(r)]=counts.get(types(r), 0)+1
+    return {
+        "site": "UCSF (one US academic hospital), UCSF-PDGM public dataset",
+        "patients": len(rows),
+        "female": sum(1 for r in rows if r.get("sex")==0),
+        "male": sum(1 for r in rows if r.get("sex")==1),
+        "age_median": ages[len(ages)//2],
+        "age_range": [ages[0], ages[-1]],
+        "grade_4_share": round(sum(1 for r in rows if r.get("who_grade")==4)/len(rows), 3),
+        "tumor_types": counts,
+        "race": (
+            "not included in the public UCSF-PDGM release; performance by race is measured on the "
+            "external TCGA cohort"
+        ),
+    }
+
+
 def _load_json(path: Path) -> dict | None:
     if not path.is_file():
         return None
@@ -87,5 +118,8 @@ def model_card(
         held_out_patients=metrics.get("n_patients"),
         model_sets=sets,
         limitations=LIMITATIONS,
+        training_population=_population(store),
+        subgroups=_load_json(settings.artifacts_root/"metrics"/"subgroups_ucsf.json"),
+        external_validation=_load_json(settings.artifacts_root/"metrics"/"external_tcga.json"),
         request_id=getattr(request.state, "request_id", None),
     )
