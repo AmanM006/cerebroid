@@ -281,8 +281,10 @@ def load_marker(artifacts_root: Path, entry: _MarkerEntry, manifest: Manifest) -
     if not all(callable(getattr(m, "predict_proba", None)) for m in models):
         raise ValueError(f"every model in {MODELS_FILE} must have predict_proba")
 
+    import gc
     predictor=SetMarkerPredictor(meta, models, models_sha)
     predictor.warm_up()
+    gc.collect()
     return predictor
 
 
