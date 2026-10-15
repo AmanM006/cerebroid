@@ -268,7 +268,7 @@ pip-audit -r requirements.txt
   ([ml/pipeline/stress_test.py](ml/pipeline/stress_test.py), results in `artifacts/metrics/robustness.json`, 9 demo
   patients) measured: simulated noise (5-10%) and bias-field shading (15%) changed 0 of 36 calls; a scanner gain change
   left only 33% of first-order features in agreement (Lin's CCC >= 0.9) under `v1` versus 100% under the brain-normalized
-  `v2` mode. Retraining on `v2` features is the planned fix.
+  `v2` mode; the deployed models use `v1`.
 - **Tumor outline errors.** Features are measured inside the segmentation; shifting or shrinking it by one voxel
   changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC.
 - Brute-force protection: per-account lockout (5 failures → 15 minutes) plus a per-client-IP login limit
@@ -309,7 +309,7 @@ pip-audit -r requirements.txt
   are not verified, and are used only for the reveal comparison, never by the models.
 - **No CSRF tokens:** the API takes the access token from the `Authorization` header (never a cookie), and the
   refresh cookie is `SameSite=Strict`, HttpOnly and scoped to `/api/v1/auth`.
-- **Model limits shown in the app:** 1p/19q has not yet caught a co-deleted tumour in the test sets (recall 0%);
+- **Model limits shown in the app:** 1p/19q caught no co-deleted tumour in the test sets (recall 0%);
   MGMT has no reliable MRI signal and is never called; the grade 4 alert (threshold chosen on cross-validation)
   also flags about 15% of grade 2-3 tumours. Every result is decision support, to be confirmed with tissue.
 - `GET /api/v1/metrics/summary` is public: it returns only aggregate held-out metrics and the number of demo cases.
