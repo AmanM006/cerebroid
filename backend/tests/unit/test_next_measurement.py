@@ -67,3 +67,31 @@ def test_low_signal_marker_is_never_treated_as_settled():
     mgmt=next(s for s in result.states if s.marker==Marker.MGMT)
     assert mgmt.settled is False and "no signal" in mgmt.reason
     assert "temozolomide" in result.tests[-1].reason
+
+
+def test_all_type_markers_stable_means_no_test_changes_the_type():
+    # IDH-mutant, 1p/19q intact, grade 2-3, all stable; MGMT has no signal from MRI.
+    result=plan(_results(
+        _predicted(Marker.IDH, True), _predicted(Marker.CODEL_1P19Q, False),
+        _predicted(Marker.MGMT, True, low_signal=True), _predicted(Marker.GRADE, False),
+    ), age=22)
+    assert result.candidates==["Astrocytoma, IDH-mutant"]
+    assert result.next_step.kind=="confirm" and result.next_step.marker is None
+    assert "grade 2 from 3" in result.next_step.reason
+
+
+def test_settled_glioblastoma_makes_mgmt_the_next_step():
+    result=plan(_results(
+        _predicted(Marker.IDH, False), _predicted(Marker.CODEL_1P19Q, False),
+        _predicted(Marker.MGMT, True, low_signal=True), _predicted(Marker.GRADE, True),
+    ), age=83)
+    assert result.next_step.kind=="decide_treatment" and result.next_step.marker==Marker.MGMT
+    assert any("Age 83" in line for line in result.basis)
+
+
+def test_unsettled_type_marker_comes_before_mgmt():
+    result=plan(_results(
+        _predicted(Marker.IDH, True, StabilityVerdict.ARBITRARY), _predicted(Marker.CODEL_1P19Q, False),
+        _predicted(Marker.MGMT, True, low_signal=True), _predicted(Marker.GRADE, True),
+    ))
+    assert result.next_step.kind=="decide_type" and result.next_step.marker==Marker.IDH

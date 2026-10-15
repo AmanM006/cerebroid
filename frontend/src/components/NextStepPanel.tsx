@@ -3,19 +3,6 @@ import { api } from "../api/client"
 import type { MarkerName, NextMeasurements } from "../api/types"
 import { ErrorNotice } from "./ErrorNotice"
 
-type Test=NextMeasurements["tests"][number]
-
-/** Plain-language reason for the top suggestion, from the computed narrowing. */
-function whyFirst(test: Test, candidates: number): string {
-  const worst=test.remaining_worst_case
-  if (worst!=null && worst<candidates) {
-    return worst===1
-      ? `It decides between the ${candidates} possible tumor types.`
-      : `It narrows ${candidates} possible tumor types to at most ${worst}.`
-  }
-  return test.settled ? "Confirms a call the models already agree on." : "The models can't settle this marker from the MRI."
-}
-
 /**
  * Which WHO CNS5 tumor categories are still possible, and the one lab test that
  * would narrow them most. A decision-support heuristic, labelled as such.
@@ -45,7 +32,12 @@ export function NextStepPanel({
   if (result.error!==null) return <ErrorNotice error={result.error} />
   const plan=result.plan
   if (!plan) return null
-  const [first, ...rest]=plan.tests
+  const step=plan.next_step
+  const others=plan.tests.filter((t)=>t.marker!==step.marker)
+  const tone=step.kind==="confirm"
+    ? "border-emerald-900/60 bg-emerald-950/20 text-emerald-100"
+    : step.kind==="review" ? "border-amber-900/60 bg-amber-950/20 text-amber-100"
+    : "border-cyan-900/60 bg-cyan-950/20 text-cyan-100"
 
   return (
     <div className="space-y-4 font-mono">
@@ -60,26 +52,24 @@ export function NextStepPanel({
         </div>
       </div>
 
-      {first && (
-        <div className="space-y-1.5">
-          <p className="text-[10px] uppercase tracking-wider text-neutral-500">Most useful next test</p>
-          <div className="rounded-xl border border-cyan-900/60 bg-cyan-950/20 px-3 py-2">
-            <p className="text-sm font-bold text-cyan-100">Test {first.marker} first</p>
-            <p className="text-[11px] text-cyan-200/80">{whyFirst(first, plan.candidate_categories.length)}</p>
-            <p className="mt-1 text-[10px] text-neutral-400">{first.test}</p>
-          </div>
+      <div className="space-y-1.5">
+        <p className="text-[10px] uppercase tracking-wider text-neutral-500">Most useful next step</p>
+        <div className={`rounded-xl border px-3 py-2 ${tone}`}>
+          <p className="text-sm font-bold">{step.title}</p>
+          <p className="text-[11px] opacity-80">{step.reason}</p>
+          {step.test && <p className="mt-1 text-[10px] text-neutral-400">{step.test}</p>}
         </div>
-      )}
+      </div>
 
-      {rest.length>0 && (
+      {others.length>0 && (
         <div className="space-y-1">
           <button onClick={()=>setShowAll((v)=>!v)} aria-expanded={showAll}
             className="text-[10.5px] text-neutral-400 hover:text-white cursor-pointer">
-            {showAll ? "▾ Hide other tests" : `▸ ${rest.length} other test${rest.length>1 ? "s" : ""}`}
+            {showAll ? "▾ Hide tissue tests" : `▸ ${others.length} tissue test${others.length>1 ? "s" : ""} for confirmation`}
           </button>
           {showAll && (
             <ul className="space-y-1.5">
-              {rest.map((t)=>(
+              {others.map((t)=>(
                 <li key={t.marker} className="text-[10.5px] text-neutral-400">
                   <span className="text-neutral-200">{t.marker}</span> · {t.test}
                   <span className="block text-[10px] text-neutral-500">{t.reason}</span>
@@ -95,6 +85,11 @@ export function NextStepPanel({
           <p className="text-[10px] uppercase tracking-wider text-neutral-500">
             Typical treatment pathway{plan.pathways.length>1 ? " for each possible type" : ""}
           </p>
+          {plan.pathway_basis?.length>0 && (
+            <ul className="space-y-0.5 text-[10.5px] text-neutral-400">
+              {plan.pathway_basis.map((line)=><li key={line}>· {line}</li>)}
+            </ul>
+          )}
           {plan.pathways.map((p, i)=>(
             <details key={p.category} open={i===0} className="rounded-xl border border-neutral-800 bg-[#101010] px-3 py-2">
               <summary className="cursor-pointer text-xs font-bold text-neutral-100">{p.category}</summary>

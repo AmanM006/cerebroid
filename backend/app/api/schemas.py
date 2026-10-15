@@ -226,6 +226,14 @@ class PathwayOut(_Response):
     grade_note: str | None
 
 
+class NextStepOut(_Response):
+    kind: Literal["decide_type", "decide_treatment", "confirm", "review"]
+    marker: Marker | None
+    title: str
+    reason: str
+    test: str | None
+
+
 class NextMeasurementsOut(_Response):
     study_id: uuid.UUID
     input_hash: str
@@ -233,7 +241,9 @@ class NextMeasurementsOut(_Response):
     marker_states: list[MarkerStateOut]
     candidate_categories: list[str]
     tests: list[TestSuggestionOut]
+    next_step: NextStepOut
     pathways: list[PathwayOut]
+    pathway_basis: list[str]
     pathway_label: str
     pathway_sources: list[str]
     request_id: str | None

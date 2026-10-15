@@ -155,6 +155,13 @@ export interface NextMeasurements {
   }[]
   candidate_categories: string[]
   tests: { marker: MarkerName; test: string; settled: boolean; remaining_worst_case: number | null; reason: string }[]
+  /** The single most useful step: a deciding test, MGMT for treatment, or tissue confirmation. */
+  next_step: {
+    kind: "decide_type" | "decide_treatment" | "confirm" | "review"
+    marker: MarkerName | null; title: string; reason: string; test: string | null
+  }
+  /** How each marker and age shaped the pathway shown. */
+  pathway_basis: string[]
   /** Guideline treatment pathway for each tumor type still possible. */
   pathways?: { category: string; steps: string[]; mgmt_note: string; grade_note: string | null }[]
   pathway_label?: string

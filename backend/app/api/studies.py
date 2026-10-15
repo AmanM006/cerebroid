@@ -32,6 +32,7 @@ from app.api.schemas import (
     MarkerStateOut,
     PathwayOut,
     NextMeasurementsOut,
+    NextStepOut,
     TestSuggestionOut,
     TippingItemOut,
     TippingOut,
@@ -43,7 +44,7 @@ from app.db.models import Study, StudyKind
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue
 from app.domain.doubt import decompose, primary
 from app.domain.explain import explain_set
-from app.domain.falsification import Claim, build_falsification
+from app.domain.falsification import CONFIRMATORY_TEST, Claim, build_falsification
 from app.domain.next_measurement import plan
 from app.domain.pathways import LABEL as PATHWAY_LABEL
 from app.domain.pathways import SOURCES as PATHWAY_SOURCES
@@ -503,7 +504,7 @@ def get_next_measurements(
         prior_biopsy=study.prior_biopsy,
         known_markers=known_markers,
     )
-    result=plan(build_profile(registry, vector))
+    result=plan(build_profile(registry, vector), age=study.age)
     audit("next_measurements.read", str(study.id))
     return NextMeasurementsOut(
         study_id=study.id,
@@ -521,6 +522,12 @@ def get_next_measurements(
             PathwayOut(category=p.category, steps=p.steps, mgmt_note=p.mgmt_note, grade_note=p.grade_note)
             for p in result.pathways
         ],
+        next_step=NextStepOut(
+            kind=result.next_step.kind,  # type: ignore[arg-type]
+            marker=result.next_step.marker, title=result.next_step.title, reason=result.next_step.reason,
+            test=CONFIRMATORY_TEST[result.next_step.marker] if result.next_step.marker else None,
+        ),
+        pathway_basis=result.basis,
         pathway_label=PATHWAY_LABEL,
         pathway_sources=list(PATHWAY_SOURCES),
         candidate_categories=result.candidates,

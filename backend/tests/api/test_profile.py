@@ -470,3 +470,5 @@ def test_next_measurements_carry_guideline_pathways(client, make_user, deployed,
     assert [p["category"] for p in body["pathways"]]==body["candidate_categories"]
     assert all(p["steps"] for p in body["pathways"])
     assert "not a treatment recommendation" in body["pathway_label"]
+    assert body["next_step"]["kind"] in {"decide_type", "decide_treatment", "confirm", "review"}
+    assert body["pathway_basis"]
