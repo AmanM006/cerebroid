@@ -73,6 +73,11 @@ export function ProfilePanel({
 
   const notReady = error instanceof ApiError && error.errorCode === "FEATURES_NOT_READY"
 
+  // "missing" tumor regions are findings about this tumor, not absent data; only absent scans are missing inputs.
+  const REGION_NAMES: Record<string, string> = { et: "enhancing rim", ncr: "dead core (necrosis)", ed: "swelling (edema)" }
+  const absentParts = (profile?.missing_inputs ?? []).filter((m) => m in REGION_NAMES).map((m) => REGION_NAMES[m] as string)
+  const missingScans = (profile?.missing_inputs ?? []).filter((m) => !(m in REGION_NAMES))
+
   return (
     <div className="space-y-3">
       {showLabForm || Object.keys(known).length > 0 ? (
@@ -185,8 +190,14 @@ export function ProfilePanel({
               Biopsy prior to MRI: <span className="text-white font-semibold">{profile.inputs.prior_biopsy.value ?? "not recorded"}</span>
               <ProvenanceBadge provenance={profile.inputs.prior_biopsy.provenance} />
             </p>
-            {profile.missing_inputs.length > 0 && (
-              <p className="text-amber-200/90 font-medium">Missing inputs: {profile.missing_inputs.join(", ")} (uncertainty higher)</p>
+            {absentParts.length > 0 && (
+              <p className="text-neutral-300">
+                This tumor has no {absentParts.join(" and no ")}
+                {absentParts.length < 3 && " (common in lower-grade gliomas)"}.
+              </p>
+            )}
+            {missingScans.length > 0 && (
+              <p className="text-amber-200/90 font-medium">Missing MRI: {missingScans.join(", ")} (uncertainty higher)</p>
             )}
             <p className="w-fit cursor-help text-neutral-400 hover:text-white transition-colors"
               title={`Features ${short(profile.feature_pipeline_version)} · input ${short(profile.input_hash)}`
