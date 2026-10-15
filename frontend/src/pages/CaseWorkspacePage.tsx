@@ -204,11 +204,11 @@ export function CaseWorkspacePage() {
         </div>
       </div>
 
-      <div className="relative flex-1 bg-black">
+      <div className="relative flex-1 min-h-0 overflow-hidden bg-black">
         {mriStage(mri3dMode, undefined, showCrosshairs)}
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
+      <div className="flex shrink-0 items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
         {sequencePicker}
         <span className="text-cyan-400">Drag to slice · Shift+drag to rotate 3D</span>
       </div>
@@ -258,11 +258,11 @@ export function CaseWorkspacePage() {
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-hidden bg-black">
+      <div className="relative flex-1 min-h-0 overflow-hidden bg-black">
         {mriStage(selectedPlane, undefined, false)}
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
+      <div className="flex shrink-0 items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
         {sequencePicker}
         <span className="text-cyan-400">Interactive {selectedPlane.toUpperCase()}</span>
       </div>
@@ -379,7 +379,7 @@ export function CaseWorkspacePage() {
         onDragOver={(e) => handleDragOver(e, index)}
         onDragLeave={(e) => handleDragLeave(e, index)}
         onDrop={(e) => handleDrop(e, index)}
-        className={`relative h-full w-full rounded-2xl transition-all duration-200 ${
+        className={`relative h-full w-full min-h-0 overflow-hidden rounded-2xl transition-all duration-200 ${
           isBeingDragged
             ? "border-2 border-dashed border-cyan-500/50 bg-[#0a1018]/40 opacity-40 scale-[0.98]"
             : isDropTarget
@@ -394,7 +394,7 @@ export function CaseWorkspacePage() {
             </span>
           </div>
         )}
-        <div className="h-full w-full">{content}</div>
+        <div className="h-full w-full min-h-0 overflow-hidden">{content}</div>
       </div>
     )
   }
