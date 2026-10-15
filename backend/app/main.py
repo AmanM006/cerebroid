@@ -37,7 +37,7 @@ def create_app() -> FastAPI:
     settings=get_settings()
     configure_logging(settings.log_level)
 
-    app=FastAPI(title="VBX API", version="0.1.0", lifespan=lifespan)
+    app=FastAPI(title="Cerebroid API", version="0.1.0", lifespan=lifespan)
 
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(

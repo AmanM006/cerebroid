@@ -1,4 +1,4 @@
-# VBX — From Image to Clinical Story
+# Cerebroid — From Image to Clinical Story
 
 Manipal Hackathon 2026 · Team **Void** · Problem Statement: "From Image to Clinical Story"
 
@@ -10,10 +10,10 @@ Manipal Hackathon 2026 · Team **Void** · Problem Statement: "From Image to Cli
 
 ## 2. Solution summary
 A pre-operative "virtual molecular biopsy" for diffuse gliomas. From multi-sequence brain MRI,
-a tumor segmentation mask, and patient age/sex, VBX predicts the tumor's molecular profile
+a tumor segmentation mask, and patient age/sex, Cerebroid predicts the tumor's molecular profile
 (IDH mutation, 1p/19q co-deletion, MGMT promoter methylation, WHO grade) and measures how *stable*
 each call is by checking agreement across a set of near-equally-accurate models (predictive
-multiplicity). When imaging genuinely cannot decide, VBX says so and recommends confirming with tissue.
+multiplicity). When imaging genuinely cannot decide, Cerebroid says so and recommends confirming with tissue.
 
 Research decision-support prototype. Not a diagnostic device.
 
