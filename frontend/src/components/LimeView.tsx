@@ -4,18 +4,19 @@ import { MARKER_LABELS, type Lime, type MarkerName, type TumorRegion } from "../
 import { ErrorNotice } from "./ErrorNotice"
 import { MIN_REGION_EFFECT, useExplainFocus } from "./ExplainFocus"
 
-const SHOWN=6
 
-const REGION_SHORT: [RegExp, string][]=[[/enhancing/, "rim"], [/necrotic/, "core"], [/edema/, "swelling"]]
+const REGION_WORDS: [RegExp, string][]=[
+  [/enhancing/, "enhancing rim"], [/necrotic/, "dead core (necrosis)"], [/edema/, "swelling (edema)"],
+]
 
-/** Short chart label for an evidence group, e.g. "T1 contrast · edema" -> "Swelling · T1c". */
-function short(label: string): string {
+/** Plain wording for an evidence group, e.g. "T1 contrast · edema" -> "How the swelling (edema) looks on T1 contrast". */
+function plain(label: string): string {
   const [first="", second]=label.split(" · ")
-  const region=(text: string | undefined)=>REGION_SHORT.find(([re])=>re.test(text ?? ""))?.[1] ?? text ?? ""
-  if (first==="Shape and size") return `Shape · ${region(second)}`
-  if (second) return `${region(second).replace(/^./, (c)=>c.toUpperCase())} · ${first.replace("T1 contrast", "T1c")}`
-  if (label.startsWith("Tumor composition")) return "Composition"
-  if (label.startsWith("Tumor parts")) return "Missing parts"
+  const region=(text: string | undefined)=>REGION_WORDS.find(([re])=>re.test(text ?? ""))?.[1] ?? text ?? ""
+  if (first==="Shape and size") return `Shape and size of the ${region(second)}`
+  if (second) return `How the ${region(second)} looks on ${first}`
+  if (label.startsWith("Tumor composition")) return "Tumor make-up (how much is rim, core and swelling)"
+  if (label.startsWith("Tumor parts")) return "Parts of the tumor that are absent (e.g. no enhancing rim)"
   return label
 }
 
@@ -58,7 +59,6 @@ export function LimeView({
 
   const labels=MARKER_LABELS[marker]
   const positive=lime.call===labels.positive
-  const top=lime.factors.slice(0, SHOWN)
   const regionEffects=Object.fromEntries(
     lime.regions.map((r)=>[r.region, positive ? r.effect : -r.effect]),
   ) as Record<TumorRegion, number>
@@ -84,61 +84,25 @@ export function LimeView({
         </button>
       </div>
 
-      <Contributions
-        call={lime.call}
-        steps={[
-          // Before reading the scan, the models lean toward whichever result is common in training.
-          { id: "how-common", label: "How common", prior: true,
-            full: `How common ${lime.call} is in the training data, before looking at this scan (from 50/50)`,
-            delta: ((positive ? 1 : -1)*Number(lime.typical.value)+(positive ? 0 : 1))*100-50 },
-          ...top.slice(0, 5).map((f)=>({ id: f.evidence_id, label: short(f.label), full: f.label,
-            delta: (f.supports_call ? 1 : -1)*Math.abs(f.effect)*100 })),
-        ]}
-      />
+      <ol className="space-y-1.5">
+        {[
+          { id: "how-common", label: `Usual result for most patients (${lime.call})`,
+            points: ((positive ? 1 : -1)*Number(lime.typical.value)+(positive ? 0 : 1))*100-50 },
+          ...lime.factors.filter((f)=>f.supports_call).map((f)=>({
+            id: f.evidence_id, label: plain(f.label), points: Math.abs(f.effect)*100,
+          })),
+        ].filter((f)=>f.points>=0.5).sort((x, y)=>y.points-x.points).slice(0, 4).map((f, i)=>(
+          <li key={f.id} className="flex items-baseline justify-between gap-3 text-sm text-neutral-200">
+            <span><span className="text-neutral-500">{i+1}.</span> {f.label}</span>
+            <span className="shrink-0 text-[11px] text-neutral-500">+{f.points.toFixed(0)}</span>
+          </li>
+        ))}
+      </ol>
 
       <p className="text-[11px] text-neutral-500" title={`${lime.method} Local fit R² ${lime.fidelity_r2.toFixed(2)}.`}>
-        LIME · % points pushing this prediction from 50/50 · first bar: how common the result is
+        LIME · what pushes the model toward this result, strongest first
       </p>
     </div>
   )
 }
 
-/** The top factors behind this prediction and how much each pushed it, toward or against the call. */
-function Contributions({ call, steps }: {
-  call: string
-  steps: { id: string; label: string; full: string; delta: number; prior?: boolean }[]
-}) {
-  const rows=steps.filter((s)=>Math.abs(s.delta)>=0.05)
-  if (rows.length===0) {
-    return <p className="text-[11px] text-neutral-400">No single factor moves this prediction noticeably.</p>
-  }
-  // A full half-bar is at least 10 points, so a 2-point push looks small.
-  const scale=Math.max(10, ...rows.map((r)=>Math.abs(r.delta)))
-  return (
-    <div className="space-y-1.5">
-      <div className="flex items-center gap-2 text-[10px] text-neutral-500">
-        <span className="w-28 shrink-0" />
-        <span className="flex flex-1 justify-between"><span>◀ against {call}</span><span>toward {call} ▶</span></span>
-        <span className="w-10 shrink-0" />
-      </div>
-      {rows.map((r)=>{
-        const half=Math.max(1, Math.abs(r.delta)/scale*50)
-        const up=r.delta>0
-        return (
-          <div key={r.id} className="flex items-center gap-2"
-            title={`${r.full}: ${up ? "+" : "−"}${Math.abs(r.delta).toFixed(1)} points ${up ? "toward" : "against"} ${call}`}>
-            <span className={`w-28 shrink-0 truncate text-[11px] ${r.prior ? "italic text-neutral-400" : "text-neutral-300"}`}>{r.label}</span>
-            <div className="relative h-2.5 flex-1">
-              <div className="absolute inset-y-0 left-1/2 w-px bg-neutral-700" aria-hidden="true" />
-              <div className={`absolute top-0 h-2.5 rounded-sm ${r.prior ? (up ? "bg-emerald-800" : "bg-rose-900") : up ? "bg-emerald-500" : "bg-rose-500"}`}
-                style={up ? { left: "50%", width: `${half}%` } : { right: "50%", width: `${half}%` }} />
-            </div>
-            <span className="w-10 shrink-0 text-right text-[11px] text-neutral-300">
-              {up ? "+" : "−"}{Math.abs(r.delta).toFixed(1)}
-            </span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
