@@ -12,12 +12,15 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from sqlalchemy import select, text
+import threading
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db.models import AuditEntry
 
 GENESIS="0"*64
 _LOCK_KEY=0x5642580A  # arbitrary constant identifying the audit-log lock
+_record_lock=threading.Lock()
 
 
 def _digest(seq: int, ts: datetime, actor_id: uuid.UUID | None, action: str, object_id: str | None,
@@ -38,20 +41,28 @@ def record(
     db: Session, actor_id: uuid.UUID | None, action: str, object_id: str | None=None,
     model_version: str | None=None,
 ) -> AuditEntry:
-    """Append one entry and commit it."""
-    bind=db.get_bind()
-    if bind and bind.dialect.name=="postgresql":
-        db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": _LOCK_KEY})
-    last=db.scalar(select(AuditEntry).order_by(AuditEntry.seq.desc()).limit(1))
-    seq=1 if last is None else last.seq+1
-    prev_hash=GENESIS if last is None else last.hash
-    ts=datetime.now(UTC)
-    entry=AuditEntry(
-        seq=seq, ts=ts, actor_id=actor_id, action=action, object_id=object_id, model_version=model_version,
-        prev_hash=prev_hash, hash=_digest(seq, ts, actor_id, action, object_id, model_version, prev_hash),
-    )
-    db.add(entry)
-    db.commit()
+    """Append one entry and commit it (thread-safe and multi-process safe with retry)."""
+    with _record_lock:
+        for attempt in range(5):
+            try:
+                bind=db.get_bind()
+                if bind and bind.dialect.name=="postgresql":
+                    db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": _LOCK_KEY})
+                last=db.scalar(select(AuditEntry).order_by(AuditEntry.seq.desc()).limit(1))
+                seq=1 if last is None else last.seq+1
+                prev_hash=GENESIS if last is None else last.hash
+                ts=datetime.now(UTC)
+                entry=AuditEntry(
+                    seq=seq, ts=ts, actor_id=actor_id, action=action, object_id=object_id, model_version=model_version,
+                    prev_hash=prev_hash, hash=_digest(seq, ts, actor_id, action, object_id, model_version, prev_hash),
+                )
+                db.add(entry)
+                db.commit()
+                return entry
+            except IntegrityError:
+                db.rollback()
+                if attempt==4:
+                    raise
     return entry
 
 

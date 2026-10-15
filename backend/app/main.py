@@ -90,7 +90,7 @@ def create_app() -> FastAPI:
     return app
 
 
-_API_PREFIXES=("api/", "health", "ready", "docs", "redoc", "openapi.json")
+_API_PREFIXES=("api", "health", "ready", "docs", "redoc", "openapi.json")
 
 
 def _serve_frontend(app: FastAPI, dist: Path) -> None:
@@ -100,7 +100,8 @@ def _serve_frontend(app: FastAPI, dist: Path) -> None:
 
     @app.get("/{path:path}", include_in_schema=False)
     def frontend(path: str) -> FileResponse:
-        if path.startswith(_API_PREFIXES):
+        clean=path.strip("/")
+        if clean=="api" or any(clean==p or clean.startswith(p+"/") for p in _API_PREFIXES):
             raise not_found()
         candidate=(root/path).resolve()
         if path and candidate.is_relative_to(root) and candidate.is_file():
