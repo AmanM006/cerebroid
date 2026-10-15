@@ -39,6 +39,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logging.getLogger("uploads").warning("upload_restore_failed: %s", type(exc).__name__)
     if settings.warmup_profiles:
         warmup.start(app.state.registry, app.state.feature_store)
+
+    try:
+        from app.cli import seed
+        seed()
+    except Exception as exc:
+        logging.getLogger("startup").warning("startup_seed_failed: %s", exc)
+
     yield
 
 

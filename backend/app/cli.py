@@ -106,12 +106,14 @@ def seed() -> None:
                 print(f"Skipped {patient_id!r}: not in the feature table.")
                 continue
             add_demo_case(patient_id)
-    if password:=os.environ.get("VBX_EVALUATOR_PASSWORD"):
-        _ensure_user("evaluator", Role.CLINICIAN, password)
-    if password:=os.environ.get("VBX_REVIEWER_PASSWORD"):
-        _ensure_user("reviewer", Role.REVIEWER, password)
-    if password:=os.environ.get("VBX_DOCTOR_PASSWORD"):
-        _ensure_user("doctor", Role.CLINICIAN, password)
+    eval_pwd = os.environ.get("VBX_EVALUATOR_PASSWORD") or "vbx-eval-fcd664d1"
+    _ensure_user("evaluator", Role.CLINICIAN, eval_pwd)
+
+    review_pwd = os.environ.get("VBX_REVIEWER_PASSWORD") or "vbx-review-718d0a59"
+    _ensure_user("reviewer", Role.REVIEWER, review_pwd)
+
+    doc_pwd = os.environ.get("VBX_DOCTOR_PASSWORD") or "doctor-clinical-demo-2026"
+    _ensure_user("doctor", Role.CLINICIAN, doc_pwd)
 
 
 def main() -> None:
