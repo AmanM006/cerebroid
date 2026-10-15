@@ -7,7 +7,7 @@
     "sex"
   ],
   "feature_medians": {
-    "age": 59.0,
+    "age": 57.0,
     "sex": 1.0
   },
   "decision_threshold": 0.5,
@@ -19,59 +19,59 @@
   "epsilon": 0.03,
   "models": [
     {
-      "model_id": "logreg_c0.01_l10.5",
+      "model_id": "logreg_c0.01_l10.0",
       "family": "logreg",
-      "cv_log_loss": 0.305
-    },
-    {
-      "model_id": "logreg_c0.1_l11.0",
-      "family": "logreg",
-      "cv_log_loss": 0.305
+      "cv_log_loss": 0.3717
     },
     {
       "model_id": "logreg_c0.1_l10.5",
       "family": "logreg",
-      "cv_log_loss": 0.3054
+      "cv_log_loss": 0.3718
     },
     {
-      "model_id": "logreg_c1.0_l11.0",
+      "model_id": "logreg_c0.1_l11.0",
       "family": "logreg",
-      "cv_log_loss": 0.3076
+      "cv_log_loss": 0.3718
     },
     {
-      "model_id": "logreg_c0.01_l10.0",
+      "model_id": "logreg_c0.01_l10.5",
       "family": "logreg",
-      "cv_log_loss": 0.3078
-    },
-    {
-      "model_id": "logreg_c1.0_l10.5",
-      "family": "logreg",
-      "cv_log_loss": 0.308
+      "cv_log_loss": 0.3718
     },
     {
       "model_id": "logreg_c0.1_l10.0",
       "family": "logreg",
-      "cv_log_loss": 0.3081
+      "cv_log_loss": 0.3721
     },
     {
-      "model_id": "logreg_c5.0_l11.0",
+      "model_id": "logreg_c1.0_l11.0",
       "family": "logreg",
-      "cv_log_loss": 0.3083
+      "cv_log_loss": 0.3723
     },
     {
-      "model_id": "logreg_c5.0_l10.5",
+      "model_id": "logreg_c1.0_l10.5",
       "family": "logreg",
-      "cv_log_loss": 0.3084
+      "cv_log_loss": 0.3723
     },
     {
       "model_id": "logreg_c1.0_l10.0",
       "family": "logreg",
-      "cv_log_loss": 0.3084
+      "cv_log_loss": 0.3724
+    },
+    {
+      "model_id": "logreg_c5.0_l11.0",
+      "family": "logreg",
+      "cv_log_loss": 0.3724
+    },
+    {
+      "model_id": "logreg_c5.0_l10.5",
+      "family": "logreg",
+      "cv_log_loss": 0.3724
     },
     {
       "model_id": "logreg_c5.0_l10.0",
       "family": "logreg",
-      "cv_log_loss": 0.3085
+      "cv_log_loss": 0.3725
     }
   ],
   "library_versions": {
@@ -82,5 +82,5 @@
     "joblib": "1.6.0",
     "lightgbm": "4.7.0"
   },
-  "baseline_log_loss": 0.5053
+  "baseline_log_loss": 0.551
 }

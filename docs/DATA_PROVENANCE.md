@@ -148,9 +148,11 @@ This layer exports raw extracted features only.
 
 ---
 
-## External validation cohort (TCGA, evaluation only)
+## Second site: TCGA cohort (training and held-out test)
 
-Used only to test the deployed models; nothing is trained on it. Download date: 2026-10-15.
+A fixed patient-level split (`tcga_split` in `ml/pipeline/external_validation.py`: 70% train, 30% test, stratified
+by IDH status and race, seed 0, stored in the `split` column) adds 116 patients to training and holds out 51.
+Download date: 2026-10-15.
 
 | Source | Content used | License / terms |
 |---|---|---|
@@ -164,11 +166,12 @@ Used only to test the deployed models; nothing is trained on it. Download date: 
 | ... with a TCGA patient ID | 167 |
 | ... with TCGA lab results (all) | 167 |
 | Race | White 147, Black or African American 12, Asian 3, other or not reported 5 |
+| Train / held-out test | 116 / 51 (held-out race: White 44, Black 3, Asian 2, other 2) |
 
 Labels: IDH Mutant=1 / WT=0; 1p/19q codeleted=1 for `IDHmut-codel`, 0 for `IDHmut-non-codel` and `IDHwt`;
 MGMT Methylated=1; grade G2/G3/G4. Features: `ml/pipeline/extract.py` mode v1, as for training.
 Committed: `artifacts/features/external_tcga.parquet` (derived features and labels only, sha256
-`2675ef88f20fc051adba79a20dc7fccc44a65ec1a5d29b758c7043489852d6e3`) and `artifacts/metrics/external_tcga.json`.
+`420405a82ca1b6f749dafa3fd442c1d7e66e24b6f977872ba26e1d95dec19458`) and `artifacts/metrics/external_tcga.json`.
 Raw scans stay outside the repository.
 
 ## Synthetic data

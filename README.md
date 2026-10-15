@@ -93,9 +93,9 @@ Register a public-dataset patient from the feature table as a demo case (age, se
 docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-0004
 ```
 
-To reproduce the deployed demo on a fresh stack, register the eight held-out test patients:
+To reproduce the deployed demo on a fresh stack, register the seven held-out test patients:
 ```bash
-for p in 0232 0026 0018 0327 0061 0243 0162 0282; do
+for p in 0232 0026 0018 0162 0327 0243 0282; do
   docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-$p
 done
 ```
@@ -106,7 +106,7 @@ done
 - **How it is hosted (Render, free tier):** one Docker web service built from the root [Dockerfile](Dockerfile) (identical to [ops/render/Dockerfile](ops/render/Dockerfile), which the blueprint uses)
   (the API also serves the built frontend, so the app is one origin) plus a free Postgres, both defined in
   [render.yaml](render.yaml). To recreate it: Render dashboard → New → Blueprint → this repository; enter the
-  test-account passwords below when asked. Migrations, the eight demo cases and the test accounts are created at
+  test-account passwords below when asked. Migrations, the seven demo cases and the test accounts are created at
   start-up (`python -m app.cli seed`, idempotent; demo cases not in `VBX_SEED_DEMO_CASES` are removed). After
   start-up the demo cases' profiles are precomputed in the background, so first views are fast.
 - **Cold start:** the free tier sleeps after 15 idle minutes; the first request then takes about a minute.
@@ -251,13 +251,13 @@ pip-audit -r requirements.txt
 ```
 
 ## 11. Known limitations
-- **Other hospitals and race.** Training data is one institution (UCSF-PDGM), whose public release has no race
-  field. External check ([ml/pipeline/external_validation.py](ml/pipeline/external_validation.py),
-  [04 notebook](ml/notebooks/04_external_validation_tcga.ipynb), `artifacts/metrics/external_tcga.json`): the
-  deployed models, unchanged, on 167 TCGA patients from many US hospitals (147 White, 12 Black, 3 Asian, 5 other or
-  not reported). IDH AUC 0.79 (UCSF held-out 0.98); Stable IDH calls 80% accurate vs 73% for all calls. Grade AUC
-  0.90, but 57 of 65 grade 2-3 tumors were called grade 4 (scanner-intensity shift). 1p/19q AUC 0.39 and MGMT 0.59:
-  no useful transfer. Black and Asian groups are too small for statistically meaningful per-race comparisons.
+- **Other hospitals and race.** The models are trained on UCSF-PDGM (395 patients, one hospital, no race field)
+  plus 70% of a TCGA cohort from many US hospitals (116 patients; 103 White, 9 Black, 1 Asian, 3 other or not
+  reported). The other 30% (51 patients) is held out ([ml/pipeline/external_validation.py](ml/pipeline/external_validation.py),
+  [04 notebook](ml/notebooks/04_external_validation_tcga.ipynb), `artifacts/metrics/external_tcga.json`): IDH 91%
+  accurate (AUC 0.99), grade 86% (AUC 0.95). Models trained on UCSF alone scored 80% and 65% on the same patients,
+  because of scanner differences. 1p/19q (4 co-deleted held-out patients) and MGMT do not transfer. The held-out
+  split has 3 Black and 2 Asian patients, too few for per-race conclusions; TCGA itself is mostly White.
   Race is evaluated, never used as a model input.
 - **Scanner intensity.** The deployed features are extracted in mode `v1` ([ml/pipeline/extract.py](ml/pipeline/extract.py)):
   texture uses 32 grey levels normalized within each tumor region and shape/composition features don't depend on

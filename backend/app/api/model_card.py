@@ -3,6 +3,8 @@ well they do on held-out patients, and what they must not be used for."""
 import json
 from pathlib import Path
 
+import pandas as pd
+
 from fastapi import APIRouter, Depends, Request
 
 from app.api.deps import get_current_user, get_feature_store, get_registry
@@ -24,31 +26,42 @@ DISCLAIMER=(
     "Research decision-support prototype. Not a diagnostic device. Trained on public de-identified data."
 )
 LIMITATIONS=[
-    "Trained on one institution (UCSF-PDGM). On 167 external TCGA patients from many hospitals "
-    "(models unchanged), IDH AUC fell from 0.98 to 0.79 and 1p/19q did not transfer (AUC 0.39); "
-    "grade ranking held (AUC 0.90) but "
-    "57 of 65 grade 2-3 tumors were called grade 4, a scanner-intensity shift. Stable IDH calls stayed more "
-    "accurate (80% vs 73%). See ml/notebooks/04_external_validation_tcga.ipynb.",
-    "Race: absent from UCSF-PDGM; on TCGA, Black (11-12 per marker) and Asian (2-3) patients are too few for "
-    "statistically meaningful per-race comparisons. Race is evaluated, never used as a model input.",
-    "Only 15 1p/19q co-deleted patients in the cohort (13 of 323 training patients, 4.0%), so calibrated "
-    "probabilities stay below the 0.5 call threshold: good ranking (AUC 0.90) but no positive calls yet.",
-    "MGMT methylation is barely predictable from these MRI features; the model card's held-out AUC shows it.",
+    "Trained on two sources: UCSF-PDGM (395 patients, one hospital) and 70% of a TCGA cohort from many US "
+    "hospitals (116 patients). On the 51 held-out TCGA patients IDH was 91% accurate (AUC 0.99) "
+    "and grade 86% (AUC 0.95); the same patients scored 80% and 65% with models trained on UCSF alone. "
+    "See ml/notebooks/04_external_validation_tcga.ipynb.",
+    "Race: absent from UCSF-PDGM; TCGA is mostly White. The 116 TCGA training patients include 9 Black "
+    "and 1 Asian patient; the held-out split has 3 and 2, too few for per-race conclusions. "
+    "Race is never a model input.",
+    "Only 22 1p/19q co-deleted patients among 511 training patients, so calibrated probabilities stay below "
+    "the 0.5 call threshold: the models rank co-deletion (UCSF AUC 0.92) but make no positive calls.",
+    "MGMT methylation is not predictable from these MRI features (no reliable signal); it is never called.",
     "Features are radiomics-style statistics computed with SciPy/scikit-image, not pyradiomics.",
-    "First-order intensity features use raw scanner values (one institution); a stress test shows they shift "
-    "with scanner gain, while noise and shading changed no calls. Brain-normalized features (v2) exist.",
+    "First-order intensity features use raw scanner values; training on two sources reduced the scanner "
+    "effect, but a new scanner type can still shift calls. Brain-normalized features (v2) exist.",
     "Calls depend on the tumor segmentation; one-voxel outline errors changed a few stress-test calls.",
     "Explanations (evidence, tipping points) describe model sensitivity, not biological cause.",
     "Adults (18+) only; paediatric gliomas were excluded from training.",
 ]
 
 
-def _population(store: FeatureStore) -> dict:
-    """Training-cohort makeup, so users can judge whether a patient resembles it."""
-    rows=[r for r in store.rows.values() if r.get("split")=="train"]
+def _tcga_training_rows(root: Path) -> list[dict]:
+    path=root/"features"/"external_tcga.parquet"
+    if not path.is_file():
+        return []
+    columns=["split", "age", "sex", "idh", "codeletion_1p19q", "who_grade", "race"]
+    table=pd.read_parquet(path, columns=columns)
+    return table[table["split"]=="train"].to_dict("records")
+
+
+def _population(store: FeatureStore, root: Path) -> dict:
+    """Training-cohort makeup (both sites), so users can judge whether a patient resembles it."""
+    ucsf=[r for r in store.rows.values() if r.get("split")=="train"]
+    tcga=_tcga_training_rows(root)
+    rows=ucsf+tcga
     if not rows:
         return {}
-    ages=sorted(float(r["age"]) for r in rows)
+    ages=sorted(float(r["age"]) for r in rows if r.get("age") is not None and r["age"]==r["age"])
     def types(r: dict) -> str:
         if r.get("idh")==0:
             return "IDH-wildtype"
@@ -59,7 +72,8 @@ def _population(store: FeatureStore) -> dict:
     for r in rows:
         counts[types(r)]=counts.get(types(r), 0)+1
     return {
-        "site": "UCSF (one US academic hospital), UCSF-PDGM public dataset",
+        "site": (f"UCSF-PDGM ({len(ucsf)}, one hospital) + TCGA ({len(tcga)}, many US hospitals)"
+                 if tcga else "UCSF (one US academic hospital), UCSF-PDGM public dataset"),
         "patients": len(rows),
         "female": sum(1 for r in rows if r.get("sex")==0),
         "male": sum(1 for r in rows if r.get("sex")==1),
@@ -68,8 +82,9 @@ def _population(store: FeatureStore) -> dict:
         "grade_4_share": round(sum(1 for r in rows if r.get("who_grade")==4)/len(rows), 3),
         "tumor_types": counts,
         "race": (
-            "not included in the public UCSF-PDGM release; performance by race is measured on the "
-            "external TCGA cohort"
+            "not recorded for the UCSF patients; TCGA training patients: "
+            +", ".join(f"{n} {g}" for g, n in pd.Series([r["race"] for r in tcga]).value_counts().items())
+            if tcga else "not included in the public UCSF-PDGM release"
         ),
     }
 
@@ -124,7 +139,7 @@ def model_card(
         held_out_patients=metrics.get("n_patients"),
         model_sets=sets,
         limitations=LIMITATIONS,
-        training_population=_population(store),
+        training_population=_population(store, settings.artifacts_root),
         subgroups=_load_json(settings.artifacts_root/"metrics"/"subgroups_ucsf.json"),
         external_validation=_load_json(settings.artifacts_root/"metrics"/"external_tcga.json"),
         request_id=getattr(request.state, "request_id", None),

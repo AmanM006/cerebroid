@@ -88,12 +88,12 @@ export function DataCard() {
 
       <div className="space-y-2">
         <p className="text-[10px] uppercase tracking-wider text-neutral-500">
-          External check: TCGA, many US hospitals, by race
+          Held-out TCGA patients (other hospitals), by race
         </p>
         {external ? (
           <>
             <p className="text-[11px] text-neutral-400">
-              {external.cohort} · {external.patients} patients · models applied unchanged
+              {external.patients} patients from many US hospitals that the models never saw
             </p>
             <p className="text-[11px] text-neutral-300">
               All patients: {MARKERS.map((m, i)=><span key={m}>{i>0 && " · "}{NAMES[m]} {cell(overall(external, m))}</span>)}

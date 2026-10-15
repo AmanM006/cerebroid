@@ -1,21 +1,21 @@
 {
   "feature_pipeline_version": "sha256:85e3b9883e3e5af5b36493cd407fbbffedd04a5544139bdf515e0c99a322e0bb",
   "model_versions": {
-    "1p19q:clinical_only": "sha256:8e9af0ee3f9f323353901dea4d33b24d15748638d07a02b096e9cc7d5a658e18",
-    "1p19q:fused": "sha256:51d36575e0f5897cd21293b6e855335241607f8ff1f59a95d6883e76084c5354",
-    "1p19q:fused_given_idh": "sha256:fabd042763b19bd647bfd51c6ef546c0b9de762ea4b4011b67d798562a956946",
-    "1p19q:imaging_only": "sha256:fd26fd44294843fdb02b04c4053015bcb8156f70f8ca30ac1a521b0e1276dd78",
-    "GRADE:clinical_only": "sha256:a3161b272b75f39bb2abebd5008a9a2699b2b54249bc4e093d14f16608afc488",
-    "GRADE:fused": "sha256:430d602566b16a1acb78e1005dee6080c140fd9d65e60b89f45deaa07e4b971e",
-    "GRADE:fused_given_idh": "sha256:2608297d27cfbaf507401775fc1ff9cdd3922e12c2107730ac2b7984a6cea94d",
-    "GRADE:imaging_only": "sha256:2f4e88367bfd3e34724f334119e4dabcc796c19abe6a3c7c543da19f79b2a9ed",
-    "IDH:clinical_only": "sha256:473d1ca4d8fcd4bf4dfe91caefd4f212a8c4fcb94778bf33b71e639c74b25ded",
-    "IDH:fused": "sha256:7597d8b4cf318d14fa398096858d00f6d1200e701c6baa7dfc7931d5b01c0fc4",
-    "IDH:imaging_only": "sha256:e91d8a5810cb26b18557f32ad7463c3afe63ad6759224db4e11ff1b29ff12621",
-    "MGMT:clinical_only": "sha256:385dae37a46117c512e27e2019a4137253db3cc6e92b0e452644345d305e4b3a",
-    "MGMT:fused": "sha256:a7b499029a7869f57e7986576c589aed48b7c088064dfd0c590f88f2e2cf82d9",
-    "MGMT:fused_given_idh": "sha256:b28bf143116bb133aa76d7269c2c1bfcfb403433146dbd022d47e2f6aee5db13",
-    "MGMT:imaging_only": "sha256:2625e43a86a6b9a8abe53fc6d4636114aa6a673b6a2a8cdf5c2cb935b943e508"
+    "1p19q:clinical_only": "sha256:09350203aa94a59d25cf08c0539db29a5c3c7bfae82a89ce99bb26c86271fb9f",
+    "1p19q:fused": "sha256:e508251b88b37ed1a858da8c26ac84f5c51dff363e92b0ac2dd121cff7a76fb0",
+    "1p19q:fused_given_idh": "sha256:62fd5c9a9c76c71afd7656e39f26a36765917800c28e6e6d2d3bcca7bc6c2227",
+    "1p19q:imaging_only": "sha256:fa1f089f9d77816fdc56641977ea459ad4f90b3f86187f9d14899e548d1cb4fd",
+    "GRADE:clinical_only": "sha256:0ce3e83f50c9cb517002041b64b62ca2cc964cde2ff9ebab6bd03c898262e59b",
+    "GRADE:fused": "sha256:7f4775c939c04a01c6ea0134618e9d752bada4080d05d2c1b3d4b82b7e5b8dd3",
+    "GRADE:fused_given_idh": "sha256:0554f3fe46ba64d32be59e3e5cbf766202b8da20c63b9f92fdc38fac2d2808bf",
+    "GRADE:imaging_only": "sha256:d262bcef18a5128786b13af188d73a7839c6d413ca2b107db8b59422b979d759",
+    "IDH:clinical_only": "sha256:9e6ddee46e9578c9604080ace4d7080e6b9f637539378a6378e61ff182727dcc",
+    "IDH:fused": "sha256:6f7ed943339cdb89e13b274d5f8182c7c992de6af73f83c93e7361aba07047f0",
+    "IDH:imaging_only": "sha256:e567b486af1131cae5de9e5d3a695a5f109db607972cd2bb4af4fd44a5562e63",
+    "MGMT:clinical_only": "sha256:cc2c6e9f18a271e6d75aa029879c2a64f40d222e1dcc58bd796253cc8eb26e48",
+    "MGMT:fused": "sha256:bc860cedda32e9d4965763bfbea4edf07e5e515e15cfbbe3e9e488bf34bd9e2b",
+    "MGMT:fused_given_idh": "sha256:287ec492bc91701ad02142678bf8b7b30265c361a9245878ff5140cad0901d70",
+    "MGMT:imaging_only": "sha256:57231e0ff5f4c3cb9756daed491f27b079190b386e67a57d43dea7134661ad27"
   },
   "patients": {
     "UCSF-PDGM-0005": {
@@ -23,7 +23,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.200082,
+          "prob_median": 0.330907,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -31,7 +31,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.842049,
+          "prob_median": 0.867638,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -47,7 +47,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.762612,
+          "prob_median": 0.70625,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -57,7 +57,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.033805,
+          "prob_median": 0.060768,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -65,7 +65,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.96724,
+          "prob_median": 0.951503,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -73,16 +73,16 @@
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.038143,
+          "prob_median": 0.052773,
           "status": "predicted",
-          "top_evidence": "clinical__age",
+          "top_evidence": "t1ce__ncr",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.734264,
+          "prob_median": 0.695964,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -94,7 +94,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.050384,
+          "prob_median": 0.123805,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -102,7 +102,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.974034,
+          "prob_median": 0.92995,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -118,7 +118,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.707389,
+          "prob_median": 0.686461,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -128,7 +128,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.023973,
+          "prob_median": 0.038543,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -136,7 +136,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.983508,
+          "prob_median": 0.95207,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -144,16 +144,16 @@
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.056083,
+          "prob_median": 0.044235,
           "status": "predicted",
-          "top_evidence": "t1__ed",
+          "top_evidence": "t1ce__ed",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.708379,
+          "prob_median": 0.703462,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -165,7 +165,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.054911,
+          "prob_median": 0.105032,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -173,7 +173,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.892096,
+          "prob_median": 0.896524,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -189,7 +189,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.74784,
+          "prob_median": 0.702851,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -199,7 +199,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.034491,
+          "prob_median": 0.040895,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -207,7 +207,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.970711,
+          "prob_median": 0.962793,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -215,16 +215,16 @@
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.020917,
+          "prob_median": 0.034883,
           "status": "predicted",
-          "top_evidence": "clinical__age",
+          "top_evidence": "t1ce__ncr",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.722756,
+          "prob_median": 0.698975,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -236,7 +236,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.043154,
+          "prob_median": 0.109318,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -244,7 +244,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.811885,
+          "prob_median": 0.834839,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -260,7 +260,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.755683,
+          "prob_median": 0.707983,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -270,7 +270,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.026071,
+          "prob_median": 0.047178,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -278,7 +278,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.964695,
+          "prob_median": 0.955043,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -286,16 +286,16 @@
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.042575,
+          "prob_median": 0.033936,
           "status": "predicted",
-          "top_evidence": "t2__ed",
+          "top_evidence": "t2__ncr",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.731617,
+          "prob_median": 0.695679,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -307,7 +307,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.090418,
+          "prob_median": 0.307345,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -315,7 +315,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.921977,
+          "prob_median": 0.943282,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -331,7 +331,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.76715,
+          "prob_median": 0.71082,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -341,7 +341,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.027849,
+          "prob_median": 0.044165,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -349,7 +349,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.971638,
+          "prob_median": 0.961405,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -357,16 +357,16 @@
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.030251,
+          "prob_median": 0.034186,
           "status": "predicted",
-          "top_evidence": "t1ce__ed",
+          "top_evidence": "t1ce__ncr",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.746124,
+          "prob_median": 0.702718,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -378,7 +378,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.05031,
+          "prob_median": 0.128996,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -386,7 +386,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.960541,
+          "prob_median": 0.947354,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -402,7 +402,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.757748,
+          "prob_median": 0.709074,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -412,7 +412,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.023742,
+          "prob_median": 0.039046,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -420,7 +420,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.983463,
+          "prob_median": 0.96725,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -428,16 +428,16 @@
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.003547,
+          "prob_median": 0.023869,
           "status": "predicted",
-          "top_evidence": "clinical__age",
+          "top_evidence": "t1ce__ncr",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.728392,
+          "prob_median": 0.695272,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -449,15 +449,15 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.058838,
+          "prob_median": 0.201934,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
         },
         "GRADE": {
-          "call": "grade 4",
+          "call": "grade 2-3",
           "low_signal": false,
-          "prob_median": 0.662727,
+          "prob_median": 0.237275,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -473,7 +473,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.753685,
+          "prob_median": 0.700804,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -483,32 +483,32 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.030074,
+          "prob_median": 0.119297,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "GRADE": {
-          "call": "grade 4",
+          "call": "grade 2-3",
           "low_signal": false,
-          "prob_median": 0.787494,
+          "prob_median": 0.262871,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "IDH": {
-          "call": "wildtype",
+          "call": "mutant",
           "low_signal": false,
-          "prob_median": 0.216157,
+          "prob_median": 0.780472,
           "status": "predicted",
-          "top_evidence": "clinical__age",
+          "top_evidence": "descriptors",
           "variant": "fused",
-          "verdict": "CONTESTED"
+          "verdict": "STABLE"
         },
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.728049,
+          "prob_median": 0.682892,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -520,7 +520,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.075291,
+          "prob_median": 0.102771,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -528,7 +528,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.897306,
+          "prob_median": 0.904848,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -544,7 +544,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.740763,
+          "prob_median": 0.699292,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -554,7 +554,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.031676,
+          "prob_median": 0.039952,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -562,7 +562,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.96427,
+          "prob_median": 0.957625,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -570,7 +570,7 @@
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.04408,
+          "prob_median": 0.077998,
           "status": "predicted",
           "top_evidence": "clinical__age",
           "variant": "fused",
@@ -579,7 +579,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.729958,
+          "prob_median": 0.706475,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -591,7 +591,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.055442,
+          "prob_median": 0.176255,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -599,7 +599,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.886594,
+          "prob_median": 0.944164,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -615,7 +615,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.749408,
+          "prob_median": 0.698908,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -625,7 +625,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.026658,
+          "prob_median": 0.077926,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -633,7 +633,7 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.973446,
+          "prob_median": 0.9595,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -641,16 +641,16 @@
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.054428,
+          "prob_median": 0.08547,
           "status": "predicted",
-          "top_evidence": "t1ce__et",
+          "top_evidence": "t1ce__ncr",
           "variant": "fused",
           "verdict": "STABLE"
         },
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.745615,
+          "prob_median": 0.690732,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -662,7 +662,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.062357,
+          "prob_median": 0.170811,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -670,10 +670,10 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.784829,
+          "prob_median": 0.829155,
           "status": "predicted",
           "variant": "fused_given_idh",
-          "verdict": "STABLE"
+          "verdict": "ARBITRARY"
         },
         "IDH": {
           "call": "mutant",
@@ -686,7 +686,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.763724,
+          "prob_median": 0.703283,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -696,7 +696,7 @@
         "1p19q": {
           "call": "intact",
           "low_signal": false,
-          "prob_median": 0.031171,
+          "prob_median": 0.044395,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -704,15 +704,15 @@
         "GRADE": {
           "call": "grade 4",
           "low_signal": false,
-          "prob_median": 0.841938,
+          "prob_median": 0.85565,
           "status": "predicted",
           "variant": "fused",
-          "verdict": "STABLE"
+          "verdict": "CONTESTED"
         },
         "IDH": {
           "call": "wildtype",
           "low_signal": false,
-          "prob_median": 0.344422,
+          "prob_median": 0.276883,
           "status": "predicted",
           "top_evidence": "clinical__age",
           "variant": "fused",
@@ -721,7 +721,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.746037,
+          "prob_median": 0.692665,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"

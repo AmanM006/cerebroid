@@ -31,7 +31,8 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import log_loss, roc_auc_score
 from lightgbm import LGBMClassifier
 import scipy
-import yaml
+import lightgbm
+from joblib import Parallel, delayed
 
 ROOT = Path(__file__).resolve().parents[2]
 FEATURES_PATH = ROOT / "artifacts" / "features" / "features.parquet"
@@ -42,6 +43,15 @@ df = pd.read_parquet(FEATURES_PATH)
 train_df = df[df["split"] == "train"].copy()
 test_df = df[df["split"] == "test"].copy()
 
+# Multi-site training: the 70% TCGA training split (many US hospitals) joins the UCSF training patients.
+# The other 30% and the UCSF test split stay held out (ml/pipeline/external_validation.py, evaluate.py).
+sys.path.insert(0, str(ROOT / "ml" / "pipeline"))
+from external_validation import FEATURES as TCGA_PATH  # noqa: E402
+tcga = pd.read_parquet(TCGA_PATH)
+tcga_train = tcga[tcga["split"] == "train"]
+train_df = pd.concat([train_df, tcga_train[[c for c in tcga_train.columns if c in train_df.columns]]], ignore_index=True)
+print(f"Training patients: {len(train_df)} (UCSF {int((df['split']=='train').sum())}, TCGA {len(tcga_train)})")
+
 NON_FEATURE_PREFIXES = ("patient_id", "split", "fold", "idh", "codeletion_1p19q", "mgmt", "who_grade")
 ALL_IMAGING_COLS = [c for c in train_df.columns if not any(c.startswith(p) for p in NON_FEATURE_PREFIXES) and c not in ("age", "sex", "prior_biopsy")]
 CLINICAL_COLS = ["age", "sex"]
@@ -50,7 +60,8 @@ TARGET_DEFS = {
     "IDH": lambda d: d["idh"],
     "1p19q": lambda d: d["codeletion_1p19q"],
     "MGMT": lambda d: d["mgmt"],
-    "GRADE": lambda d: (d["who_grade"] == 4).astype(float) if "who_grade" in d else None,
+    # Missing grade stays missing (not "grade 2-3").
+    "GRADE": lambda d: (d["who_grade"] == 4).astype(float).where(d["who_grade"].notna()),
 }
 
 def compute_baseline_log_loss(y_train, cv):
@@ -102,7 +113,7 @@ def build_candidates_for_variant(variant_type, marker_name, rng_seed=42):
             for nl in [7, 15]:
                 pipe = Pipeline([
                     ("imputer", SimpleImputer(strategy="median")),
-                    ("clf", LGBMClassifier(learning_rate=lr, num_leaves=nl, n_estimators=60, random_state=rng.randint(10000), class_weight="balanced", verbose=-1)),
+                    ("clf", LGBMClassifier(learning_rate=lr, num_leaves=nl, n_estimators=60, random_state=rng.randint(10000), class_weight="balanced", verbose=-1, n_jobs=1)),
                 ])
                 candidates.append({
                     "model_id": f"lgbm_lr{lr}_nl{nl}",
@@ -126,7 +137,7 @@ def build_candidates_for_variant(variant_type, marker_name, rng_seed=42):
         pipe = Pipeline([
             ("imputer", SimpleImputer(strategy="median")),
             ("var_thresh", VarianceThreshold(0.0)),
-            ("clf", LGBMClassifier(learning_rate=lr, num_leaves=nl, n_estimators=n_est, random_state=rng.randint(10000), class_weight="balanced", verbose=-1)),
+            ("clf", LGBMClassifier(learning_rate=lr, num_leaves=nl, n_estimators=n_est, random_state=rng.randint(10000), class_weight="balanced", verbose=-1, n_jobs=1)),
         ])
         candidates.append({
             "model_id": f"lgbm_bag_{i}",
@@ -197,35 +208,25 @@ def train_variant(marker_name, variant_type, out_dir, given=None):
     candidates = build_candidates_for_variant(variant_type, marker_name, rng_seed=100)
     candidate_results = []
     
-    for cand in candidates:
-        cols = cand["feature_cols"]
-        # CRITICAL SPEC: pass X as DataFrame to preserve feature names for SimpleImputer
-        X_sub_df = X_train_full[cols]
-        
+    def evaluate(cand):
+        X_sub_df = X_train_full[cand["feature_cols"]]
         oof_probs = np.zeros(len(y_train_full), dtype=float)
         oof_counts = np.zeros(len(y_train_full), dtype=int)
-        
         for tr_idx, val_idx in cv.split(X_sub_df, y_train_full):
-            X_tr, y_tr = X_sub_df.iloc[tr_idx], y_train_full[tr_idx]
-            X_val, y_val = X_sub_df.iloc[val_idx], y_train_full[val_idx]
-            
             cand_pipe = sklearn.base.clone(cand["pipeline"])
-            cand_pipe.fit(X_tr, y_tr)
-            probs = cand_pipe.predict_proba(X_val)[:, 1]
-            oof_probs[val_idx] += probs
+            cand_pipe.fit(X_sub_df.iloc[tr_idx], y_train_full[tr_idx])
+            oof_probs[val_idx] += cand_pipe.predict_proba(X_sub_df.iloc[val_idx])[:, 1]
             oof_counts[val_idx] += 1
-            
         oof_probs /= oof_counts
-        cv_loss = float(log_loss(y_train_full, oof_probs))
-        auc = float(roc_auc_score(y_train_full, oof_probs))
-        
-        candidate_results.append({
+        return {
             "candidate": cand,
-            "cv_log_loss": cv_loss,
-            "auc": auc,
+            "cv_log_loss": float(log_loss(y_train_full, oof_probs)),
+            "auc": float(roc_auc_score(y_train_full, oof_probs)),
             "oof_probs": oof_probs,
-        })
-        
+        }
+
+    candidate_results = Parallel(n_jobs=-1)(delayed(evaluate)(c) for c in candidates)
+
     candidate_results.sort(key=lambda r: r["cv_log_loss"])
     best_loss = candidate_results[0]["cv_log_loss"]
     epsilon = 0.03
@@ -290,7 +291,7 @@ def train_variant(marker_name, variant_type, out_dir, given=None):
             "scikit-learn": sklearn.__version__,
             "scipy": scipy.__version__,
             "joblib": joblib.__version__,
-            "lightgbm": "4.7.0"
+            "lightgbm": lightgbm.__version__
         },
         "baseline_log_loss": round(baseline_loss, 4),
     }
@@ -327,21 +328,20 @@ def main():
         ("GRADE", "clinical_only", MODELS_DIR / "grade_clinical_only", []),
     ]
     
-    yaml_entries = []
-    
     for marker, variant, path, given in VARIANTS_PLAN:
         train_variant(marker, variant, path, given=given)
-        rel_path = path.relative_to(ROOT / "artifacts").as_posix()
-        entry = {"marker": marker, "variant": variant, "artifact_dir": rel_path}
-        if given:
-            entry["given"] = given
-        yaml_entries.append(entry)
-        
-    # Write markers.yaml
-    yaml_path = ROOT / "ml" / "configs" / "markers.yaml"
-    with open(yaml_path, "w", encoding="utf-8", newline="\n") as f:
-        yaml.dump({"markers": yaml_entries}, f, sort_keys=False)
-    print("Updated markers.yaml")
+    update_manifest()
+
+
+def update_manifest():
+    """Recomputes the sha256 of every model file already listed in artifacts/manifest.json."""
+    path = ROOT / "artifacts" / "manifest.json"
+    manifest = json.loads(path.read_text(encoding="utf-8"))
+    for rel in manifest["files"]:
+        if rel.startswith("models/"):
+            manifest["files"][rel] = hashlib.sha256((ROOT / "artifacts" / rel).read_bytes()).hexdigest()
+    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8", newline="\n")
+    print("Updated manifest.json")
 
 if __name__ == "__main__":
     main()

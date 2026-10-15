@@ -1,368 +1,358 @@
 {
-  "cohort": "TCGA-GBM + TCGA-LGG (BraTS 2020 pre-operative scans)",
+  "cohort": "TCGA-GBM + TCGA-LGG held-out test split (BraTS 2020 pre-operative scans)",
   "feature_mode": "v1",
-  "patients": 167,
+  "patients": 51,
   "race_counts": {
-    "White": 147,
-    "Black or African American": 12,
-    "Other or not reported": 5,
-    "Asian": 3
+    "White": 44,
+    "Black or African American": 3,
+    "Asian": 2,
+    "Other or not reported": 2
   },
   "markers": {
     "1p19q": {
       "overall": {
-        "n": 143,
-        "positives": 13,
-        "accuracy": 0.9091,
-        "auc": 0.3923,
+        "n": 43,
+        "positives": 4,
+        "accuracy": 0.907,
+        "auc": 0.6859,
         "balanced_accuracy": 0.5,
-        "stable_n": 143,
-        "stable_accuracy": 0.9091
+        "stable_n": 43,
+        "stable_accuracy": 0.907
       },
       "by_race": {
         "Asian": {
-          "n": 2,
+          "n": 1,
           "positives": 0,
           "accuracy": 1.0,
-          "stable_n": 2,
+          "stable_n": 1,
           "stable_accuracy": 1.0
         },
         "Black or African American": {
-          "n": 11,
-          "positives": 0,
-          "accuracy": 1.0,
-          "stable_n": 11,
-          "stable_accuracy": 1.0
-        },
-        "Other or not reported": {
           "n": 3,
           "positives": 0,
           "accuracy": 1.0,
           "stable_n": 3,
           "stable_accuracy": 1.0
         },
+        "Other or not reported": {
+          "n": 1,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 1,
+          "stable_accuracy": 1.0
+        },
         "White": {
-          "n": 127,
-          "positives": 13,
-          "accuracy": 0.8976,
-          "auc": 0.3914,
+          "n": 38,
+          "positives": 4,
+          "accuracy": 0.8947,
+          "auc": 0.6838,
           "balanced_accuracy": 0.5,
-          "stable_n": 127,
-          "stable_accuracy": 0.8976
+          "stable_n": 38,
+          "stable_accuracy": 0.8947
         }
       },
       "by_sex": {
         "female": {
-          "n": 69,
-          "positives": 9,
-          "accuracy": 0.8696,
-          "auc": 0.3426,
+          "n": 21,
+          "positives": 3,
+          "accuracy": 0.8571,
+          "auc": 0.6111,
           "balanced_accuracy": 0.5,
-          "stable_n": 69,
-          "stable_accuracy": 0.8696
+          "stable_n": 21,
+          "stable_accuracy": 0.8571
         },
         "male": {
-          "n": 74,
-          "positives": 4,
-          "accuracy": 0.9459,
-          "auc": 0.4929,
+          "n": 22,
+          "positives": 1,
+          "accuracy": 0.9545,
+          "auc": 0.8571,
           "balanced_accuracy": 0.5,
-          "stable_n": 74,
-          "stable_accuracy": 0.9459
+          "stable_n": 22,
+          "stable_accuracy": 0.9545
         }
       },
       "by_age_band": {
         "45-64": {
-          "n": 67,
-          "positives": 11,
-          "accuracy": 0.8358,
-          "auc": 0.3896,
+          "n": 20,
+          "positives": 4,
+          "accuracy": 0.8,
+          "auc": 0.7812,
           "balanced_accuracy": 0.5,
-          "stable_n": 67,
-          "stable_accuracy": 0.8358
+          "stable_n": 20,
+          "stable_accuracy": 0.8
         },
         "65+": {
-          "n": 27,
-          "positives": 1,
-          "accuracy": 0.963,
-          "auc": 0.0,
-          "balanced_accuracy": 0.5,
-          "stable_n": 27,
-          "stable_accuracy": 0.963
+          "n": 10,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 10,
+          "stable_accuracy": 1.0
         },
         "under 45": {
-          "n": 49,
-          "positives": 1,
-          "accuracy": 0.9796,
-          "auc": 0.9583,
-          "balanced_accuracy": 0.5,
-          "stable_n": 49,
-          "stable_accuracy": 0.9796
+          "n": 13,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 13,
+          "stable_accuracy": 1.0
         }
       }
     },
     "GRADE": {
       "overall": {
-        "n": 166,
-        "positives": 101,
-        "accuracy": 0.6566,
-        "auc": 0.9021,
-        "balanced_accuracy": 0.5615,
-        "stable_n": 137,
-        "stable_accuracy": 0.7299
+        "n": 51,
+        "positives": 31,
+        "accuracy": 0.8627,
+        "auc": 0.9484,
+        "balanced_accuracy": 0.825,
+        "stable_n": 47,
+        "stable_accuracy": 0.8936
       },
       "by_race": {
         "Asian": {
-          "n": 3,
-          "positives": 3,
+          "n": 2,
+          "positives": 2,
           "accuracy": 1.0,
-          "stable_n": 3,
+          "stable_n": 2,
           "stable_accuracy": 1.0
         },
         "Black or African American": {
-          "n": 12,
-          "positives": 7,
-          "accuracy": 0.5833,
-          "auc": 0.9429,
-          "balanced_accuracy": 0.5,
-          "stable_n": 10,
-          "stable_accuracy": 0.7
+          "n": 3,
+          "positives": 1,
+          "accuracy": 0.6667,
+          "auc": 1.0,
+          "balanced_accuracy": 0.75,
+          "stable_n": 2,
+          "stable_accuracy": 1.0
         },
         "Other or not reported": {
-          "n": 4,
-          "positives": 4,
+          "n": 2,
+          "positives": 2,
           "accuracy": 1.0,
-          "stable_n": 4,
+          "stable_n": 2,
           "stable_accuracy": 1.0
         },
         "White": {
-          "n": 147,
-          "positives": 87,
-          "accuracy": 0.6463,
-          "auc": 0.9033,
-          "balanced_accuracy": 0.5667,
-          "stable_n": 120,
-          "stable_accuracy": 0.7167
+          "n": 44,
+          "positives": 26,
+          "accuracy": 0.8636,
+          "auc": 0.9551,
+          "balanced_accuracy": 0.8333,
+          "stable_n": 41,
+          "stable_accuracy": 0.878
         }
       },
       "by_sex": {
         "female": {
-          "n": 76,
-          "positives": 38,
-          "accuracy": 0.5658,
-          "auc": 0.8885,
-          "balanced_accuracy": 0.5658,
-          "stable_n": 58,
-          "stable_accuracy": 0.6379
+          "n": 23,
+          "positives": 11,
+          "accuracy": 0.7826,
+          "auc": 0.9091,
+          "balanced_accuracy": 0.7917,
+          "stable_n": 21,
+          "stable_accuracy": 0.8571
         },
         "male": {
-          "n": 90,
-          "positives": 63,
-          "accuracy": 0.7333,
-          "auc": 0.9101,
-          "balanced_accuracy": 0.5556,
-          "stable_n": 79,
-          "stable_accuracy": 0.7975
+          "n": 28,
+          "positives": 20,
+          "accuracy": 0.9286,
+          "auc": 0.9875,
+          "balanced_accuracy": 0.875,
+          "stable_n": 26,
+          "stable_accuracy": 0.9231
         }
       },
       "by_age_band": {
         "45-64": {
-          "n": 82,
-          "positives": 56,
-          "accuracy": 0.7195,
-          "auc": 0.897,
-          "balanced_accuracy": 0.5577,
-          "stable_n": 71,
-          "stable_accuracy": 0.7887
+          "n": 23,
+          "positives": 15,
+          "accuracy": 0.8261,
+          "auc": 0.9167,
+          "balanced_accuracy": 0.75,
+          "stable_n": 22,
+          "stable_accuracy": 0.8636
         },
         "65+": {
-          "n": 34,
-          "positives": 30,
-          "accuracy": 0.8824,
-          "auc": 0.9667,
-          "balanced_accuracy": 0.5,
-          "stable_n": 33,
-          "stable_accuracy": 0.9091
+          "n": 15,
+          "positives": 13,
+          "accuracy": 0.9333,
+          "auc": 0.9615,
+          "balanced_accuracy": 0.75,
+          "stable_n": 14,
+          "stable_accuracy": 0.9286
         },
         "under 45": {
-          "n": 50,
-          "positives": 15,
-          "accuracy": 0.4,
-          "auc": 0.8419,
-          "balanced_accuracy": 0.5714,
-          "stable_n": 33,
-          "stable_accuracy": 0.4242
+          "n": 13,
+          "positives": 3,
+          "accuracy": 0.8462,
+          "auc": 1.0,
+          "balanced_accuracy": 0.9,
+          "stable_n": 11,
+          "stable_accuracy": 0.9091
         }
       }
     },
     "IDH": {
       "overall": {
-        "n": 147,
-        "positives": 57,
-        "accuracy": 0.7347,
-        "auc": 0.7889,
-        "balanced_accuracy": 0.7094,
-        "stable_n": 85,
-        "stable_accuracy": 0.8
+        "n": 45,
+        "positives": 18,
+        "accuracy": 0.9111,
+        "auc": 0.9856,
+        "balanced_accuracy": 0.8889,
+        "stable_n": 41,
+        "stable_accuracy": 0.9512
       },
       "by_race": {
         "Asian": {
-          "n": 2,
+          "n": 1,
           "positives": 0,
-          "accuracy": 0.5,
-          "stable_n": 2,
-          "stable_accuracy": 0.5
+          "accuracy": 1.0,
+          "stable_n": 1,
+          "stable_accuracy": 1.0
         },
         "Black or African American": {
-          "n": 11,
-          "positives": 5,
-          "accuracy": 0.6364,
-          "auc": 0.8667,
-          "balanced_accuracy": 0.6167,
-          "stable_n": 5,
-          "stable_accuracy": 0.6
-        },
-        "Other or not reported": {
-          "n": 4,
-          "positives": 0,
-          "accuracy": 0.75,
+          "n": 3,
+          "positives": 2,
+          "accuracy": 1.0,
+          "auc": 1.0,
+          "balanced_accuracy": 1.0,
           "stable_n": 3,
           "stable_accuracy": 1.0
         },
+        "Other or not reported": {
+          "n": 2,
+          "positives": 0,
+          "accuracy": 1.0,
+          "stable_n": 2,
+          "stable_accuracy": 1.0
+        },
         "White": {
-          "n": 130,
-          "positives": 52,
-          "accuracy": 0.7462,
-          "auc": 0.7941,
-          "balanced_accuracy": 0.7244,
-          "stable_n": 75,
-          "stable_accuracy": 0.8133
+          "n": 39,
+          "positives": 16,
+          "accuracy": 0.8974,
+          "auc": 0.9837,
+          "balanced_accuracy": 0.875,
+          "stable_n": 35,
+          "stable_accuracy": 0.9429
         }
       },
       "by_sex": {
         "female": {
-          "n": 71,
-          "positives": 34,
-          "accuracy": 0.6901,
-          "auc": 0.7599,
-          "balanced_accuracy": 0.686,
-          "stable_n": 37,
-          "stable_accuracy": 0.7297
+          "n": 21,
+          "positives": 12,
+          "accuracy": 0.8095,
+          "auc": 0.9815,
+          "balanced_accuracy": 0.8333,
+          "stable_n": 17,
+          "stable_accuracy": 0.8824
         },
         "male": {
-          "n": 76,
-          "positives": 23,
-          "accuracy": 0.7763,
-          "auc": 0.8171,
-          "balanced_accuracy": 0.7289,
-          "stable_n": 48,
-          "stable_accuracy": 0.8542
+          "n": 24,
+          "positives": 6,
+          "accuracy": 1.0,
+          "auc": 1.0,
+          "balanced_accuracy": 1.0,
+          "stable_n": 24,
+          "stable_accuracy": 1.0
         }
       },
       "by_age_band": {
         "45-64": {
-          "n": 69,
-          "positives": 20,
-          "accuracy": 0.7101,
-          "auc": 0.6796,
-          "balanced_accuracy": 0.6332,
-          "stable_n": 40,
-          "stable_accuracy": 0.8
+          "n": 20,
+          "positives": 7,
+          "accuracy": 0.8,
+          "auc": 0.978,
+          "balanced_accuracy": 0.7143,
+          "stable_n": 17,
+          "stable_accuracy": 0.8824
         },
         "65+": {
-          "n": 29,
-          "positives": 3,
-          "accuracy": 0.8621,
-          "auc": 0.6667,
-          "balanced_accuracy": 0.4808,
-          "stable_n": 20,
-          "stable_accuracy": 0.95
+          "n": 12,
+          "positives": 1,
+          "accuracy": 1.0,
+          "auc": 1.0,
+          "balanced_accuracy": 1.0,
+          "stable_n": 12,
+          "stable_accuracy": 1.0
         },
         "under 45": {
-          "n": 49,
-          "positives": 34,
-          "accuracy": 0.6939,
-          "auc": 0.7294,
-          "balanced_accuracy": 0.6676,
-          "stable_n": 25,
-          "stable_accuracy": 0.68
+          "n": 13,
+          "positives": 10,
+          "accuracy": 1.0,
+          "auc": 1.0,
+          "balanced_accuracy": 1.0,
+          "stable_n": 12,
+          "stable_accuracy": 1.0
         }
       }
     },
     "MGMT": {
       "overall": {
-        "n": 127,
-        "positives": 79,
-        "accuracy": 0.622,
-        "auc": 0.5883,
+        "n": 33,
+        "positives": 24,
+        "accuracy": 0.7273,
+        "auc": 0.2778,
         "balanced_accuracy": 0.5
       },
       "by_race": {
-        "Asian": {
-          "n": 1,
-          "positives": 1,
+        "Black or African American": {
+          "n": 3,
+          "positives": 3,
           "accuracy": 1.0
         },
-        "Black or African American": {
-          "n": 10,
-          "positives": 8,
-          "accuracy": 0.8,
-          "auc": 0.8125,
-          "balanced_accuracy": 0.5
-        },
         "Other or not reported": {
-          "n": 2,
+          "n": 1,
           "positives": 0,
           "accuracy": 0.0
         },
         "White": {
-          "n": 114,
-          "positives": 70,
-          "accuracy": 0.614,
-          "auc": 0.5838,
+          "n": 29,
+          "positives": 21,
+          "accuracy": 0.7241,
+          "auc": 0.2202,
           "balanced_accuracy": 0.5
         }
       },
       "by_sex": {
         "female": {
-          "n": 68,
-          "positives": 45,
-          "accuracy": 0.6618,
-          "auc": 0.628,
+          "n": 18,
+          "positives": 15,
+          "accuracy": 0.8333,
+          "auc": 0.3556,
           "balanced_accuracy": 0.5
         },
         "male": {
-          "n": 59,
-          "positives": 34,
-          "accuracy": 0.5763,
-          "auc": 0.5541,
+          "n": 15,
+          "positives": 9,
+          "accuracy": 0.6,
+          "auc": 0.2222,
           "balanced_accuracy": 0.5
         }
       },
       "by_age_band": {
         "45-64": {
-          "n": 60,
-          "positives": 35,
-          "accuracy": 0.5833,
-          "auc": 0.6377,
+          "n": 14,
+          "positives": 9,
+          "accuracy": 0.6429,
+          "auc": 0.1111,
           "balanced_accuracy": 0.5
         },
         "65+": {
-          "n": 22,
-          "positives": 13,
-          "accuracy": 0.5909,
-          "auc": 0.3504,
+          "n": 8,
+          "positives": 5,
+          "accuracy": 0.625,
+          "auc": 0.5333,
           "balanced_accuracy": 0.5
         },
         "under 45": {
-          "n": 45,
-          "positives": 31,
-          "accuracy": 0.6889,
-          "auc": 0.6406,
+          "n": 11,
+          "positives": 10,
+          "accuracy": 0.9091,
+          "auc": 0.6,
           "balanced_accuracy": 0.5
         }
       }
     }
   },
-  "features_sha256": "2675ef88f20fc051adba79a20dc7fccc44a65ec1a5d29b758c7043489852d6e3"
+  "training_patients_tcga": 116,
+  "features_sha256": "420405a82ca1b6f749dafa3fd442c1d7e66e24b6f977872ba26e1d95dec19458"
 }

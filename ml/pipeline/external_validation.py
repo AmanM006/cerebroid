@@ -1,8 +1,10 @@
-"""External validation on TCGA gliomas, with performance by race, sex and age.
+"""TCGA gliomas: second training site and held-out test, with performance by race, sex and age.
 
-UCSF-PDGM (our training data) comes from one hospital and its public release has no race field. The TCGA-GBM
-and TCGA-LGG cohorts come from many US hospitals and record race, so we run the deployed
-models, unchanged, on them:
+UCSF-PDGM comes from one hospital and its public release has no race field. The TCGA-GBM and
+TCGA-LGG cohorts come from many US hospitals and record race. A fixed patient-level split
+(tcga_split: 70% train, 30% test, stratified by IDH and race) adds the training part to the
+model sets (ml/training/train_all_variants.py); the deployed models are scored here on the
+30% they never saw:
 
 - Images and expert tumor outlines: the BraTS 2020 training release (pre-operative TCGA
   scans, skull-stripped and co-registered; same four sequences and same segmentation labels
@@ -12,12 +14,12 @@ models, unchanged, on them:
   IDH/1p19q subtype, MGMT promoter status, grade, age, sex.
 - Race and ethnicity: the GDC (TCGA) demographic record.
 
-Features are extracted with ml/pipeline/extract.py in mode v1, exactly as for training.
-Nothing is refitted: this measures how the deployed models transfer to new hospitals and
-scanners. Outputs: artifacts/features/external_tcga.parquet (derived features and labels,
-no images) and artifacts/metrics/external_tcga.json.
+Features are extracted with ml/pipeline/extract.py in mode v1, exactly as for UCSF.
+Outputs: artifacts/features/external_tcga.parquet (derived features and labels, no images)
+and artifacts/metrics/external_tcga.json.
 
-    backend/.venv/Scripts/python ml/pipeline/external_validation.py E:/Hackathons/data
+    backend/.venv/Scripts/python ml/pipeline/external_validation.py E:/Hackathons/data   # extract + score
+    backend/.venv/Scripts/python ml/pipeline/external_validation.py --score             # score only
 """
 import hashlib
 import json
@@ -98,6 +100,21 @@ def metrics(rows: pd.DataFrame) -> dict:
 
 
 FEATURES=REPO/"artifacts"/"features"/"external_tcga.parquet"
+TEST_FRACTION=0.3
+
+
+def tcga_split(table: pd.DataFrame, seed: int=0) -> pd.Series:
+    """Patient-level 70/30 train/test split of the TCGA cohort, stratified by IDH status and race
+    (White / other), so minority patients and both IDH groups appear in both parts. Deterministic."""
+    white=(table["race"]=="White").map({True: "w", False: "o"})
+    key=table["idh"].fillna(-1).astype(int).astype(str)+"_"+white
+    rng=np.random.default_rng(seed)
+    split=pd.Series("train", index=table.index)
+    for _, idx in table.groupby(key).groups.items():
+        idx=list(idx)
+        rng.shuffle(idx)
+        split.loc[idx[:round(TEST_FRACTION*len(idx))]]="test"
+    return split
 METRICS=REPO/"artifacts"/"metrics"/"external_tcga.json"
 
 
@@ -148,8 +165,8 @@ def predict(table: pd.DataFrame) -> pd.DataFrame:
 
 
 def report(table: pd.DataFrame, preds: pd.DataFrame) -> dict:
-    out: dict={"cohort": "TCGA-GBM + TCGA-LGG (BraTS 2020 pre-operative scans)", "feature_mode": "v1",
-               "patients": int(table["patient_id"].nunique()),
+    out: dict={"cohort": "TCGA-GBM + TCGA-LGG held-out test split (BraTS 2020 pre-operative scans)",
+               "feature_mode": "v1", "patients": int(table["patient_id"].nunique()),
                "race_counts": table["race"].value_counts().to_dict(), "markers": {}}
     for marker, rows_m in preds.groupby("marker"):
         entry={"overall": metrics(rows_m)}
@@ -159,17 +176,31 @@ def report(table: pd.DataFrame, preds: pd.DataFrame) -> dict:
     return out
 
 
-def main(data: Path) -> None:
+def score() -> None:
+    """Scores the deployed models on the held-out TCGA test split and writes the report."""
     configure_logging("WARNING")
-    table=build_table(data)
-    table.to_parquet(FEATURES, index=False)
-    print("patients with scans + labels:", len(table), "| race:", table["race"].value_counts().to_dict())
-    result=report(table, predict(table))
+    table=pd.read_parquet(FEATURES)
+    test=table[table["split"]=="test"]
+    result=report(test, predict(test))
+    result["training_patients_tcga"]=int(len(table)-len(test))
     result["features_sha256"]=hashlib.sha256(FEATURES.read_bytes()).hexdigest()
     METRICS.write_text(json.dumps(result, indent=2)+"\n", encoding="utf-8", newline="\n")
+    print("held-out TCGA patients:", len(test), "| race:", test["race"].value_counts().to_dict())
     for marker, entry in result["markers"].items():
         print(marker, entry["overall"], {g: m.get("auc") for g, m in entry["by_race"].items()})
 
 
+def main(data: Path) -> None:
+    configure_logging("WARNING")
+    table=build_table(data)
+    table["split"]=tcga_split(table)
+    table.to_parquet(FEATURES, index=False)
+    print("patients with scans + labels:", len(table), "| race:", table["race"].value_counts().to_dict())
+    score()
+
+
 if __name__=="__main__":
-    main(Path(sys.argv[1] if len(sys.argv)>1 else "E:/Hackathons/data"))
+    if sys.argv[1:]==["--score"]:
+        score()
+    else:
+        main(Path(sys.argv[1] if len(sys.argv)>1 else "E:/Hackathons/data"))
