@@ -16,6 +16,13 @@ export function CasesPage() {
   const reload = () => {
     api.listCases().then(setCases).catch(setError)
   }
+  // Only the owner's uploads can be deleted (the server enforces it); demo cases have no button.
+  const [deleting, setDeleting] = useState<string | null>(null)
+  const deleteUpload = (id: string, label: string) => {
+    if (!window.confirm(`Delete "${label}"? Its MRI files and results are removed permanently.`)) return
+    setDeleting(id)
+    api.deleteUpload(id).then(reload).catch(setError).finally(() => setDeleting(null))
+  }
   const [search, setSearch] = useState("")
   const [filterStatus, setFilterStatus] = useState<string>("ALL")
 
@@ -263,6 +270,18 @@ export function CasesPage() {
                           <span>Open Case</span>
                           <span className="text-cyan-400">→</span>
                         </Link>
+                        {c.kind === "upload" && (
+                          <button
+                            type="button"
+                            onClick={() => deleteUpload(c.id, c.label)}
+                            disabled={deleting === c.id || c.status === "processing"}
+                            title={c.status === "processing" ? "Wait until processing has finished" : "Delete this upload"}
+                            aria-label={`Delete ${c.label}`}
+                            className="ml-2 inline-flex items-center rounded-xl border border-rose-900/60 bg-rose-950/30 px-3 py-1.5 text-[11px] font-semibold text-rose-300 transition-all hover:border-rose-500/60 hover:text-rose-200 disabled:cursor-not-allowed disabled:opacity-40 cursor-pointer"
+                          >
+                            {deleting === c.id ? "Deleting…" : "Delete"}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
