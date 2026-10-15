@@ -99,6 +99,8 @@ class MarkerProfileOut(_Response):
     # verdict reflects agreement on the prior, not evidence, so tissue testing is needed.
     skill: float | None=None
     low_signal: bool=False
+    # The scan is unlike the training cases (data sparsity high): never Stable, refer for expert review.
+    out_of_distribution: bool=False
 
 
 class EvidenceItemOut(_Response):
@@ -313,6 +315,10 @@ class ProfileOut(_Response):
     inputs: ProfileInputs
     missing_inputs: list[str]
     markers: list[MarkerProfileOut]
+    # Share of training patients closer to their own neighbours than this scan is to its nearest ones;
+    # at or above 0.99 the scan is unlike the training cases and every call is flagged.
+    similarity_percentile: float | None=None
+    out_of_distribution: bool=False
     model_versions: dict[str, str]
     feature_pipeline_version: str
     input_hash: str

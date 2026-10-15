@@ -34,6 +34,8 @@ SEQUENCE_NAMES={"t1", "t1ce", "t2", "flair", "adc", "asl"}
 REGION_NAMES={"et": "enhancing tumor", "ncr": "necrotic core", "ed": "edema"}
 
 K_NEIGHBOURS=5
+# Further from its nearest training patients than this share of the training cohort: "unlike training".
+HIGH_SPARSITY=0.99
 # Robust z-scores are clipped so one extreme feature can't dominate the distance.
 Z_CLIP=10.0
 
@@ -154,7 +156,7 @@ def decompose(
         ))
     else:
         pct=reference.percentile(vector.features, patient_id)
-        level="high" if pct>=0.99 else "medium" if pct>=0.95 else "low"
+        level="high" if pct>=HIGH_SPARSITY else "medium" if pct>=0.95 else "low"
         components.append(DoubtComponent(
             source="data_sparsity", level=level, value=round(pct, 4),
             detail=f"This tumor is further from its nearest training patients than {pct:.0%} of the training "

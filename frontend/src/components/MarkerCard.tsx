@@ -10,6 +10,7 @@ import { VerdictBadge } from "./VerdictBadge"
 // One plain sentence under the call, so the badge never needs decoding. A Contested call can come
 // from split votes or from unanimous votes with very different confidence; the sentence says which.
 function verdictMeaning(marker: MarkerProfile): string {
+  if (marker.out_of_distribution) return "Scan unlike the training cases: do not rely on the AI"
   if (marker.low_signal) return "Confirm with tissue testing"
   if (marker.verdict === "STABLE") return "The models agree"
   if (marker.verdict === "ARBITRARY") return "The models are split close to 50/50"
@@ -87,12 +88,18 @@ export function MarkerCard({
             call={marker.call}
             muted={marker.low_signal}
           />
-          {(needsTissue || marker.resolved_by_combining || (gradeAlert)) && (
+          {(needsTissue || marker.resolved_by_combining || (gradeAlert) || marker.out_of_distribution) && (
             <div className="flex flex-wrap gap-1.5 font-mono text-[10.5px]">
               {gradeAlert && (
                 <span className="rounded-full border border-rose-800/80 bg-rose-950/40 px-2 py-0.5 text-rose-200 font-semibold shadow-sm"
                   title={`P(grade 4) is at or above ${Math.round((marker.alert_threshold ?? 0) * 100)}%, the level chosen on cross-validation to catch every grade 4 tumour the call would miss there (its false-alarm rate is in Training data & fairness).`}>
                   ⚠ Grade 4 not ruled out ({Math.round((marker.prob_median ?? 0) * 100)}%) · confirm with tissue
+                </span>
+              )}
+              {marker.out_of_distribution && (
+                <span className="rounded-full border border-rose-800/80 bg-rose-950/40 px-2 py-0.5 text-rose-200 font-semibold"
+                  title={marker.reason ?? "This scan is unlike the training cases"}>
+                  ⚠ Unlike training scans · refer for expert review
                 </span>
               )}
               {needsTissue && (

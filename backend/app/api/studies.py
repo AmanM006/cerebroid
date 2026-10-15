@@ -48,8 +48,10 @@ from app.core.compute import heavy_slot
 from app.core.config import get_settings
 from app.services import uploads as uploads_service
 from app.core.ratelimit import limit_analysis
-from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue
-from app.domain.doubt import decompose, primary
+from app.domain.contracts import (
+    MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue, SetPrediction, StabilityVerdict,
+)
+from app.domain.doubt import HIGH_SPARSITY, decompose, primary
 from app.domain.explain import REGION_LABELS, explain_set
 from app.domain.lime import explain_lime
 from app.domain.falsification import CONFIRMATORY_TEST, Claim, build_falsification
@@ -58,7 +60,7 @@ from app.domain.pathways import LABEL as PATHWAY_LABEL
 from app.domain.pathways import SOURCES as PATHWAY_SOURCES
 from app.domain.tipping import find_tipping_points
 from app.domain.feature_store import FeatureStore
-from app.domain.profile import MarkerResult, build_profile, known_label
+from app.domain.profile import MarkerResult, build_profile, known_label, screen_out_of_distribution
 from app.domain.registry import MarkerRegistry, SetMarkerPredictor, variant_label
 from app.domain.volume_store import Sequence, VolumeStore
 
@@ -120,6 +122,29 @@ def _alert_threshold(result: MarkerResult) -> float | None:
     return float(alert["threshold"])
 
 
+OUT_OF_DISTRIBUTION_REASON=(
+    "The scan is unlike the training cases: do not rely on the AI here; refer for expert review and confirm "
+    "with tissue."
+)
+
+
+def _similarity(store: FeatureStore, study: Study, vector: FeatureVector) -> float | None:
+    """The data-sparsity percentile /doubt reports, computed once for the whole profile."""
+    if store.reference is None:
+        return None
+    return store.reference.percentile(vector.features, study.source_patient_id)
+
+
+def _screened(
+    prediction: SetPrediction, store: FeatureStore, study: Study, vector: FeatureVector,
+) -> SetPrediction:
+    """The same out-of-distribution rule as /profile, so every route reports the same verdict."""
+    pct=_similarity(store, study, vector)
+    if pct is not None and pct>=HIGH_SPARSITY and prediction.verdict==StabilityVerdict.STABLE:
+        return prediction.model_copy(update={"verdict": StabilityVerdict.CONTESTED})
+    return prediction
+
+
 def _marker_out(result: MarkerResult) -> MarkerProfileOut:
     if result.status=="known":
         return MarkerProfileOut(
@@ -152,6 +177,8 @@ def _marker_out(result: MarkerResult) -> MarkerProfileOut:
         resolved_by_combining=result.resolved_by_combining,
         skill=None if result.skill is None else round(result.skill, 4),
         low_signal=result.low_signal,
+        out_of_distribution=result.out_of_distribution,
+        reason=OUT_OF_DISTRIBUTION_REASON if result.out_of_distribution else None,
     )
 
 
@@ -184,7 +211,9 @@ def get_profile(
         prior_biopsy=study.prior_biopsy,
         known_markers=known_markers,
     )
-    results=build_profile(registry, vector, view)
+    pct=_similarity(store, study, vector)
+    unlike_training=pct is not None and pct>=HIGH_SPARSITY
+    results=screen_out_of_distribution(build_profile(registry, vector, view), unlike_training)
     versions={
         variant_label(r.marker, r.variant): r.prediction.model_version
         for r in results if r.prediction is not None and r.variant is not None
@@ -208,6 +237,8 @@ def get_profile(
         ),
         missing_inputs=vector.missing_inputs(),
         markers=[_marker_out(r) for r in results],
+        similarity_percentile=None if pct is None else round(pct, 4),
+        out_of_distribution=unlike_training,
         model_versions=versions,
         feature_pipeline_version=store.version,
         input_hash=_input_hash(vector),
@@ -356,7 +387,7 @@ def get_evidence(
     """Which input groups drove this marker's call, using the same model set as /profile."""
     started=time.perf_counter()
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
-    prediction=predictor.predict_set(vector)
+    prediction=_screened(predictor.predict_set(vector), store, study, vector)
     explanation=explain_set(predictor, vector)
     audit(f"evidence.read:{marker.value}", str(study.id), prediction.model_version)
     sizes={e.group: (e.label, e.n_columns) for e in explanation.effects}
@@ -412,7 +443,7 @@ def get_lime(
     """LIME local explanation of this marker's call, per evidence group and per tumor region."""
     started=time.perf_counter()
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
-    prediction=predictor.predict_set(vector)
+    prediction=_screened(predictor.predict_set(vector), store, study, vector)
     with heavy_slot():
         result=explain_lime(predictor, vector)
     audit(f"lime.read:{marker.value}", str(study.id), prediction.model_version)
@@ -480,7 +511,7 @@ def get_doubt(
     """Why this marker's call is uncertain, split by source, each with the action it calls for."""
     started=time.perf_counter()
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
-    prediction=predictor.predict_set(vector)
+    prediction=_screened(predictor.predict_set(vector), store, study, vector)
     components=decompose(
         prediction, predictor.low_signal, predictor.meta.skill, vector, store.reference,
         study.source_patient_id,
@@ -530,7 +561,7 @@ def get_tipping(
     """What it would take to flip this marker's call, per clinician-verifiable input."""
     started=time.perf_counter()
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
-    prediction=predictor.predict_set(vector)
+    prediction=_screened(predictor.predict_set(vector), store, study, vector)
     with heavy_slot():
         points=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
     audit(f"tipping.read:{marker.value}", str(study.id), prediction.model_version)
@@ -581,7 +612,7 @@ def get_falsification(
     """The case for and against this marker's call, and what would overturn it."""
     started=time.perf_counter()
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
-    prediction=predictor.predict_set(vector)
+    prediction=_screened(predictor.predict_set(vector), store, study, vector)
     explanation=explain_set(predictor, vector)
     with heavy_slot():
         tipping=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
@@ -630,7 +661,9 @@ def get_next_measurements(
         prior_biopsy=study.prior_biopsy,
         known_markers=known_markers,
     )
-    result=plan(build_profile(registry, vector), age=study.age)
+    pct=_similarity(store, study, vector)
+    unlike_training=pct is not None and pct>=HIGH_SPARSITY
+    result=plan(screen_out_of_distribution(build_profile(registry, vector), unlike_training), age=study.age)
     audit("next_measurements.read", str(study.id))
     return NextMeasurementsOut(
         study_id=study.id,

@@ -505,3 +505,36 @@ def test_lime_requires_access_to_the_study(client, make_user, deployed):
     url=f"/api/v1/studies/{uuid.uuid4()}/lime"
     r=client.get(url, params={"marker": "IDH"}, headers=login(client, "alice"))
     assert r.status_code==404
+
+
+def test_scan_unlike_the_training_cases_is_never_shown_as_stable(client, make_user, deployed, demo_study):
+    """Bug report #21: /profile showed STABLE while /doubt rated data sparsity high for the same scan."""
+    from app.domain.doubt import CohortReference
+    make_user("alice")
+    headers=login(client, "alice")
+    store=client.app.state.feature_store
+    # The fixture table is all test split; use its rows as the training reference, as in production.
+    store.reference=CohortReference({pid: dict(row) for pid, row in store.rows.items()})
+    normal=demo_study()
+    body=_profile(client, headers, normal.id).json()
+    assert body["out_of_distribution"] is False and body["similarity_percentile"] is not None
+
+    row=dict(store.rows["UCSF-PDGM-0002"])
+    for column in store.reference.columns:
+        row[column]=1e6  # far outside every training patient
+    store.rows["UCSF-PDGM-9999"]=row
+    unlike=demo_study("UCSF-PDGM-9999")
+
+    body=_profile(client, headers, unlike.id).json()
+    assert body["out_of_distribution"] is True and body["similarity_percentile"]>=0.99
+    predicted=[m for m in body["markers"] if m["status"]=="predicted"]
+    assert predicted
+    for m in predicted:
+        assert m["verdict"]!="STABLE" and m["out_of_distribution"] is True and m["reason"]
+    for m in predicted:
+        doubt=client.get(f"/api/v1/studies/{unlike.id}/doubt", params={"marker": m["marker"]},
+                         headers=headers).json()
+        sparsity=next(c for c in doubt["components"] if c["source"]=="data_sparsity")
+        # Both routes now agree: same call, same (never Stable) verdict, and doubt still explains why.
+        assert sparsity["level"]=="high" and doubt["verdict"]==m["verdict"] and doubt["call"]==m["call"]
+    assert client.get(f"/api/v1/studies/{unlike.id}/next-measurements", headers=headers).status_code==200
