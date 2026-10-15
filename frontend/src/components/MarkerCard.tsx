@@ -10,7 +10,7 @@ import { VerdictBadge } from "./VerdictBadge"
 // One plain sentence under the call, so the badge never needs decoding. A Contested call can come
 // from split votes or from unanimous votes with very different confidence; the sentence says which.
 function verdictMeaning(marker: MarkerProfile): string {
-  if (marker.low_signal) return "MRI can't tell for this marker"
+  if (marker.low_signal) return "Confirm with tissue testing"
   if (marker.verdict === "STABLE") return "The models agree"
   if (marker.verdict === "ARBITRARY") return "The models are split close to 50/50"
   if (marker.verdict === "CONTESTED") {
@@ -53,7 +53,7 @@ export function MarkerCard({
         <div>
           <h3 className="text-xs font-mono uppercase tracking-wider text-neutral-300 font-bold">{labels.title}</h3>
           <p className={`mt-1 text-xl font-black capitalize tracking-tight ${marker.low_signal ? "text-neutral-300" : "text-white"}`}>
-            {marker.call ?? "No call"}
+            {marker.low_signal ? "MRI can't tell" : (marker.call ?? "No call")}
           </p>
           {marker.status === "predicted" && (
             <p className="mt-0.5 font-mono text-xs text-neutral-300 font-medium">
@@ -73,7 +73,7 @@ export function MarkerCard({
         </div>
       </header>
 
-      {predicted && (
+      {predicted && !marker.low_signal && (
         <div className="mt-3 space-y-2">
           <ProbabilityRange
             min={marker.prob_min!}
@@ -156,7 +156,7 @@ export function MarkerCard({
         <p className="mt-2.5 flex items-center gap-1.5 border-t border-[#1b1926] pt-2 text-xs font-mono">
           <span className="text-[#6d6883]">True result:</span>
           <span className="font-semibold text-white capitalize">{truth.value ?? "not recorded"}</span>
-          {marker.status === "predicted" && truth.value != null && (
+          {marker.status === "predicted" && !marker.low_signal && truth.value != null && (
             <span className={truth.value === marker.call ? "text-emerald-400" : "text-rose-400"}>
               {truth.value === marker.call ? "✓" : "✗"}
             </span>
