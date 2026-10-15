@@ -28,8 +28,11 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
   const [failure, setFailure]=useState<string | null>(null)
   const polling=useRef(true)
 
-  useEffect(()=>()=>{
-    polling.current=false
+  useEffect(()=>{
+    polling.current=true
+    return ()=>{
+      polling.current=false
+    }
   }, [])
 
   const ageNumber=Number(age)
@@ -44,6 +47,7 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
     if (!ready || phase!=="idle") return
     setError(null)
     setFailure(null)
+    polling.current = true
     const form=new FormData()
     form.append("age", String(ageNumber))
     form.append("sex", sex)
@@ -53,7 +57,9 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
     try {
       const started=await api.uploadStudy(form)
       setPhase("processing")
-      setProgressStep("Executing 3D feature extraction and radiomics analysis worker…")
+      setProgressStep("Extracting radiomics features & predicting molecular targets…")
+      // Notify parent table right away so case appears in table as PROCESSING (yellow badge)
+      onDone()
       for (let i=0; i<150 && polling.current; i++) {
         await new Promise((resolve)=>setTimeout(resolve, 2000))
         const status=await api.uploadStatus(started.study_id)
@@ -62,7 +68,7 @@ export function UploadStudy({ onDone }: { onDone: ()=>void }) {
           onDone()
           setTimeout(() => {
             navigate(`/cases/${started.study_id}`)
-          }, 600)
+          }, 800)
           return
         }
         if (status.status==="failed") {
