@@ -5,6 +5,9 @@ Each marker ends up in exactly one state:
 - predicted:   the near-optimal set that best fits what is known produced a SetPrediction
 - unavailable: no deployed set, or the set's output failed validation; never guessed
 """
+import json
+import threading
+from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Literal
 
@@ -14,6 +17,19 @@ from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, SetPredic
 from app.domain.registry import FUSED, IMAGING_ONLY, MarkerRegistry, ModelOutputError
 
 logger=structlog.get_logger("profile")
+
+# A loaded registry's model sets never change, so a profile depends only on its inputs. Each registry
+# keeps its own cache (keyed by every model input), which makes repeat views instant on slow hosts.
+CACHE_SIZE=512
+_cache_lock=threading.Lock()
+
+
+def _cache_for(registry: MarkerRegistry) -> OrderedDict[tuple, list["MarkerResult"]]:
+    cache=registry.__dict__.get("_profile_cache")
+    if cache is None:
+        cache=OrderedDict()
+        object.__setattr__(registry, "_profile_cache", cache)
+    return cache
 
 
 @dataclass(frozen=True)
@@ -47,6 +63,21 @@ def known_label(marker: Marker, value: int) -> str:
 def build_profile(registry: MarkerRegistry, vector: FeatureVector, view: str=FUSED) -> list[MarkerResult]:
     """view=fused uses the best set for what is known; the other views re-score with the
     imaging-only or clinical-only set, so the UI can show what each source decides alone."""
+    key=(view, json.dumps(vector.model_dump(mode="json"), sort_keys=True))
+    with _cache_lock:
+        cache=_cache_for(registry)
+        if key in cache:
+            cache.move_to_end(key)
+            return list(cache[key])
+    results=_compute(registry, vector, view)
+    with _cache_lock:
+        cache[key]=results
+        while len(cache)>CACHE_SIZE:
+            cache.popitem(last=False)
+    return list(results)
+
+
+def _compute(registry: MarkerRegistry, vector: FeatureVector, view: str) -> list[MarkerResult]:
     known=set(vector.known_markers)
     results=[]
     for marker in Marker:

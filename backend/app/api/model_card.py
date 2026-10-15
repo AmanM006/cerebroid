@@ -93,6 +93,8 @@ def model_card(
     held_out={(m["marker"], m["variant"]): m for m in metrics.get("sets", [])}
 
     sets=[]
+    for marker, variant in registry.config_entries or {}:
+        registry.get(marker, variant)  # model sets load lazily; describe every configured one
     ordered=sorted(registry.predictors.items(), key=lambda kv: (kv[0][0].value, kv[0][1]))
     for (marker, variant), predictor in ordered:
         meta=predictor.meta

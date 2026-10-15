@@ -17,6 +17,8 @@ class Settings(BaseSettings):
 
     app_env: str="development"
     log_level: str="INFO"
+    # Precompute demo-case profiles in the background after start-up (see app/services/warmup.py).
+    warmup_profiles: bool=True
     cors_origins: str="http://localhost:5173"
 
     database_url: str="postgresql+psycopg://vbx:vbx@localhost:5432/vbx"
