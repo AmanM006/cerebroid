@@ -182,30 +182,6 @@ export interface Falsification {
   latency_ms: number
 }
 
-export interface TippingItem {
-  input: string
-  label: string
-  unit: string
-  current: number
-  /** Nearest plausible value at which the majority call flips; null when none does. */
-  flip_at: number | null
-  flips_to: string | null
-  curve: { value: number; positive_fraction: number; prob_median: number }[]
-  provenance: Provenance
-}
-
-export interface Tipping {
-  study_id: string
-  marker: MarkerName
-  variant: string
-  call: string
-  method: string
-  items: TippingItem[]
-  model_version: string
-  request_id: string | null
-  latency_ms: number
-}
-
 export type DoubtLevel="low" | "medium" | "high" | "unknown"
 
 export interface DoubtComponent {
