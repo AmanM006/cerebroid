@@ -90,7 +90,7 @@ export function NextStepPanel({
         </div>
       )}
 
-      {plan.pathways.length>0 && (
+      {plan.pathways && plan.pathways.length>0 && (
         <div className="space-y-2 border-t border-neutral-800 pt-3">
           <p className="text-[10px] uppercase tracking-wider text-neutral-500">
             Typical treatment pathway{plan.pathways.length>1 ? " for each possible type" : ""}
@@ -105,12 +105,11 @@ export function NextStepPanel({
               {p.grade_note && <p className="text-[10.5px] text-cyan-200/90">{p.grade_note}</p>}
             </details>
           ))}
-          <p className="text-[9.5px] text-neutral-500" title={plan.pathway_sources.join(" · ")}>
+          <p className="text-[9.5px] text-neutral-500" title={plan.pathway_sources?.join(" · ")}>
             {plan.pathway_label} Sources: EANO 2021 guideline; FDA 2024 vorasidenib label.
           </p>
         </div>
       )}
-
       <p className="text-[9.5px] text-neutral-600">Decision-support heuristic, not clinical guidance.</p>
     </div>
   )

@@ -156,9 +156,9 @@ export interface NextMeasurements {
   candidate_categories: string[]
   tests: { marker: MarkerName; test: string; settled: boolean; remaining_worst_case: number | null; reason: string }[]
   /** Guideline treatment pathway for each tumor type still possible. */
-  pathways: { category: string; steps: string[]; mgmt_note: string; grade_note: string | null }[]
-  pathway_label: string
-  pathway_sources: string[]
+  pathways?: { category: string; steps: string[]; mgmt_note: string; grade_note: string | null }[]
+  pathway_label?: string
+  pathway_sources?: string[]
   request_id: string | null
 }
 

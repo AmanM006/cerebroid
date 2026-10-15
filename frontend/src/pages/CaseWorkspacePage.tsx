@@ -20,6 +20,7 @@ export function CaseWorkspacePage() {
   const { caseId } = useParams<{ caseId: string }>()
   const [study, setStudy] = useState<Case | null>(null)
   const [readiness, setReadiness] = useState<Readiness | null>(null)
+  const [known, setKnown] = useState<KnownResults>({})
   const [error, setError] = useState<unknown>(null)
 
   // Block positions in a modular 2x2 grid (all 4 fit immediately in the 100vh viewport)
@@ -39,21 +40,25 @@ export function CaseWorkspacePage() {
 
   // 3D Controls
   const [mri3dMode, setMri3dMode] = useState<"multiplanar" | "render3d" | "axial" | "sagittal">("multiplanar")
+  const [showCrosshairs, setShowCrosshairs] = useState(false)
 
   // The case's own MRI volumes, shared by the 3D and 2D blocks
   const [chosenSequence, setChosenSequence] = useState<AnatomicalSequence | null>(null)
   const [showTumor, setShowTumor] = useState(true)
   const mri = useCaseVolumes(caseId, chosenSequence)
-  const [known, setKnown] = useState<KnownResults>({})
 
   useEffect(() => {
     if (!caseId) return
+    setStudy(null)
+    setError(null)
+    setChosenSequence(null)
+    setKnown({})
     api.getCase(caseId).then(setStudy).catch(setError)
     api.readiness().then(setReadiness).catch(setError)
   }, [caseId])
 
   // Renders the case's volumes in one projection, or why they can't be shown
-  const mriStage = (mode: SliceMode, style?: CSSProperties) => {
+  const mriStage = (mode: SliceMode, style?: CSSProperties, showCrosshair: boolean = true) => {
     if (mri.error) return <div className="p-4"><ErrorNotice error={mri.error} /></div>
     if (mri.volumes.length === 0) {
       return (
@@ -64,7 +69,12 @@ export function CaseWorkspacePage() {
     }
     return (
       <div className={`h-full w-full ${mri.loading ? "opacity-60" : ""}`} style={style}>
-        <RealNiiVueViewport volumes={mri.volumes} sliceType={mode} overlayOpacity={showTumor ? 0.45 : 0} />
+        <RealNiiVueViewport
+          volumes={mri.volumes}
+          sliceType={mode}
+          overlayOpacity={showTumor ? 0.45 : 0}
+          showCrosshair={showCrosshair}
+        />
       </div>
     )
   }
@@ -145,15 +155,17 @@ export function CaseWorkspacePage() {
   const render3DViewport = (index: number) => (
     <div
       key="3d_viewport"
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
-      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+      >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
           className="flex items-center gap-2 group cursor-pointer"
-          title="Drag or click to swap block"
+          title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
@@ -181,14 +193,28 @@ export function CaseWorkspacePage() {
               {m === "render3d" ? "3D Vol" : m}
             </button>
           ))}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowCrosshairs((prev) => !prev)
+            }}
+            title="Toggle 3D coordinate crosshairs"
+            className={`ml-1 rounded px-1.5 py-0.5 text-[9.5px] uppercase transition-colors cursor-pointer border ${
+              showCrosshairs
+                ? "bg-cyan-950 text-cyan-300 border-cyan-700 font-bold"
+                : "border-neutral-800 text-neutral-500 hover:text-neutral-300"
+            }`}
+          >
+            {showCrosshairs ? "Crosshair: ON" : "Crosshair: OFF"}
+          </button>
         </div>
       </div>
 
-      <div className="relative flex-1 bg-black">
-        {mriStage(mri3dMode)}
+      <div className="relative flex-1 min-h-0 overflow-hidden bg-black">
+        {mriStage(mri3dMode, undefined, showCrosshairs)}
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
+      <div className="flex shrink-0 items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
         {sequencePicker}
         <span className="text-cyan-400">Drag to slice · Shift+drag to rotate 3D</span>
       </div>
@@ -199,15 +225,17 @@ export function CaseWorkspacePage() {
   const render2DSlice = (index: number) => (
     <div
       key="2d_slice"
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
-      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+      >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
           className="flex items-center gap-2 group cursor-pointer"
-          title="Drag or click to swap block"
+          title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
@@ -238,13 +266,13 @@ export function CaseWorkspacePage() {
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-hidden bg-black">
-        {mriStage(selectedPlane)}
+      <div className="relative flex-1 min-h-0 overflow-hidden bg-black">
+        {mriStage(selectedPlane, undefined, false)}
       </div>
 
-      <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
-        <span className="text-cyan-400">Interactive NiiVue {selectedPlane.toUpperCase()} cross-section</span>
-        <span className="text-neutral-500">{mri.current ? SEQUENCE_LABELS[mri.current] : "—"}</span>
+      <div className="flex shrink-0 items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
+        {sequencePicker}
+        <span className="text-cyan-400">Interactive {selectedPlane.toUpperCase()}</span>
       </div>
     </div>
   )
@@ -253,15 +281,17 @@ export function CaseWorkspacePage() {
   const renderMolecularProfile = (index: number) => (
     <div
       key="molecular_profile"
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
-      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+      >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
           className="flex items-center gap-2 group cursor-pointer"
-          title="Drag or click to swap block"
+          title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
@@ -275,24 +305,33 @@ export function CaseWorkspacePage() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {caseId && <ProfilePanel studyId={caseId} readiness={readiness} known={known} onKnownChange={setKnown} />}
+        {caseId && (
+          <ProfilePanel
+            studyId={caseId}
+            readiness={readiness}
+            known={known}
+            onKnownChange={setKnown}
+          />
+        )}
       </div>
     </div>
   )
 
-  // Component 4: Evidence & Doubt
+  // Component 4: Next Step & Evidence
   const renderEvidenceDoubt = (index: number) => (
     <div
       key="evidence_doubt"
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
-      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+      >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
           className="flex items-center gap-2 group cursor-pointer"
-          title="Drag or click to swap block"
+          title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
@@ -303,7 +342,7 @@ export function CaseWorkspacePage() {
             [Drag / Swap]
           </span>
         </div>
-        <span className="text-[10px] text-neutral-500">heuristic</span>
+        <span className="text-[10px] text-neutral-400">Decision Support</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
@@ -338,7 +377,7 @@ export function CaseWorkspacePage() {
         onDragOver={(e) => handleDragOver(e, index)}
         onDragLeave={(e) => handleDragLeave(e, index)}
         onDrop={(e) => handleDrop(e, index)}
-        className={`relative h-full w-full rounded-2xl transition-all duration-200 ${
+        className={`relative h-full w-full min-h-0 overflow-hidden rounded-2xl transition-all duration-200 ${
           isBeingDragged
             ? "border-2 border-dashed border-cyan-500/50 bg-[#0a1018]/40 opacity-40 scale-[0.98]"
             : isDropTarget
@@ -353,7 +392,7 @@ export function CaseWorkspacePage() {
             </span>
           </div>
         )}
-        <div className="h-full w-full">{content}</div>
+        <div className="h-full w-full min-h-0 overflow-hidden">{content}</div>
       </div>
     )
   }
