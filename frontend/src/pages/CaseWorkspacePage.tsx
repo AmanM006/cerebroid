@@ -37,6 +37,7 @@ export function CaseWorkspacePage() {
 
   // 3D Controls
   const [mri3dMode, setMri3dMode] = useState<"multiplanar" | "render3d" | "axial" | "sagittal">("multiplanar")
+  const [showCrosshairs, setShowCrosshairs] = useState(false)
 
   // The case's own MRI volumes, shared by the 3D and 2D blocks
   const [chosenSequence, setChosenSequence] = useState<AnatomicalSequence | null>(null)
@@ -186,11 +187,25 @@ export function CaseWorkspacePage() {
               {m === "render3d" ? "3D Vol" : m}
             </button>
           ))}
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowCrosshairs((prev) => !prev)
+            }}
+            title="Toggle 3D coordinate crosshairs"
+            className={`ml-1 rounded px-1.5 py-0.5 text-[9.5px] uppercase transition-colors cursor-pointer border ${
+              showCrosshairs
+                ? "bg-cyan-950 text-cyan-300 border-cyan-700 font-bold"
+                : "border-neutral-800 text-neutral-500 hover:text-neutral-300"
+            }`}
+          >
+            {showCrosshairs ? "Crosshair: ON" : "Crosshair: OFF"}
+          </button>
         </div>
       </div>
 
       <div className="relative flex-1 bg-black">
-        {mriStage(mri3dMode)}
+        {mriStage(mri3dMode, undefined, showCrosshairs)}
       </div>
 
       <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
@@ -248,8 +263,8 @@ export function CaseWorkspacePage() {
       </div>
 
       <div className="flex items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
-        <span className="text-cyan-400">Interactive NiiVue {selectedPlane.toUpperCase()} cross-section</span>
-        <span className="text-neutral-500">{mri.current ? SEQUENCE_LABELS[mri.current] : "—"}</span>
+        {sequencePicker}
+        <span className="text-cyan-400">Interactive {selectedPlane.toUpperCase()}</span>
       </div>
     </div>
   )
