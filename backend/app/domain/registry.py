@@ -356,22 +356,12 @@ def load_registry(artifacts_root: Path, config_path: Path) -> MarkerRegistry:
         return MarkerRegistry(predictors={}, status=missing)
     manifest=Manifest.model_validate_json(manifest_path.read_text(encoding="utf-8"))
 
-    # To fit inside Render's 512MB RAM, load the 4 primary FUSED models on startup,
-    # and mark secondary variants as ready for on-demand loading.
+    # Lazy-load all markers on-demand upon first inference request.
+    # This prevents Render 512MiB memory spikes on startup and maintains ultra-fast boot.
     for entry in config.markers:
         label=variant_label(entry.marker, entry.variant)
         config_entries[(entry.marker, entry.variant)]=entry
-        if entry.variant==FUSED:
-            try:
-                predictor=load_marker(artifacts_root, entry, manifest)
-                predictors[(entry.marker, entry.variant)]=predictor
-                status[label]="loaded"
-                logger.info("marker_loaded", marker=label, model_version=predictor.model_version)
-            except Exception as exc:
-                status[label]="invalid"
-                logger.error("marker_invalid", marker=label, detail=str(exc))
-        else:
-            status[label]="loaded"
+        status[label]="loaded"
 
     return MarkerRegistry(
         predictors=predictors,
