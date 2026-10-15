@@ -276,6 +276,9 @@ pip-audit -r requirements.txt
   lockout: their passwords are published here, so locking them would only let anyone lock evaluators out. The
   IP limit is in memory, so it resets when the server restarts.
 - Request bodies over 1 MB are rejected with `413 PAYLOAD_TOO_LARGE` before parsing.
+- Analysis routes (`/api/v1/studies/*`) allow 120 requests per minute per user and client IP (`429 RATE_LIMITED`).
+  At most 2 heavy computations (uncached profiles, tipping sweeps) run at once; others wait up to 20 s, then get
+  `503 SERVER_BUSY` with `Retry-After`. Repeat views are served from a cache and never wait.
 - `/docs` and `/openapi.json` are public on purpose, so evaluators can explore the API.
 - The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
 - Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
@@ -315,8 +318,9 @@ Every error response has the shape `{error_code, message, request_id}`.
 | `AUTH_INVALID_CREDENTIALS` | Login failed (same response for unknown user, wrong password, locked account) |
 | `AUTH_INVALID_TOKEN` | Access or refresh token invalid, expired, revoked or reused |
 | `FORBIDDEN` | Authenticated but the role is not allowed |
-| `RATE_LIMITED` | Too many sign-in attempts from this client; retry after the `Retry-After` seconds |
+| `RATE_LIMITED` | Too many sign-in attempts or analysis requests from this client; retry after `Retry-After` seconds |
 | `PAYLOAD_TOO_LARGE` | Request body over 1 MB |
+| `SERVER_BUSY` | All heavy-computation slots are in use; retry after `Retry-After` seconds |
 | `NOT_FOUND` | Resource doesn't exist or isn't visible to this user |
 | `INVALID_KNOWN_MARKER` | A `known` value isn't `<IDH\|1p19q\|MGMT\|GRADE>:<0\|1>`, or repeats a marker |
 | `FEATURES_NOT_READY` | No extracted imaging features exist for this study yet |

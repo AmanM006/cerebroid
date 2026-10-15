@@ -85,6 +85,7 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 
 ### Global (all routes)
 - **Request size (D):** bodies over 1 MB get `413 PAYLOAD_TOO_LARGE` before parsing, declared or chunked (`test_oversized_body_is_rejected_before_parsing`, `test_chunked_oversized_body_is_rejected`).
+- **Resource consumption (D):** studies routes are limited per user and client IP; at most 2 heavy computations run at once, others get `503 SERVER_BUSY` (`test_analysis_requests_are_limited_per_user_and_ip`, `test_heavy_computation_returns_busy_when_all_slots_are_taken`).
 - **Transport (I):** HSTS is sent in production (`test_hsts_only_in_production`).
 - **Token storage (I):** the access token is held in memory only; a reload restores the session through the HttpOnly refresh cookie.
 | STRIDE | Risk | Mitigation |

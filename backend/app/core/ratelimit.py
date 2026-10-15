@@ -1,8 +1,10 @@
-"""Per-client-IP login rate limit (sliding window, in memory).
+"""Rate limits (in memory; the API runs as one process). The heavy-computation cap is in compute.py.
 
-Account lockout already stops guessing one account's password, but the synthetic test accounts are
-exempt (their passwords are public) and lockout does nothing against one client trying many accounts.
-This caps login attempts per client IP. In-memory is enough: the API runs as one process.
+- Login: attempts per client IP. Account lockout stops guessing one account's password, but the
+  synthetic test accounts are exempt (their passwords are public) and lockout does nothing against
+  one client trying many accounts.
+- Analysis endpoints: requests per signed-in user and client IP. Keyed by both because evaluators
+  share the test accounts, so one person cannot use up everyone's allowance.
 
 Client IP: behind Render's proxy every request comes from the proxy, so the address the proxy saw is
 the last X-Forwarded-For entry (the one it appended). A client can add fake entries before it, but
@@ -12,12 +14,14 @@ import threading
 import time
 from collections import deque
 
-from fastapi import Request, status
+from fastapi import Depends, Request, status
 
+from app.api.deps import get_current_user
 from app.core.config import get_settings
 from app.core.errors import AppError
+from app.db.models import User
 
-_attempts: dict[str, deque[float]]={}
+_attempts: dict[tuple[str, str], deque[float]]={}
 _lock=threading.Lock()
 MAX_TRACKED_CLIENTS=10_000
 
@@ -29,27 +33,35 @@ def client_ip(request: Request) -> str:
     return request.client.host if request.client else "unknown"
 
 
-def limit_login(request: Request) -> None:
-    """FastAPI dependency: 429 once a client IP exceeds the allowed login attempts in the window."""
-    settings=get_settings()
+def _hit(bucket: str, key: str, limit: int, window_s: int, message: str) -> None:
     now=time.monotonic()
-    key=client_ip(request)
     with _lock:
-        window=_attempts.setdefault(key, deque())
-        while window and now-window[0]>settings.login_rate_window_seconds:
+        window=_attempts.setdefault((bucket, key), deque())
+        while window and now-window[0]>window_s:
             window.popleft()
-        if len(window)>=settings.login_rate_limit:
-            retry=int(settings.login_rate_window_seconds-(now-window[0]))+1
-            raise AppError(
-                "RATE_LIMITED", "Too many sign-in attempts. Please wait and try again.",
-                status.HTTP_429_TOO_MANY_REQUESTS, headers={"Retry-After": str(retry)},
-            )
+        if len(window)>=limit:
+            retry=int(window_s-(now-window[0]))+1
+            raise AppError("RATE_LIMITED", message, status.HTTP_429_TOO_MANY_REQUESTS,
+                           headers={"Retry-After": str(retry)})
         window.append(now)
         if len(_attempts)>MAX_TRACKED_CLIENTS:
             # Drop idle clients so memory stays bounded.
-            window_s=settings.login_rate_window_seconds
-            for ip in [ip for ip, w in _attempts.items() if not w or now-w[-1]>window_s]:
-                del _attempts[ip]
+            for k in [k for k, w in _attempts.items() if not w or now-w[-1]>window_s]:
+                del _attempts[k]
+
+
+def limit_login(request: Request) -> None:
+    """FastAPI dependency: 429 once a client IP exceeds the allowed login attempts in the window."""
+    s=get_settings()
+    _hit("login", client_ip(request), s.login_rate_limit, s.login_rate_window_seconds,
+         "Too many sign-in attempts. Please wait and try again.")
+
+
+def limit_analysis(request: Request, user: User=Depends(get_current_user)) -> None:
+    """FastAPI dependency: 429 once one user from one client IP exceeds the analysis request rate."""
+    s=get_settings()
+    _hit("analysis", f"{user.id}|{client_ip(request)}", s.analysis_rate_limit, s.analysis_rate_window_seconds,
+         "Too many requests. Please wait a moment and try again.")
 
 
 def reset() -> None:

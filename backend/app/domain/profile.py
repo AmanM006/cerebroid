@@ -13,6 +13,7 @@ from typing import Literal
 
 import structlog
 
+from app.core.compute import heavy_slot
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, SetPrediction, StabilityVerdict
 from app.domain.registry import FUSED, IMAGING_ONLY, MarkerRegistry, ModelOutputError
 
@@ -69,7 +70,8 @@ def build_profile(registry: MarkerRegistry, vector: FeatureVector, view: str=FUS
         if key in cache:
             cache.move_to_end(key)
             return list(cache[key])
-    results=_compute(registry, vector, view)
+    with heavy_slot():
+        results=_compute(registry, vector, view)
     with _cache_lock:
         cache[key]=results
         while len(cache)>CACHE_SIZE:

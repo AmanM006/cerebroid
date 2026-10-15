@@ -1,7 +1,12 @@
 """Request-size limit, login rate limit and HSTS: regression tests from the adversarial audit."""
-from app.core import ratelimit
+import uuid
+
+import pytest
+
+from app.core import compute, ratelimit
 from app.core.config import get_settings
-from tests.conftest import TEST_PASSWORD
+from app.core.errors import AppError
+from tests.conftest import TEST_PASSWORD, login
 
 
 def test_oversized_body_is_rejected_before_parsing(client):
@@ -50,3 +55,36 @@ def test_hsts_only_in_production(client, monkeypatch):
     assert "strict-transport-security" not in client.get("/health").headers
     monkeypatch.setattr(get_settings(), "app_env", "production")
     assert "max-age" in client.get("/health").headers["strict-transport-security"]
+
+
+def test_analysis_requests_are_limited_per_user_and_ip(client, make_user, monkeypatch):
+    make_user("alice")
+    headers=login(client, "alice")
+    monkeypatch.setattr(get_settings(), "analysis_rate_limit", 2)
+    ratelimit.reset()
+    try:
+        url=f"/api/v1/studies/{uuid.uuid4()}/profile"
+        a={**headers, "x-forwarded-for": "198.51.100.20"}
+        assert [client.get(url, headers=a).status_code for _ in range(3)]==[404, 404, 429]
+        # Same account from another address (evaluators share accounts) is not affected.
+        b={**headers, "x-forwarded-for": "198.51.100.21"}
+        assert client.get(url, headers=b).status_code==404
+    finally:
+        ratelimit.reset()
+
+
+def test_heavy_computation_returns_busy_when_all_slots_are_taken(monkeypatch):
+    settings=get_settings()
+    monkeypatch.setattr(settings, "heavy_concurrency", 1)
+    monkeypatch.setattr(settings, "heavy_wait_seconds", 0.05)
+    compute.reset()
+    try:
+        with compute.heavy_slot():
+            with pytest.raises(AppError) as busy:
+                with compute.heavy_slot():
+                    pass
+        assert busy.value.error_code=="SERVER_BUSY" and busy.value.status_code==503
+        with compute.heavy_slot():  # released again once the first computation ends
+            pass
+    finally:
+        compute.reset()

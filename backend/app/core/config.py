@@ -24,6 +24,13 @@ class Settings(BaseSettings):
     # Login attempts allowed per client IP per window (generous: evaluators share few IPs).
     login_rate_limit: int=30
     login_rate_window_seconds: int=300
+    # Analysis requests per signed-in user and client IP per window (one case view makes about 10).
+    analysis_rate_limit: int=120
+    analysis_rate_window_seconds: int=60
+    # Heavy computations (uncached profiles, tipping sweeps) allowed at once, and how long a request
+    # waits for a free slot before getting 503 SERVER_BUSY.
+    heavy_concurrency: int=2
+    heavy_wait_seconds: float=20.0
     cors_origins: str="http://localhost:5173"
 
     database_url: str="postgresql+psycopg://vbx:vbx@localhost:5432/vbx"

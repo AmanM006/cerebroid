@@ -41,6 +41,8 @@ from app.api.schemas import (
 )
 from app.core.errors import AppError
 from app.db.models import Study, StudyKind
+from app.core.compute import heavy_slot
+from app.core.ratelimit import limit_analysis
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue
 from app.domain.doubt import decompose, primary
 from app.domain.explain import explain_set
@@ -54,7 +56,8 @@ from app.domain.profile import MarkerResult, build_profile, known_label
 from app.domain.registry import MarkerRegistry, SetMarkerPredictor, variant_label
 from app.domain.volume_store import Sequence, VolumeStore
 
-router=APIRouter(prefix="/api/v1/studies", tags=["studies"])
+# Every study route is rate limited per user and client IP (app/core/ratelimit.py).
+router=APIRouter(prefix="/api/v1/studies", tags=["studies"], dependencies=[Depends(limit_analysis)])
 
 _KNOWN_RE=re.compile(r"^(IDH|1p19q|MGMT|GRADE):([01])$")
 
@@ -407,7 +410,8 @@ def get_tipping(
     started=time.perf_counter()
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
     prediction=predictor.predict_set(vector)
-    points=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
+    with heavy_slot():
+        points=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
     audit(f"tipping.read:{marker.value}", str(study.id), prediction.model_version)
     return TippingOut(
         study_id=study.id,
@@ -458,7 +462,8 @@ def get_falsification(
     predictor, vector=_marker_inputs(marker, known, study, registry, store)
     prediction=predictor.predict_set(vector)
     explanation=explain_set(predictor, vector)
-    tipping=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
+    with heavy_slot():
+        tipping=find_tipping_points(predictor, vector, store.descriptor_grids, MARKER_LABELS[marker])
     labels={e.group: e.label for e in explanation.effects}
     panel=build_falsification(marker, predictor.variant, prediction, explanation, labels, tipping)
     audit(f"falsification.read:{marker.value}", str(study.id), prediction.model_version)
