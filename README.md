@@ -274,9 +274,9 @@ pip-audit -r requirements.txt
   left only 33% of first-order features in agreement (Lin's CCC >= 0.9) under `v1` versus 100% under the brain-normalized
   `v2` mode. Retraining on `v2` features is the planned fix.
 - **Tumor outline errors.** Features are measured inside the segmentation; shifting or shrinking it by one voxel
-  changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC yet.
+  changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC.
 - Brute-force protection: per-account lockout (5 failures → 15 minutes) plus a per-client-IP login limit
-  (30 attempts per 5 minutes, then `429 RATE_LIMITED` with `Retry-After`). Anyone who knows a username can still
+  (30 failed attempts per 5 minutes, then `429 RATE_LIMITED` with `Retry-After`; successful sign-ins never count). Anyone who knows a username can still
   lock that account for 15 minutes. The synthetic test accounts (`evaluator`, `reviewer`, `doctor`) are exempt from
   lockout: their passwords are published here, so locking them would only let anyone lock evaluators out. The
   IP limit is in memory, so it resets when the server restarts.
@@ -291,7 +291,12 @@ pip-audit -r requirements.txt
 - Analysis routes (`/api/v1/studies/*`) allow 300 requests per minute per user and client IP (`429 RATE_LIMITED`).
   At most 2 heavy computations (uncached profiles, tipping sweeps) run at once; others wait up to 20 s, then get
   `503 SERVER_BUSY` with `Retry-After`. Repeat views are served from a cache and never wait.
-- `/docs` and `/openapi.json` are public on purpose, so evaluators can explore the API.
+- `/openapi.json` is public on purpose, so evaluators can explore the API. The public deployment has no `/docs`
+  page (Swagger needs third-party script, which our CSP blocks).
+- Requests that Cloudflare or Render reject before they reach the app (malformed or encoded paths such as `%00` or
+  `..%2f`, patterns their firewall blocks) get the host's own error page, without our security headers or request ID.
+- Session refreshes are limited to 120 per client IP per 5 minutes. Logout ends the session at once: its access
+  token stops working immediately.
 - The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
 - Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
   out; the user signs in again.
