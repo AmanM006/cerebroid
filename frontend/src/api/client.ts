@@ -10,7 +10,7 @@
  *   request_id, so a user can report the exact request that failed.
  */
 import type {
-  Case, CaseList, Doubt, ErrorBody, Evidence, ModelCard, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes, MetricsSummary } from "./types"
+  Case, CaseList, Doubt, ErrorBody, Evidence, ModelCard, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes, MetricsSummary, Lime } from "./types"
 
 export class ApiError extends Error {
   readonly status: number
@@ -163,6 +163,13 @@ export const api={
   listVolumes: (id: string)=>getJson<Volumes>(`/api/v1/studies/${encodeURIComponent(id)}/volumes`),
   volume: (id: string, sequence: MriSequence)=>
     api.getBytes(`/api/v1/studies/${encodeURIComponent(id)}/volume/${sequence}`),
+
+  /** LIME local explanation of one marker's call; uses the same known results as getProfile. */
+  getLime(id: string, marker: MarkerName, known: Partial<Record<MarkerName, 0 | 1>>={}): Promise<Lime> {
+    const params=new URLSearchParams({ marker })
+    for (const [m, value] of Object.entries(known)) params.append("known", `${m}:${value}`)
+    return getJson<Lime>(`/api/v1/studies/${encodeURIComponent(id)}/lime?${params}`)
+  },
 
   /** Public held-out headline numbers for the landing page (no sign-in needed). */
   async metricsSummary(): Promise<MetricsSummary> {

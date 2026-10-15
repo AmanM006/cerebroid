@@ -1,6 +1,7 @@
 """GET /api/v1/studies/{id}/profile end to end, with small real model sets and a
 temporary feature table (nothing here is a committed artifact)."""
 import hashlib
+import uuid
 
 import numpy as np
 import pandas as pd
@@ -482,3 +483,24 @@ def test_metrics_summary_is_public_and_only_reports_deployed_models(client, depl
     assert body["demo_cases"]==1
     # The committed heldout.json belongs to the real model files, not these test models: nothing shown.
     assert body["sets"]==[]
+
+
+def test_lime_explains_the_call_with_provenance_and_region_map(client, make_user, deployed, demo_study):
+    make_user("alice")
+    study=demo_study()
+    r=client.get(f"/api/v1/studies/{study.id}/lime", params={"marker": "IDH"}, headers=login(client, "alice"))
+    assert r.status_code==200
+    body=r.json()
+    assert body["method"].startswith("LIME") and body["n_samples"]==400
+    assert 0<=body["fidelity_r2"]<=1
+    assert {g["region"] for g in body["regions"]}=={"et", "ncr", "ed"}
+    for item in body["factors"]+body["regions"]:
+        assert item["provenance"]=="model_inferred" and item["evidence_id"].startswith("IDH:")
+    assert body["reference"]["provenance"]=="reference_cohort"
+
+
+def test_lime_requires_access_to_the_study(client, make_user, deployed):
+    make_user("alice")
+    url=f"/api/v1/studies/{uuid.uuid4()}/lime"
+    r=client.get(url, params={"marker": "IDH"}, headers=login(client, "alice"))
+    assert r.status_code==404

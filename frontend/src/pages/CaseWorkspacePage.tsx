@@ -1,9 +1,10 @@
-import { useEffect, useState, type CSSProperties, type DragEvent } from "react"
+import { useEffect, useState, type CSSProperties, type DragEvent, useMemo } from "react"
 import { useParams, Link } from "react-router-dom"
 import { api, ApiError } from "../api/client"
 import type { Case, Readiness } from "../api/types"
 import { AppShell } from "../components/AppShell"
 import { ErrorNotice } from "../components/ErrorNotice"
+import { ExplainFocusContext, regionColors, type RegionFocus } from "../components/ExplainFocus"
 import { RealNiiVueViewport, type SliceMode } from "../components/RealNiiVueViewport"
 import { SEQUENCE_LABELS, useCaseVolumes, type AnatomicalSequence } from "../components/useCaseVolumes"
 import { NextStepPanel } from "../components/NextStepPanel"
@@ -70,12 +71,17 @@ export function CaseWorkspacePage() {
   const [showTumor, setShowTumor] = useState(true)
   const mri = useCaseVolumes(caseId, chosenSequence)
 
+  // LIME region map shared between a marker's "Why" tab and the MRI viewers (null = normal overlay).
+  const [focus, setFocus] = useState<RegionFocus | null>(null)
+  const regionMap = useMemo(() => (focus ? regionColors(focus) : null), [focus])
+
   useEffect(() => {
     if (!caseId) return
     setStudy(null)
     setError(null)
     setChosenSequence(null)
     setKnown({})
+    setFocus(null)
     // Ignore responses for a case the user has already left, so a slow reply never shows the wrong patient.
     let current=true
     api.getCase(caseId).then((s)=>current && setStudy(s)).catch((e)=>current && setError(e))
@@ -96,13 +102,21 @@ export function CaseWorkspacePage() {
       )
     }
     return (
-      <div className={`h-full w-full ${mri.loading ? "opacity-60" : ""}`} style={style}>
+      <div className={`relative h-full w-full ${mri.loading ? "opacity-60" : ""}`} style={style}>
         <RealNiiVueViewport
           volumes={mri.volumes}
           sliceType={mode}
           overlayOpacity={showTumor ? 0.45 : 0}
           showCrosshair={showCrosshair}
+          regionColors={showTumor ? regionMap : null}
         />
+        {focus && showTumor && (
+          <div className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-md bg-black/75 px-2 py-1 font-mono text-[10px] text-neutral-200">
+            LIME · {focus.marker} {focus.call}:{" "}
+            <span className="text-orange-300">warm = supports</span> ·{" "}
+            <span className="text-sky-300">blue = against</span> · grey = little effect
+          </div>
+        )}
       </div>
     )
   }
@@ -444,6 +458,7 @@ export function CaseWorkspacePage() {
   }
 
   return (
+    <ExplainFocusContext.Provider value={{ focus, setFocus }}>
     <AppShell>
       <div className="w-full bg-black text-white">
         {/* =========================================================================
@@ -562,5 +577,6 @@ export function CaseWorkspacePage() {
         </section>
       </div>
     </AppShell>
+    </ExplainFocusContext.Provider>
   )
 }

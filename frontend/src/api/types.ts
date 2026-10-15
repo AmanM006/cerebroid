@@ -239,3 +239,32 @@ export interface MetricsSummary {
   demo_cases: number
   sets: { marker: MarkerName; variant: string; auc: number | null; auc_ci95: [number, number] | null }[]
 }
+
+export type TumorRegion="et" | "ncr" | "ed"
+
+/** LIME local explanation of one marker's call (backend app/domain/lime.py). */
+export interface Lime {
+  study_id: string
+  marker: MarkerName
+  variant: string
+  call: string
+  low_signal: boolean
+  method: string
+  reference: ProvenancedValue
+  n_samples: number
+  /** Weighted R² of the local linear surrogate: how faithfully it mimics the models here. */
+  fidelity_r2: number
+  explanation_agreement: number | null
+  factors: {
+    evidence_id: string; group: string; label: string; region: TumorRegion | null
+    /** Median change in P(positive) across the set: + toward the positive class. */
+    effect: number
+    direction: "toward_positive" | "toward_negative"; supports_call: boolean; agreement: number | null
+    provenance: Provenance
+  }[]
+  regions: {
+    evidence_id: string; region: TumorRegion; label: string; effect: number
+    direction: "toward_positive" | "toward_negative" | "neutral"; supports_call: boolean; provenance: Provenance
+  }[]
+  model_version: string
+}

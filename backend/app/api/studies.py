@@ -27,6 +27,9 @@ from app.api.schemas import (
     DoubtOut,
     EvidenceItemOut,
     EvidenceOut,
+    LimeFactorOut,
+    LimeOut,
+    LimeRegionOut,
     ClaimOut,
     FalsificationOut,
     MarkerStateOut,
@@ -45,7 +48,8 @@ from app.core.compute import heavy_slot
 from app.core.ratelimit import limit_analysis
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue
 from app.domain.doubt import decompose, primary
-from app.domain.explain import explain_set
+from app.domain.explain import REGION_LABELS, explain_set
+from app.domain.lime import explain_lime
 from app.domain.falsification import CONFIRMATORY_TEST, Claim, build_falsification
 from app.domain.next_measurement import plan
 from app.domain.pathways import LABEL as PATHWAY_LABEL
@@ -339,6 +343,75 @@ def get_evidence(
                 provenance=item.provenance,
             )
             for item in explanation.items
+        ],
+        model_version=prediction.model_version,
+        request_id=getattr(request.state, "request_id", None),
+        latency_ms=round((time.perf_counter()-started)*1000, 2),
+    )
+
+
+_LIME_METHOD=(
+    "LIME (Ribeiro et al., 2016): each evidence group is switched between this patient's values and the "
+    "training-cohort median in 400 random patterns; a weighted linear model fitted per model in the set "
+    "gives each group's local effect on the probability. Model sensitivity, not biological cause."
+)
+
+
+@router.get("/{study_id}/lime")
+def get_lime(
+    request: Request,
+    marker: Marker,
+    known: list[str]=Query(default=[], max_length=4, description="Lab results already known, e.g. IDH:1"),
+    study: Study=Depends(get_accessible_study),
+    audit: Auditor=Depends(get_auditor),
+    registry: MarkerRegistry=Depends(get_registry),
+    store: FeatureStore=Depends(get_feature_store),
+) -> LimeOut:
+    """LIME local explanation of this marker's call, per evidence group and per tumor region."""
+    started=time.perf_counter()
+    predictor, vector=_marker_inputs(marker, known, study, registry, store)
+    prediction=predictor.predict_set(vector)
+    with heavy_slot():
+        result=explain_lime(predictor, vector)
+    audit(f"lime.read:{marker.value}", str(study.id), prediction.model_version)
+    toward_positive=prediction.call==known_label(marker, 1)
+    prefix=f"{marker.value}:{predictor.variant}:lime"
+
+    def direction(effect: float) -> str:
+        return "toward_positive" if effect>0 else "toward_negative"
+
+    return LimeOut(
+        study_id=study.id,
+        input_hash=_input_hash(vector),
+        marker=marker,
+        variant=predictor.variant,
+        call=prediction.call,
+        low_signal=predictor.low_signal,
+        method=_LIME_METHOD,
+        reference=ProvenancedValue(value="training-cohort median", provenance=Provenance.REFERENCE_COHORT),
+        n_samples=result.n_samples,
+        fidelity_r2=round(result.fidelity_r2, 4),
+        explanation_agreement=None if result.explanation_agreement is None
+        else round(result.explanation_agreement, 4),
+        factors=[
+            LimeFactorOut(
+                evidence_id=f"{prefix}:{f.group}", group=f.group, label=f.label, region=f.region,
+                effect=round(f.effect, 5), direction=direction(f.effect),  # type: ignore[arg-type]
+                supports_call=(f.effect>0)==toward_positive,
+                agreement=None if f.agreement is None else round(f.agreement, 4),
+                provenance=Provenance.MODEL_INFERRED,
+            )
+            for f in result.factors
+        ],
+        regions=[
+            LimeRegionOut(
+                evidence_id=f"{prefix}:region:{region.value}", region=region, label=REGION_LABELS[region],
+                effect=round(effect, 5),
+                direction="neutral" if abs(effect)<1e-4 else direction(effect),  # type: ignore[arg-type]
+                supports_call=abs(effect)>=1e-4 and (effect>0)==toward_positive,
+                provenance=Provenance.MODEL_INFERRED,
+            )
+            for region, effect in result.regions.items()
         ],
         model_version=prediction.model_version,
         request_id=getattr(request.state, "request_id", None),

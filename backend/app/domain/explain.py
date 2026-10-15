@@ -59,7 +59,7 @@ def evidence_group(column: str) -> tuple[str, str]:
         return f"{name.sequence.value}__{name.region.value}", f"{SEQUENCE_LABELS[name.sequence]} · {region}"
     if name.kind=="descriptor":
         return "descriptors", "Tumor composition (enhancing / necrotic / edema fractions, volume)"
-    return "missing_inputs", "Missing-input flags"
+    return "missing_inputs", "Tumor parts or MRI sequences absent (e.g. no enhancing tumor)"
 
 
 @dataclass(frozen=True)

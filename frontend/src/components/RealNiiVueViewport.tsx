@@ -43,6 +43,7 @@ export function RealNiiVueViewport({
   sliceType="multiplanar",
   overlayOpacity=0.45,
   showCrosshair=true,
+  regionColors=null,
 }: {
   volumes: LoadedVolume[]
   sliceType?: SliceMode
@@ -50,6 +51,8 @@ export function RealNiiVueViewport({
   overlayOpacity?: number
   /** Whether to show the crosshair coordinate lines */
   showCrosshair?: boolean
+  /** Colour per segmentation label (1 necrotic core, 2 edema, 4 enhancing), e.g. a LIME region map; null = default. */
+  regionColors?: Record<1 | 2 | 4, [number, number, number]> | null
 }) {
   const canvasRef=useRef<HTMLCanvasElement>(null)
   const nvRef=useRef<Niivue | null>(null)
@@ -135,6 +138,29 @@ export function RealNiiVueViewport({
     if (!overlay || state!=="ready") return
     nvRef.current!.setOpacity(1, overlayOpacity)
   }, [overlayOpacity, state])
+
+  // Paints each tumor region with its own colour (a label lookup table) or restores the default overlay.
+  useEffect(()=>{
+    const nv=nvRef.current
+    const overlay=nv?.volumes[1]
+    if (!nv || !overlay || state!=="ready") return
+    if (regionColors) {
+      const rgb=(label: 1 | 2 | 4)=>regionColors[label]
+      overlay.setColormapLabel({
+        R: [0, rgb(1)[0], rgb(2)[0], 0, rgb(4)[0]],
+        G: [0, rgb(1)[1], rgb(2)[1], 0, rgb(4)[1]],
+        B: [0, rgb(1)[2], rgb(2)[2], 0, rgb(4)[2]],
+        A: [0, 255, 255, 0, 255],
+        I: [0, 1, 2, 3, 4],
+        labels: ["", "necrotic core", "edema", "", "enhancing tumor"],
+      })
+    } else {
+      // NiiVue keeps the label table on the image object; clearing it restores the plain colormap.
+      Object.assign(overlay, { colormapLabel: null })
+      nv.setColorMap(overlay.id, volumes[1]?.colormap ?? "warm")
+    }
+    nv.updateGLVolume()
+  }, [regionColors, state, volumes])
 
   // Recolours the MRI on the GPU without reloading it.
   const changeColor=(cmap: string)=>{

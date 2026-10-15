@@ -11,7 +11,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.db.models import Role, StudyKind, StudyStatus
-from app.domain.contracts import Marker, Provenance, ProvenancedValue, StabilityVerdict
+from app.domain.contracts import Marker, Provenance, ProvenancedValue, Region, StabilityVerdict
 from app.domain.volume_store import Sequence
 
 
@@ -103,6 +103,49 @@ class EvidenceItemOut(_Response):
     agreement: float | None
     n_columns: int
     provenance: Provenance
+
+
+class LimeFactorOut(_Response):
+    """One evidence group's LIME weight; provenance is required (CLAUDE.md §4.4)."""
+
+    evidence_id: str
+    group: str
+    label: str
+    region: Region | None
+    effect: float
+    direction: Literal["toward_positive", "toward_negative"]
+    supports_call: bool
+    agreement: float | None
+    provenance: Provenance
+
+
+class LimeRegionOut(_Response):
+    evidence_id: str
+    region: Region
+    label: str
+    effect: float
+    direction: Literal["toward_positive", "toward_negative", "neutral"]
+    supports_call: bool
+    provenance: Provenance
+
+
+class LimeOut(_Response):
+    study_id: uuid.UUID
+    input_hash: str
+    marker: Marker
+    variant: str
+    call: str
+    low_signal: bool
+    method: str
+    reference: ProvenancedValue
+    n_samples: int
+    fidelity_r2: float
+    explanation_agreement: float | None
+    factors: list[LimeFactorOut]
+    regions: list[LimeRegionOut]
+    model_version: str
+    request_id: str | None
+    latency_ms: float
 
 
 class EvidenceOut(_Response):

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { MARKER_LABELS, type MarkerName, type MarkerProfile, type ProvenancedValue } from "../api/types"
 import { DoubtView } from "./DoubtView"
-import { EvidenceView } from "./EvidenceView"
+import { LimeView } from "./LimeView"
 import { ProbabilityRange } from "./ProbabilityRange"
 import { ProvenanceBadge } from "./ProvenanceBadge"
 import { VerdictBadge } from "./VerdictBadge"
@@ -135,7 +135,7 @@ export function MarkerCard({
                       </button>
                     ))}
                   </div>
-                  {tab === "why" && <EvidenceView studyId={studyId} marker={marker.marker} known={known} />}
+                  {tab === "why" && <LimeView studyId={studyId} marker={marker.marker} known={known} />}
                   {tab === "doubt" && <DoubtView studyId={studyId} marker={marker.marker} known={known} />}
                 </>
               )}
