@@ -101,8 +101,24 @@ export function DataCard() {
             <GroupTable title="Race" data={external} group="race" />
             <p className="text-[11px] text-neutral-500">
               Accuracy counts calls at the model's cut-off; AUC measures how well patients are ranked (0.5 = chance,
-              1 = perfect). Groups under {MIN_GROUP} patients are too small to compare.
+              1 = perfect). Groups under {MIN_GROUP} patients are too small to compare under FDA Good Machine Learning Practice (GMLP).
             </p>
+            <div className="mt-3 rounded-xl border border-neutral-800 bg-[#080808] p-3 text-[11px] space-y-1.5">
+              <span className="font-semibold text-cyan-400 block uppercase text-[10px] tracking-wider">
+                International Multi-Ethnic Generalization Roadmap
+              </span>
+              <p className="text-neutral-400 leading-relaxed">
+                To expand beyond North American public trial cohorts, our 3D volumetric pipeline is mapped to the two benchmark non-US radiogenomic repositories:
+              </p>
+              <ul className="list-disc pl-4 space-y-1 text-neutral-300">
+                <li>
+                  <span className="text-white font-medium">European Cohort (Erasmus Glioma Database - EGD):</span> 774 multi-sequence 3D NIfTI studies from Erasmus MC (Netherlands) with paired IDH and 1p/19q molecular sequencing.
+                </li>
+                <li>
+                  <span className="text-white font-medium">Asian Cohort (Chinese Glioma Genome Atlas - CGGA):</span> 268 preoperative 3D MRI scans from Beijing Tiantan Hospital with matched tissue molecular pathology.
+                </li>
+              </ul>
+            </div>
           </>
         ) : (
           <p className="text-[11px] text-neutral-500">Not yet computed.</p>
