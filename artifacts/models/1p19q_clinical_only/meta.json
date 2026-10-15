@@ -67,46 +67,6 @@
       "model_id": "logreg_c1.0_l10.5",
       "family": "logreg",
       "cv_log_loss": 0.2064
-    },
-    {
-      "model_id": "lgbm_lr0.03_nl15",
-      "family": "lightgbm",
-      "cv_log_loss": 0.2065
-    },
-    {
-      "model_id": "lgbm_lr0.05_nl15",
-      "family": "lightgbm",
-      "cv_log_loss": 0.2066
-    },
-    {
-      "model_id": "lgbm_lr0.05_nl7",
-      "family": "lightgbm",
-      "cv_log_loss": 0.2066
-    },
-    {
-      "model_id": "lgbm_lr0.03_nl7",
-      "family": "lightgbm",
-      "cv_log_loss": 0.2067
-    },
-    {
-      "model_id": "logreg_c5.0_l10.0",
-      "family": "logreg",
-      "cv_log_loss": 0.207
-    },
-    {
-      "model_id": "lgbm_lr0.1_nl15",
-      "family": "lightgbm",
-      "cv_log_loss": 0.2071
-    },
-    {
-      "model_id": "logreg_c1.0_l11.0",
-      "family": "logreg",
-      "cv_log_loss": 0.2073
-    },
-    {
-      "model_id": "lgbm_lr0.1_nl7",
-      "family": "lightgbm",
-      "cv_log_loss": 0.2074
     }
   ],
   "library_versions": {

@@ -30,6 +30,8 @@ COPY artifacts /srv/vbx/artifacts
 COPY --from=frontend /src/dist /srv/vbx/frontend_dist
 
 ENV FRONTEND_DIST=/srv/vbx/frontend_dist
+# Fewer glibc malloc arenas: threaded Python otherwise holds far more memory than it uses (512 MB host).
+ENV MALLOC_ARENA_MAX=2
 
 # Files stay owned by root: the API process can read its code, models and frontend but not modify them.
 USER vbx

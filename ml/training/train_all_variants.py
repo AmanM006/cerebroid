@@ -235,6 +235,9 @@ def train_variant(marker_name, variant_type, out_dir, given=None):
     selected = [r for r in candidate_results if r["cv_log_loss"] <= threshold_loss]
     if len(selected) < 5:
         selected = candidate_results[:5]
+    # At most 10 members (lowest CV loss): sets without signal put nearly every candidate within
+    # epsilon, and 24-member sets exceeded the host's 512 MB memory (see cap_set_size.py).
+    selected = selected[:10]
         
     print(f"Best CV log loss: {best_loss:.4f}, Epsilon threshold: {threshold_loss:.4f}")
     skill = 1.0 - best_loss / baseline_loss

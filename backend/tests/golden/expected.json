@@ -1,21 +1,21 @@
 {
   "feature_pipeline_version": "sha256:85e3b9883e3e5af5b36493cd407fbbffedd04a5544139bdf515e0c99a322e0bb",
   "model_versions": {
-    "1p19q:clinical_only": "sha256:09350203aa94a59d25cf08c0539db29a5c3c7bfae82a89ce99bb26c86271fb9f",
+    "1p19q:clinical_only": "sha256:e1157890d1eb85266afe727636c53352981175035bfad620ee67bd5a4b0a77b0",
     "1p19q:fused": "sha256:e508251b88b37ed1a858da8c26ac84f5c51dff363e92b0ac2dd121cff7a76fb0",
     "1p19q:fused_given_idh": "sha256:62fd5c9a9c76c71afd7656e39f26a36765917800c28e6e6d2d3bcca7bc6c2227",
     "1p19q:imaging_only": "sha256:fa1f089f9d77816fdc56641977ea459ad4f90b3f86187f9d14899e548d1cb4fd",
-    "GRADE:clinical_only": "sha256:0ce3e83f50c9cb517002041b64b62ca2cc964cde2ff9ebab6bd03c898262e59b",
+    "GRADE:clinical_only": "sha256:4b2d49609d9e20d54f1ee214f3b7162c700a7651f092c7f7a8f21a1a7239b31e",
     "GRADE:fused": "sha256:7f4775c939c04a01c6ea0134618e9d752bada4080d05d2c1b3d4b82b7e5b8dd3",
     "GRADE:fused_given_idh": "sha256:0554f3fe46ba64d32be59e3e5cbf766202b8da20c63b9f92fdc38fac2d2808bf",
     "GRADE:imaging_only": "sha256:d262bcef18a5128786b13af188d73a7839c6d413ca2b107db8b59422b979d759",
-    "IDH:clinical_only": "sha256:9e6ddee46e9578c9604080ace4d7080e6b9f637539378a6378e61ff182727dcc",
+    "IDH:clinical_only": "sha256:518ed773ae25aaddc82f9d3c6857b531d5da3e600e04a5c2a92baee4a8cffaac",
     "IDH:fused": "sha256:6f7ed943339cdb89e13b274d5f8182c7c992de6af73f83c93e7361aba07047f0",
     "IDH:imaging_only": "sha256:e567b486af1131cae5de9e5d3a695a5f109db607972cd2bb4af4fd44a5562e63",
-    "MGMT:clinical_only": "sha256:cc2c6e9f18a271e6d75aa029879c2a64f40d222e1dcc58bd796253cc8eb26e48",
-    "MGMT:fused": "sha256:bc860cedda32e9d4965763bfbea4edf07e5e515e15cfbbe3e9e488bf34bd9e2b",
-    "MGMT:fused_given_idh": "sha256:287ec492bc91701ad02142678bf8b7b30265c361a9245878ff5140cad0901d70",
-    "MGMT:imaging_only": "sha256:57231e0ff5f4c3cb9756daed491f27b079190b386e67a57d43dea7134661ad27"
+    "MGMT:clinical_only": "sha256:21f4f7256afb055ea2cf9882da9f402778d6d7758f288f061c1cc20fa733f372",
+    "MGMT:fused": "sha256:624f5de5754ee5bd94295b2fb0cc9d6fa6ebf701004a0bcc3bf3fde488423a17",
+    "MGMT:fused_given_idh": "sha256:ffa656f28e7de79bf2adac07c22e59f82e9286d0c2e4a9bc26f6cec64b381e4d",
+    "MGMT:imaging_only": "sha256:2968a40ebf961618ab7f30e04e23b32b1d23f8a084f700bd7bf20a0a66d8cf7a"
   },
   "patients": {
     "UCSF-PDGM-0005": {
@@ -47,7 +47,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.70625,
+          "prob_median": 0.708704,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -82,7 +82,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.695964,
+          "prob_median": 0.695053,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -118,7 +118,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.686461,
+          "prob_median": 0.694717,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -153,7 +153,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.703462,
+          "prob_median": 0.706375,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -189,7 +189,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.702851,
+          "prob_median": 0.701475,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -224,7 +224,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.698975,
+          "prob_median": 0.696512,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -260,7 +260,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.707983,
+          "prob_median": 0.709784,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -295,7 +295,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.695679,
+          "prob_median": 0.695676,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -331,7 +331,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.71082,
+          "prob_median": 0.712646,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -366,7 +366,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.702718,
+          "prob_median": 0.70332,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -402,7 +402,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.709074,
+          "prob_median": 0.711275,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -437,7 +437,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.695272,
+          "prob_median": 0.698429,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -473,7 +473,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.700804,
+          "prob_median": 0.704674,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -508,7 +508,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.682892,
+          "prob_median": 0.701608,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -544,7 +544,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.699292,
+          "prob_median": 0.701417,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -579,7 +579,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.706475,
+          "prob_median": 0.688763,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -650,7 +650,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.690732,
+          "prob_median": 0.690201,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"
@@ -686,7 +686,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.703283,
+          "prob_median": 0.713082,
           "status": "predicted",
           "variant": "fused_given_idh",
           "verdict": "STABLE"
@@ -721,7 +721,7 @@
         "MGMT": {
           "call": "methylated",
           "low_signal": true,
-          "prob_median": 0.692665,
+          "prob_median": 0.701525,
           "status": "predicted",
           "variant": "fused",
           "verdict": "STABLE"

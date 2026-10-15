@@ -67,11 +67,6 @@
       "model_id": "logreg_c0.1_l11.0",
       "family": "logreg",
       "cv_log_loss": 0.4477
-    },
-    {
-      "model_id": "logreg_c0.01_l10.5",
-      "family": "logreg",
-      "cv_log_loss": 0.4499
     }
   ],
   "library_versions": {

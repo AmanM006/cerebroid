@@ -21,6 +21,7 @@ COPY ml/configs /srv/vbx/ml/configs
 COPY artifacts /srv/vbx/artifacts
 
 # Files stay owned by root: the API process can read its code and models but not modify them.
+ENV MALLOC_ARENA_MAX=2
 USER vbx
 
 EXPOSE 8000

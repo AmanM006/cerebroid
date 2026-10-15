@@ -276,7 +276,7 @@ pip-audit -r requirements.txt
   lockout: their passwords are published here, so locking them would only let anyone lock evaluators out. The
   IP limit is in memory, so it resets when the server restarts.
 - Request bodies over 1 MB are rejected with `413 PAYLOAD_TOO_LARGE` before parsing.
-- Analysis routes (`/api/v1/studies/*`) allow 120 requests per minute per user and client IP (`429 RATE_LIMITED`).
+- Analysis routes (`/api/v1/studies/*`) allow 300 requests per minute per user and client IP (`429 RATE_LIMITED`).
   At most 2 heavy computations (uncached profiles, tipping sweeps) run at once; others wait up to 20 s, then get
   `503 SERVER_BUSY` with `Retry-After`. Repeat views are served from a cache and never wait.
 - `/docs` and `/openapi.json` are public on purpose, so evaluators can explore the API.

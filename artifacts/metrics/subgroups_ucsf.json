@@ -165,7 +165,7 @@
         "n": 84,
         "positives": 59,
         "accuracy": 0.7024,
-        "auc": 0.4034,
+        "auc": 0.5146,
         "balanced_accuracy": 0.5,
         "stable_n": 84,
         "stable_accuracy": 0.7024
@@ -175,7 +175,7 @@
           "n": 33,
           "positives": 23,
           "accuracy": 0.697,
-          "auc": 0.3,
+          "auc": 0.4652,
           "balanced_accuracy": 0.5,
           "stable_n": 33,
           "stable_accuracy": 0.697
@@ -184,7 +184,7 @@
           "n": 51,
           "positives": 36,
           "accuracy": 0.7059,
-          "auc": 0.4778,
+          "auc": 0.5259,
           "balanced_accuracy": 0.5,
           "stable_n": 51,
           "stable_accuracy": 0.7059
@@ -195,7 +195,7 @@
           "n": 44,
           "positives": 29,
           "accuracy": 0.6591,
-          "auc": 0.4552,
+          "auc": 0.5034,
           "balanced_accuracy": 0.5,
           "stable_n": 44,
           "stable_accuracy": 0.6591
@@ -204,7 +204,7 @@
           "n": 30,
           "positives": 22,
           "accuracy": 0.7333,
-          "auc": 0.4091,
+          "auc": 0.483,
           "balanced_accuracy": 0.5,
           "stable_n": 30,
           "stable_accuracy": 0.7333
@@ -213,7 +213,7 @@
           "n": 10,
           "positives": 8,
           "accuracy": 0.8,
-          "auc": 0.25,
+          "auc": 0.5625,
           "balanced_accuracy": 0.5,
           "stable_n": 10,
           "stable_accuracy": 0.8
@@ -224,7 +224,7 @@
           "n": 11,
           "positives": 10,
           "accuracy": 0.9091,
-          "auc": 0.2,
+          "auc": 0.1,
           "balanced_accuracy": 0.5,
           "stable_n": 11,
           "stable_accuracy": 0.9091
@@ -233,7 +233,7 @@
           "n": 73,
           "positives": 49,
           "accuracy": 0.6712,
-          "auc": 0.4286,
+          "auc": 0.5009,
           "balanced_accuracy": 0.5,
           "stable_n": 73,
           "stable_accuracy": 0.6712

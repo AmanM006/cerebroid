@@ -72,9 +72,9 @@
       "variant": "fused",
       "n_test": 84,
       "n_positive": 59,
-      "n_models": 24,
-      "model_version": "sha256:bc860cedda32e9d4965763bfbea4edf07e5e515e15cfbbe3e9e488bf34bd9e2b",
-      "auc": 0.4034,
+      "n_models": 10,
+      "model_version": "sha256:624f5de5754ee5bd94295b2fb0cc9d6fa6ebf701004a0bcc3bf3fde488423a17",
+      "auc": 0.5146,
       "balanced_accuracy": 0.5,
       "by_verdict": {
         "STABLE": {
@@ -91,8 +91,8 @@
         }
       },
       "auc_ci95": [
-        0.2789,
-        0.5353
+        0.3692,
+        0.6493
       ],
       "balanced_accuracy_ci95": [
         0.5,
@@ -200,9 +200,9 @@
       "variant": "imaging_only",
       "n_test": 84,
       "n_positive": 59,
-      "n_models": 24,
-      "model_version": "sha256:57231e0ff5f4c3cb9756daed491f27b079190b386e67a57d43dea7134661ad27",
-      "auc": 0.3498,
+      "n_models": 10,
+      "model_version": "sha256:2968a40ebf961618ab7f30e04e23b32b1d23f8a084f700bd7bf20a0a66d8cf7a",
+      "auc": 0.4292,
       "balanced_accuracy": 0.5,
       "by_verdict": {
         "STABLE": {
@@ -219,8 +219,8 @@
         }
       },
       "auc_ci95": [
-        0.2308,
-        0.4783
+        0.3012,
+        0.5661
       ],
       "balanced_accuracy_ci95": [
         0.5,
@@ -296,9 +296,9 @@
       "variant": "fused_given_idh",
       "n_test": 84,
       "n_positive": 59,
-      "n_models": 24,
-      "model_version": "sha256:287ec492bc91701ad02142678bf8b7b30265c361a9245878ff5140cad0901d70",
-      "auc": 0.581,
+      "n_models": 10,
+      "model_version": "sha256:ffa656f28e7de79bf2adac07c22e59f82e9286d0c2e4a9bc26f6cec64b381e4d",
+      "auc": 0.5227,
       "balanced_accuracy": 0.5,
       "by_verdict": {
         "STABLE": {
@@ -315,8 +315,8 @@
         }
       },
       "auc_ci95": [
-        0.4496,
-        0.706
+        0.3776,
+        0.6553
       ],
       "balanced_accuracy_ci95": [
         0.5,
@@ -360,8 +360,8 @@
       "variant": "clinical_only",
       "n_test": 99,
       "n_positive": 20,
-      "n_models": 11,
-      "model_version": "sha256:9e6ddee46e9578c9604080ace4d7080e6b9f637539378a6378e61ff182727dcc",
+      "n_models": 10,
+      "model_version": "sha256:518ed773ae25aaddc82f9d3c6857b531d5da3e600e04a5c2a92baee4a8cffaac",
       "auc": 0.9158,
       "balanced_accuracy": 0.7373,
       "by_verdict": {
@@ -392,9 +392,9 @@
       "variant": "clinical_only",
       "n_test": 80,
       "n_positive": 2,
-      "n_models": 18,
-      "model_version": "sha256:09350203aa94a59d25cf08c0539db29a5c3c7bfae82a89ce99bb26c86271fb9f",
-      "auc": 0.3782,
+      "n_models": 10,
+      "model_version": "sha256:e1157890d1eb85266afe727636c53352981175035bfad620ee67bd5a4b0a77b0",
+      "auc": 0.3654,
       "balanced_accuracy": 0.5,
       "by_verdict": {
         "STABLE": {
@@ -412,7 +412,7 @@
       },
       "auc_ci95": [
         0.2025,
-        0.5641
+        0.5277
       ],
       "balanced_accuracy_ci95": [
         0.5,
@@ -424,9 +424,9 @@
       "variant": "clinical_only",
       "n_test": 84,
       "n_positive": 59,
-      "n_models": 18,
-      "model_version": "sha256:cc2c6e9f18a271e6d75aa029879c2a64f40d222e1dcc58bd796253cc8eb26e48",
-      "auc": 0.4983,
+      "n_models": 10,
+      "model_version": "sha256:21f4f7256afb055ea2cf9882da9f402778d6d7758f288f061c1cc20fa733f372",
+      "auc": 0.52,
       "balanced_accuracy": 0.5,
       "by_verdict": {
         "STABLE": {
@@ -443,8 +443,8 @@
         }
       },
       "auc_ci95": [
-        0.3535,
-        0.6427
+        0.3768,
+        0.6671
       ],
       "balanced_accuracy_ci95": [
         0.5,
@@ -456,9 +456,9 @@
       "variant": "clinical_only",
       "n_test": 99,
       "n_positive": 78,
-      "n_models": 11,
-      "model_version": "sha256:0ce3e83f50c9cb517002041b64b62ca2cc964cde2ff9ebab6bd03c898262e59b",
-      "auc": 0.7515,
+      "n_models": 10,
+      "model_version": "sha256:4b2d49609d9e20d54f1ee214f3b7162c700a7651f092c7f7a8f21a1a7239b31e",
+      "auc": 0.7509,
       "balanced_accuracy": 0.641,
       "by_verdict": {
         "STABLE": {
@@ -475,8 +475,8 @@
         }
       },
       "auc_ci95": [
-        0.6159,
-        0.8752
+        0.6139,
+        0.8748
       ],
       "balanced_accuracy_ci95": [
         0.5384,

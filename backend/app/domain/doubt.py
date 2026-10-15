@@ -84,9 +84,14 @@ class CohortReference:
         return np.nan_to_num(np.clip(z, -Z_CLIP, Z_CLIP))
 
     def _kth_distances(self, matrix: np.ndarray) -> np.ndarray:
-        distances=np.sqrt(((matrix[:, None, :]-self.matrix[None, :, :])**2).sum(axis=2))
-        np.fill_diagonal(distances, np.inf)  # leave each training patient out of its own neighbours
-        return np.sort(distances, axis=1)[:, K_NEIGHBOURS-1]
+        # One row at a time: broadcasting all pairs at once held patients x patients x features
+        # floats (over 300 MB for the training cohort), twice, and exceeded the 512 MB host at start-up.
+        kth=np.empty(len(matrix))
+        for i, row in enumerate(matrix):
+            distances=np.sqrt(((row-self.matrix)**2).sum(axis=1))
+            distances[i]=np.inf  # leave each training patient out of its own neighbours
+            kth[i]=np.sort(distances)[K_NEIGHBOURS-1]
+        return kth
 
     def percentile(self, features: dict[str, float | None], patient_id: str | None) -> float:
         """Share of training patients that sit closer to their own neighbours than this patient does."""
