@@ -59,9 +59,6 @@ export function LimeView({
   const labels=MARKER_LABELS[marker]
   const positive=lime.call===labels.positive
   const top=lime.factors.slice(0, SHOWN)
-  const forCall=(p: number)=>Math.round((positive ? p : 1-p)*100)
-  const typicalPct=forCall(Number(lime.typical.value))
-  const patientPct=forCall(Number(lime.probability.value))
   const regionEffects=Object.fromEntries(
     lime.regions.map((r)=>[r.region, positive ? r.effect : -r.effect]),
   ) as Record<TumorRegion, number>
@@ -87,64 +84,55 @@ export function LimeView({
         </button>
       </div>
 
-      <Waterfall
+      <Contributions
         call={lime.call}
-        typical={typicalPct}
-        patient={patientPct}
-        steps={top.slice(0, 4).map((f)=>({ id: f.evidence_id, label: short(f.label), full: f.label,
+        steps={top.slice(0, 5).map((f)=>({ id: f.evidence_id, label: short(f.label), full: f.label,
           delta: (f.supports_call ? 1 : -1)*Math.abs(f.effect)*100 }))}
       />
 
       <p className="text-[11px] text-neutral-500" title={`${lime.method} Local fit R² ${lime.fidelity_r2.toFixed(2)}.`}>
-        LIME · % {lime.call}: average patient → this patient · dashed line = call flips
+        LIME · how much each factor pushed this prediction, in % points
       </p>
     </div>
   )
 }
 
-/** Typical patient -> each factor's push -> this patient, on a 0-100% scale for the call. */
-function Waterfall({ call, typical, patient, steps }: {
+/** The top factors behind this prediction and how much each pushed it, toward or against the call. */
+function Contributions({ call, steps }: {
   call: string
-  typical: number
-  patient: number
   steps: { id: string; label: string; full: string; delta: number }[]
 }) {
-  const shown=steps.filter((s)=>Math.abs(s.delta)>=0.05)
-  const rest=patient-typical-shown.reduce((sum, s)=>sum+s.delta, 0)
-  const rows=[...shown, ...(Math.abs(rest)>=0.5 ? [{ id: "rest", label: "Other", full: "All other inputs", delta: rest }] : [])]
-  let level=typical
-  const clamp=(x: number)=>Math.min(100, Math.max(0, x))
+  const rows=steps.filter((s)=>Math.abs(s.delta)>=0.05)
+  if (rows.length===0) {
+    return <p className="text-[11px] text-neutral-400">No single factor moves this prediction noticeably.</p>
+  }
+  // A full half-bar is at least 10 points, so a 2-point push looks small.
+  const scale=Math.max(10, ...rows.map((r)=>Math.abs(r.delta)))
   return (
-    <div className="relative space-y-1.5">
-      <div className="pointer-events-none absolute bottom-0 top-0 border-l border-dashed border-neutral-600"
-        style={{ left: "calc(7.5rem + (100% - 7.5rem - 3rem) * 0.5)" }} aria-hidden="true" />
-      <Row label="Average patient" value={`${typical}%`} from={0} to={typical} tone="bg-neutral-500" title={`An imaginary average training patient (middle value of every input, not this patient): ${typical}% ${call}`} />
-      {rows.map((s)=>{
-        const from=level
-        level=level+s.delta
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2 text-[10px] text-neutral-500">
+        <span className="w-28 shrink-0" />
+        <span className="flex flex-1 justify-between"><span>◀ against {call}</span><span>toward {call} ▶</span></span>
+        <span className="w-10 shrink-0" />
+      </div>
+      {rows.map((r)=>{
+        const half=Math.max(1, Math.abs(r.delta)/scale*50)
+        const up=r.delta>0
         return (
-          <Row key={s.id} label={s.label} value={`${s.delta>0 ? "+" : "−"}${Math.abs(s.delta).toFixed(1)}`}
-            from={clamp(from)} to={clamp(level)} tone={s.delta>0 ? "bg-emerald-500" : "bg-rose-500"}
-            title={`${s.full}: ${s.delta>0 ? "+" : "−"}${Math.abs(s.delta).toFixed(1)} points toward ${s.delta>0 ? call : "the other result"}`} />
+          <div key={r.id} className="flex items-center gap-2"
+            title={`${r.full}: ${up ? "+" : "−"}${Math.abs(r.delta).toFixed(1)} points ${up ? "toward" : "against"} ${call}`}>
+            <span className="w-28 shrink-0 truncate text-[11px] text-neutral-300">{r.label}</span>
+            <div className="relative h-2.5 flex-1">
+              <div className="absolute inset-y-0 left-1/2 w-px bg-neutral-700" aria-hidden="true" />
+              <div className={`absolute top-0 h-2.5 rounded-sm ${up ? "bg-emerald-500" : "bg-rose-500"}`}
+                style={up ? { left: "50%", width: `${half}%` } : { right: "50%", width: `${half}%` }} />
+            </div>
+            <span className="w-10 shrink-0 text-right text-[11px] text-neutral-300">
+              {up ? "+" : "−"}{Math.abs(r.delta).toFixed(1)}
+            </span>
+          </div>
         )
       })}
-      <Row label="This patient" value={`${patient}%`} from={0} to={patient} tone="bg-white" title={`This patient: ${patient}% ${call}`} strong />
-    </div>
-  )
-}
-
-function Row({ label, value, from, to, tone, title, strong=false }: {
-  label: string; value: string; from: number; to: number; tone: string; title: string; strong?: boolean
-}) {
-  const left=Math.min(from, to)
-  const width=Math.max(0.6, Math.abs(to-from))
-  return (
-    <div className="flex items-center gap-2" title={title}>
-      <span className={`w-28 shrink-0 truncate text-[11px] ${strong ? "font-bold text-white" : "text-neutral-400"}`}>{label}</span>
-      <div className="relative h-3 flex-1 rounded-sm bg-neutral-900">
-        <div className={`absolute top-0 h-3 rounded-sm ${tone}`} style={{ left: `${left}%`, width: `${width}%` }} />
-      </div>
-      <span className={`w-10 shrink-0 text-right text-[11px] ${strong ? "font-bold text-white" : "text-neutral-300"}`}>{value}</span>
     </div>
   )
 }
