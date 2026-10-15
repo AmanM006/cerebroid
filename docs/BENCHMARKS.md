@@ -1,5 +1,5 @@
 # Benchmark Evaluation Snapshot
-Generated: 2026-10-15T02:30:02.072674
+Generated: 2026-10-15T07:21:14.034639
 
 - Held-Out Test Cohort: n=99 patients (UCSF-PDGM)
 - IDH Fused Set AUC: 0.9772 (Balanced Accuracy: 0.8687)
