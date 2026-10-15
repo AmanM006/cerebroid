@@ -5,13 +5,14 @@ The refresh token lives only in an HttpOnly cookie scoped to /api/v1/auth, so
 page JavaScript (and any XSS) can never read it, and it's never sent to any
 other route.
 """
-from fastapi import APIRouter, Cookie, Depends, Response, status
+from fastapi import APIRouter, Cookie, Depends, Request, Response, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.api.schemas import LoginRequest, TokenResponse, UserOut
 from app.core.config import get_settings
-from app.core.ratelimit import limit_login
+from app.core.errors import AppError
+from app.core.ratelimit import limit_login, limit_refresh, record_login_failure
 from app.db.models import User
 from app.db.session import get_db
 from app.services import auth as auth_service
@@ -47,14 +48,20 @@ def _clear_refresh_cookie(response: Response) -> None:
 
 
 @router.post("/login", dependencies=[Depends(limit_login)])
-def login(body: LoginRequest, response: Response, db: Session=Depends(get_db)) -> TokenResponse:
-    user=auth_service.authenticate(db, body.username, body.password)
+def login(
+    body: LoginRequest, request: Request, response: Response, db: Session=Depends(get_db),
+) -> TokenResponse:
+    try:
+        user=auth_service.authenticate(db, body.username, body.password)
+    except AppError:
+        record_login_failure(request)
+        raise
     issued=auth_service.start_session(db, user)
     _set_refresh_cookie(response, issued.refresh_token)
     return TokenResponse(access_token=issued.access_token, expires_in=issued.expires_in)
 
 
-@router.post("/refresh")
+@router.post("/refresh", dependencies=[Depends(limit_refresh)])
 def refresh(
     response: Response,
     vbx_refresh: str | None=Cookie(default=None, max_length=256),

@@ -27,7 +27,7 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | T | Mass assignment (e.g. sending `"role": "reviewer"`) | Strict request model with `extra="forbid"`; role is never read from the request | `test_login_rejects_unknown_fields` |
 | D | Huge request bodies hashed by argon2 | Username ≤64 chars, password ≤256 chars, rejected before hashing | `test_login_rejects_oversized_password` |
 | D | Attacker locks a known account | Accepted: lockout is temporary (15 min); disclosed in README Known Limitations | — |
-| S | Password guessing across accounts, or on the lockout-exempt test accounts | Per-client-IP limit, 30 attempts per 5 min (last `X-Forwarded-For` hop, which the client cannot forge) | `test_login_attempts_are_limited_per_client_ip` |
+| S | Password guessing across accounts, or on the lockout-exempt test accounts | Per-client-IP limit, 30 failed attempts per 5 min; successful sign-ins never count, so evaluators on one network are not blocked. Client IP: Cloudflare's `CF-Connecting-IP` on Render (Render's proxy appends a shared address to `X-Forwarded-For`), last `X-Forwarded-For` hop behind our nginx; neither can be forged by the client | `test_login_attempts_are_limited_per_client_ip`, `test_successful_logins_do_not_use_up_the_allowance`, `test_trusted_client_ip_header_is_used_when_configured` |
 | T/D | Control characters (NUL) in the username reaching Postgres (500) | Username pattern rejects control characters with 422 | `test_control_characters_in_username_are_a_validation_error_not_a_crash` |
 | I | Passwords in logs | Logs carry only `user_id`, reason code and `request_id` | manual log scan |
 
@@ -38,7 +38,8 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | I | Refresh token readable by page JavaScript (XSS) | HttpOnly cookie, never in a response body | `test_login_returns_access_token_and_httponly_refresh_cookie` |
 | T | Cross-site request triggering refresh/logout (CSRF) | `SameSite=Strict`, cookie path limited to `/api/v1/auth`; the new access token is only in the response body, which a cross-origin page can't read (CORS allowlist) | — |
 | I | Database leak exposes live sessions | Only SHA-256 hashes of refresh tokens are stored | — |
-| R | Session survives logout | Logout revokes the whole family server-side | `test_logout_revokes_refresh_token` |
+| R | Session survives logout | Logout revokes the whole family server-side; access tokens carry their session id and stop working the moment the session is revoked | `test_logout_revokes_refresh_token`, `test_access_token_stops_working_at_logout` |
+| D | Refresh flooding | 120 refreshes per client IP per 5 min | — |
 
 ### Bearer-protected routes (`/api/v1/auth/me`, `/api/v1/cases*`)
 | STRIDE | Risk | Mitigation | Test |

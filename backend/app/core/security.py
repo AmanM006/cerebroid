@@ -39,8 +39,13 @@ def verify_password(password_hash: str | None, password: str) -> bool:
         return False
 
 
-def create_access_token(user_id: uuid.UUID, role: str) -> tuple[str, int]:
-    """Returns (token, lifetime in seconds)."""
+def create_access_token(user_id: uuid.UUID, role: str, session_id: uuid.UUID) -> tuple[str, int]:
+    """Returns (token, lifetime in seconds).
+
+    session_id is the refresh-token family of the login. The token is accepted only while that
+    family has a live refresh token, so logout (or detected token theft) ends it at once instead of
+    leaving it valid until it expires.
+    """
     settings=get_settings()
     now=datetime.now(UTC)
     lifetime=timedelta(minutes=settings.jwt_access_token_ttl_minutes)
@@ -52,6 +57,7 @@ def create_access_token(user_id: uuid.UUID, role: str) -> tuple[str, int]:
         "iat": now,
         "exp": now+lifetime,
         "jti": str(uuid.uuid4()),
+        "sid": str(session_id),
     }
     token=jwt.encode(claims, settings.jwt_secret_key, algorithm=JWT_ALGORITHM)
     return token, int(lifetime.total_seconds())
@@ -64,7 +70,7 @@ def decode_access_token(token: str) -> dict:
         get_settings().jwt_secret_key,
         algorithms=[JWT_ALGORITHM],
         issuer=JWT_ISSUER,
-        options={"require": ["sub", "role", "type", "iss", "iat", "exp", "jti"]},
+        options={"require": ["sub", "role", "type", "iss", "iat", "exp", "jti", "sid"]},
     )
     if claims["type"]!=JWT_KIND_ACCESS:
         raise jwt.InvalidTokenError("not an access token")

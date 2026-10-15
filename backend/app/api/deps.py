@@ -1,7 +1,7 @@
 """Authentication and authorization dependencies.
 
 Every protected route depends on these instead of doing its own checks:
-- get_current_user: valid access token -> active user, else 401.
+- get_current_user: valid access token of a live login session -> active user, else 401.
 - require_role: role gate, else 403.
 - get_accessible_study: the single anti-IDOR choke point. A study is
   returned only if it is a public demo case or owned by the caller; anything
@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from app.services import audit as audit_service
 from app.core.errors import AppError, not_found, unauthorized
 from app.core.security import decode_access_token
-from app.db.models import Role, Study, StudyKind, User
+from app.db.models import RefreshToken, Role, Study, StudyKind, User
 from app.db.session import get_db
 from app.domain.feature_store import FeatureStore
 from app.domain.volume_store import VolumeStore
@@ -40,11 +40,18 @@ def get_current_user(
     try:
         claims=decode_access_token(credentials.credentials)
         user_id=uuid.UUID(claims["sub"])
-    except (jwt.InvalidTokenError, ValueError):
+        session_id=uuid.UUID(claims["sid"])
+    except (jwt.InvalidTokenError, ValueError, TypeError, AttributeError):
         raise unauthorized()
 
     user=db.get(User, user_id)
     if user is None or not user.is_active:
+        raise unauthorized()
+    # The login session must still be live: logout and refresh-token reuse revoke the whole family.
+    live=db.scalar(select(RefreshToken.id).where(
+        RefreshToken.family_id==session_id, RefreshToken.user_id==user.id,
+        RefreshToken.revoked_at.is_(None)).limit(1))
+    if live is None:
         raise unauthorized()
     structlog.contextvars.bind_contextvars(user_id=str(user.id))
     return user

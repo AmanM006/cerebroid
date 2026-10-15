@@ -43,14 +43,24 @@ def study_dir(patient_id: str) -> Path:
     return get_settings().uploads_root/patient_id
 
 
+# gzip, or an uncompressed NIfTI-1/2 header: sizeof_hdr 348 or 540, in either byte order.
+NIFTI_MAGIC=(b"\x1f\x8b", b"\x5c\x01\x00\x00", b"\x00\x00\x01\x5c", b"\x1c\x02\x00\x00", b"\x00\x00\x02\x1c")
+
+
 def save_files(patient_id: str, files: dict[str, BinaryIO]) -> None:
-    """Copies each upload to <dir>/raw/<name>, enforcing the per-file size cap while copying."""
+    """Copies each upload to <dir>/raw/<name>, enforcing the per-file size cap while copying.
+
+    The first bytes must look like NIfTI, so an obviously wrong file is refused at once instead of
+    taking a processing slot; the worker still validates the full header.
+    """
     raw=study_dir(patient_id)/"raw"
     raw.mkdir(parents=True, exist_ok=False)
     for name in FILES:
         written=0
         with (raw/name).open("wb") as out:
             while chunk:=files[name].read(1<<20):
+                if written==0 and not chunk.startswith(NIFTI_MAGIC):
+                    raise UploadError("NIFTI_INVALID", f"{name} is not a NIfTI file (.nii or .nii.gz).")
                 written+=len(chunk)
                 if written>MAX_FILE_BYTES:
                     raise UploadError("UPLOAD_TOO_LARGE", f"{name} is larger than the 40 MB limit.")

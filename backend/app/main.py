@@ -54,7 +54,11 @@ def create_app() -> FastAPI:
     settings=get_settings()
     configure_logging(settings.log_level)
 
-    app=FastAPI(title="Cerebroid API", version="0.1.0", lifespan=lifespan)
+    # The interactive docs pages load scripts from a CDN and run inline script, which the CSP blocks;
+    # loosening it would put third-party script on our origin. Production keeps /openapi.json only.
+    docs=None if settings.is_production else "/docs"
+    redoc=None if settings.is_production else "/redoc"
+    app=FastAPI(title="Cerebroid API", version="0.1.0", lifespan=lifespan, docs_url=docs, redoc_url=redoc)
 
     # Added first so it runs inside RequestIDMiddleware: a 413 still gets the request ID and headers.
     app.add_middleware(

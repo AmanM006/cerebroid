@@ -29,6 +29,8 @@ class Settings(BaseSettings):
     # Login attempts allowed per client IP per window (generous: evaluators share few IPs).
     login_rate_limit: int=30
     login_rate_window_seconds: int=300
+    # Session refreshes per client IP in the same window (the app refreshes about every 14 minutes).
+    refresh_rate_limit: int=120
     # Analysis requests per signed-in user and client IP per window (one case view makes about 10).
     analysis_rate_limit: int=300
     analysis_rate_window_seconds: int=60
@@ -45,6 +47,12 @@ class Settings(BaseSettings):
     upload_ttl_hours: int=24
     upload_timeout_seconds: int=240
     cors_origins: str="http://localhost:5173"
+    # Header holding the client's address, set by a proxy that overwrites any client-sent value.
+    # Render sits behind Cloudflare, which always sets CF-Connecting-IP; Render's own proxy only
+    # appends to X-Forwarded-For, so there the last entry is a shared proxy address, not the client.
+    # Empty: use the last X-Forwarded-For entry (the nginx setup in docker compose).
+    client_ip_header: str=Field(
+        default_factory=lambda: "cf-connecting-ip" if os.environ.get("RENDER") else "")
 
     database_url: str = Field(
         default_factory=lambda: (

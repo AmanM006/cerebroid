@@ -87,7 +87,7 @@ def test_upload_is_processed_and_analysed_like_a_demo_case(client, make_user, de
 
 
 @pytest.mark.parametrize(("files", "error_code"), [
-    ({**_study(), "t2": b"not a nifti file at all"}, "NIFTI_INVALID"),
+    ({**_study(), "t2": gzip.compress(b"compressed, but not a nifti file")}, "NIFTI_INVALID"),
     (_study(labels=(1, 2, 3)), "MASK_INVALID"),
     (_study(skull=True), "NOT_SKULL_STRIPPED"),
     (_study(seg_size=SIZE-2), "NIFTI_SHAPE_MISMATCH"),
@@ -99,6 +99,15 @@ def test_bad_uploads_fail_with_a_clear_error(client, make_user, deployed, files,
     assert r.status_code==202, r.text
     status=_wait(client, headers, r.json()["study_id"])
     assert status["status"]=="failed" and status["error_code"]==error_code
+
+
+def test_a_file_that_is_not_nifti_is_refused_at_once(client, make_user, deployed):  # noqa: F811
+    make_user("alice")
+    headers=login(client, "alice")
+    r=_post(client, headers, {**_study(), "t2": b"<html><script>alert(1)</script></html>"})
+    assert r.status_code==422 and r.json()["error_code"]=="NIFTI_INVALID"
+    cases=client.get("/api/v1/cases", headers=headers).json()["items"]
+    assert not [c for c in cases if c["kind"]=="upload"]
 
 
 def test_gzip_bomb_is_stopped_while_decompressing(client, make_user, deployed):  # noqa: F811

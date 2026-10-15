@@ -113,7 +113,8 @@ done
   GitHub Actions workflows are manual-only (the organizers pay for runner minutes), so there is no scheduled ping.
 - **Docker Compose:** `docker compose up --build`, app on `http://localhost:8080` (set `WEB_PORT` to change it),
   API also reachable directly on `http://localhost:8000`.
-- **Interactive API docs:** `http://localhost:8000/docs`.
+- **Interactive API docs:** `http://localhost:8000/docs` (development). The public deployment serves the
+  machine-readable `/openapi.json` only: the interactive pages need third-party scripts our CSP does not allow.
 
 ### Test account
 A synthetic, non-admin clinician account for evaluators. It sees the public demo cases and its own uploads only.
@@ -295,7 +296,8 @@ pip-audit -r requirements.txt
 - Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
   out; the user signs in again.
 - **Shared test accounts.** `evaluator`, `doctor` and `reviewer` and their passwords are published here on purpose,
-  so anyone can sign in as them. Everyone using the same account sees, and can delete, that account's uploads.
+  so anyone can sign in as them. Everyone using the same account sees, and can delete, that account's uploads,
+  and shares its limit of 10 kept uploads (delete one to upload again).
   The `reviewer` account can run the read-only audit-log check. None of them can change models, demo cases or
   other accounts; real deployments would issue personal accounts.
 - **Removing a demo case** in the case list hides it in that browser only (stored in the browser); demo cases are

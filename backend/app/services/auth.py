@@ -96,7 +96,7 @@ def _issue(db: Session, user: User, family_id: uuid.UUID) -> tuple[RefreshToken,
     )
     db.add(record)
     db.flush()
-    access, expires_in=create_access_token(user.id, user.role.value)
+    access, expires_in=create_access_token(user.id, user.role.value, family_id)
     return record, IssuedSession(user=user, access_token=access, expires_in=expires_in, refresh_token=raw)
 
 

@@ -51,6 +51,40 @@ def test_login_attempts_are_limited_per_client_ip(client, make_user, monkeypatch
         ratelimit.reset()
 
 
+def test_successful_logins_do_not_use_up_the_allowance(client, make_user, monkeypatch):
+    make_user("alice")
+    monkeypatch.setattr(get_settings(), "login_rate_limit", 2)
+    ratelimit.reset()
+    try:
+        good={"username": "alice", "password": TEST_PASSWORD}
+        headers={"x-forwarded-for": "198.51.100.8"}
+        assert {client.post("/api/v1/auth/login", json=good, headers=headers).status_code
+                for _ in range(5)}=={200}
+    finally:
+        ratelimit.reset()
+
+
+def test_trusted_client_ip_header_is_used_when_configured(client, make_user, monkeypatch):
+    """On Render, Cloudflare's CF-Connecting-IP identifies the client; X-Forwarded-For ends with a
+    proxy address shared by everyone, and a forged CF-Connecting-IP that is not an address is ignored."""
+    make_user("alice")
+    monkeypatch.setattr(get_settings(), "login_rate_limit", 1)
+    monkeypatch.setattr(get_settings(), "client_ip_header", "cf-connecting-ip")
+    ratelimit.reset()
+    try:
+        bad={"username": "alice", "password": "wrong-password"}
+        shared_proxy="10.0.0.1"
+        a={"cf-connecting-ip": "198.51.100.30", "x-forwarded-for": shared_proxy}
+        b={"cf-connecting-ip": "198.51.100.31", "x-forwarded-for": shared_proxy}
+        assert client.post("/api/v1/auth/login", json=bad, headers=a).status_code==401
+        assert client.post("/api/v1/auth/login", json=bad, headers=a).status_code==429
+        assert client.post("/api/v1/auth/login", json=bad, headers=b).status_code==401
+        junk={"cf-connecting-ip": "<script>", "x-forwarded-for": "198.51.100.32"}
+        assert client.post("/api/v1/auth/login", json=bad, headers=junk).status_code==401
+    finally:
+        ratelimit.reset()
+
+
 def test_hsts_only_in_production(client, monkeypatch):
     assert "strict-transport-security" not in client.get("/health").headers
     monkeypatch.setattr(get_settings(), "app_env", "production")
