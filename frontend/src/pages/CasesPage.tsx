@@ -20,8 +20,18 @@ export function CasesPage() {
   const [filterStatus, setFilterStatus] = useState<string>("ALL")
 
   useEffect(() => {
-    api.listCases().then(setCases).catch(setError)
+    reload()
+    const timer = setInterval(() => {
+      // Auto-poll every 3s if any study is PROCESSING
+      api.listCases().then((res) => {
+        setCases(res)
+      }).catch(() => {})
+    }, 3000)
+    return () => clearInterval(timer)
   }, [])
+
+  const processingCount = cases?.items.filter(c => c.status === "processing").length ?? 0
+  const readyCount = cases?.items.filter(c => c.status === "ready").length ?? 0
 
   const filteredItems = cases?.items.filter((c) => {
     const matchesSearch = c.label.toLowerCase().includes(search.toLowerCase())
@@ -62,8 +72,27 @@ export function CasesPage() {
                   }`}
                 >
                   <span>Ready for Review</span>
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                  <span className="flex items-center gap-1.5">
+                    <span className="rounded-md bg-emerald-950/60 border border-emerald-800/40 px-1.5 py-0.2 text-[10px] font-bold text-emerald-400">{readyCount}</span>
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+                  </span>
                 </button>
+                {processingCount > 0 && (
+                  <button
+                    onClick={() => setFilterStatus("PROCESSING")}
+                    className={`w-full flex items-center justify-between rounded-xl px-3.5 py-2.5 text-left transition-colors cursor-pointer ${
+                      filterStatus === "PROCESSING"
+                        ? "bg-[#141414] text-white border border-amber-600/50 shadow-sm"
+                        : "text-amber-400 hover:bg-[#121212]"
+                    }`}
+                  >
+                    <span className="font-semibold">Processing / Ingesting</span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="rounded-md bg-amber-950/60 border border-amber-700/50 px-1.5 py-0.2 text-[10px] font-bold text-amber-300">{processingCount}</span>
+                      <span className="h-2 w-2 rounded-full bg-amber-400 animate-ping" />
+                    </span>
+                  </button>
+                )}
               </div>
             </div>
 
@@ -183,10 +212,21 @@ export function CasesPage() {
                       className="group transition-colors hover:bg-[#121212]"
                     >
                       <td className="py-3 px-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/40 px-2.5 py-0.5 text-[10.5px] font-medium text-emerald-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                          {c.status.toUpperCase()}
-                        </span>
+                        {c.status.toUpperCase() === "READY" ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/40 px-2.5 py-0.5 text-[10.5px] font-medium text-emerald-300">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                            READY
+                          </span>
+                        ) : c.status.toUpperCase() === "PROCESSING" ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-950/40 px-2.5 py-0.5 text-[10.5px] font-medium text-amber-300 animate-pulse">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
+                            PROCESSING
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-900 px-2.5 py-0.5 text-[10.5px] font-medium text-neutral-400">
+                            {c.status.toUpperCase()}
+                          </span>
+                        )}
                       </td>
 
                       <td className="py-3 px-4 whitespace-nowrap font-bold text-white group-hover:text-cyan-400 transition-colors">
