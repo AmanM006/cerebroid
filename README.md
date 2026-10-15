@@ -63,8 +63,10 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 ```bash
 docker compose up --build
 ```
-Database migrations run automatically when the API container starts. Open the app at
-`http://localhost:8080` (nginx serves the frontend and proxies the API on the same origin).
+Database migrations run automatically when the API container starts, and start-up also creates the three demo
+cases and the three test accounts (`evaluator`, `reviewer`, `doctor`, passwords in the table under section 7), so no
+manual step is needed. Open the app at `http://localhost:8080` (nginx serves the frontend and proxies the API on the
+same origin) and sign in as `evaluator`.
 ```bash
 curl http://localhost:8080/health
 curl http://localhost:8080/ready
@@ -93,12 +95,8 @@ Register a public-dataset patient from the feature table as a demo case (age, se
 docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-0004
 ```
 
-To reproduce the deployed demo on a fresh stack, register the three held-out test patients:
-```bash
-for p in 0232 0327 0243; do
-  docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-$p
-done
-```
+The three held-out demo patients (UCSF-PDGM-0232, 0327, 0243) are registered automatically at start-up;
+`VBX_SEED_DEMO_CASES` overrides the list.
 
 ## 7. Deployment & access details
 - **Public URL: https://cerebroid-app.onrender.com** (deployed from the `bugbounty` branch, kept identical to
@@ -125,10 +123,8 @@ A synthetic, non-admin clinician account for evaluators. It sees the public demo
 | `reviewer` | `vbx-review-718d0a59` | reviewer (can also run the audit-log check) |
 | `doctor` | `doctor-clinical-demo-2026` | clinician (same rights as `evaluator`; one-click fill on the login page) |
 
-On a fresh local stack, create it with the command below and enter the password from the table when prompted:
-```bash
-docker compose exec api python -m app.cli create-user --username evaluator --role clinician --synthetic
-```
+These accounts are created automatically at start-up on every stack, local or deployed, with the passwords above
+(or the `VBX_*_PASSWORD` values from `.env` when set).
 
 ### API endpoints
 | Method & path | Auth | Purpose |
@@ -187,7 +183,7 @@ See [.env.example](.env.example).
 | `WEB_PORT` | Host port of the web container (default 8080) |
 | `FRONTEND_DIST` | Built frontend directory for the API to serve itself (single-service hosting; unset in compose) |
 | `VBX_SEED_DEMO_CASES` | Comma-separated patient IDs registered as demo cases at start-up |
-| `VBX_EVALUATOR_PASSWORD` / `VBX_REVIEWER_PASSWORD` | Create the synthetic `evaluator` / `reviewer` accounts at start-up |
+| `VBX_EVALUATOR_PASSWORD` / `VBX_REVIEWER_PASSWORD` / `VBX_DOCTOR_PASSWORD` | Passwords of the synthetic `evaluator` / `reviewer` / `doctor` accounts created at start-up (blank: the README passwords) |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Postgres credentials |
 | `DATABASE_URL` | SQLAlchemy connection string |
 | `JWT_SECRET_KEY` | **Required.** JWT signing key, ≥32 random characters |
@@ -293,7 +289,7 @@ pip-audit -r requirements.txt
   `503 SERVER_BUSY` with `Retry-After`. Repeat views are served from a cache and never wait.
 - `/openapi.json` is public on purpose, so evaluators can explore the API. The public deployment has no `/docs`
   page (Swagger needs third-party script, which our CSP blocks).
-- Requests that Cloudflare or Render reject before they reach the app (malformed or encoded paths such as `%00` or
+- Requests that Cloudflare or Render (or nginx, in the Docker Compose setup) reject before they reach the app (malformed or encoded paths such as `%00` or
   `..%2f`, patterns their firewall blocks) get the host's own error page, without our security headers or request ID.
 - Session refreshes are limited to 120 per client IP per 5 minutes. Logout ends the session at once: its access
   token stops working immediately.

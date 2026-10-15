@@ -93,7 +93,8 @@ class BodySizeLimitMiddleware:
         declared=dict(scope.get("headers") or []).get(b"content-length")
         path=scope["path"]
         norm_path=path.rstrip("/") or "/"
-        large=self.large_routes.get((scope["method"], path)) or self.large_routes.get((scope["method"], norm_path))
+        large=(self.large_routes.get((scope["method"], path))
+               or self.large_routes.get((scope["method"], norm_path)))
         if large is not None:
             if declared is None or not declared.isdigit():
                 await self._reject(scope, receive, send, 411, "LENGTH_REQUIRED",

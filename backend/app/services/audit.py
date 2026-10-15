@@ -53,8 +53,9 @@ def record(
                 prev_hash=GENESIS if last is None else last.hash
                 ts=datetime.now(UTC)
                 entry=AuditEntry(
-                    seq=seq, ts=ts, actor_id=actor_id, action=action, object_id=object_id, model_version=model_version,
-                    prev_hash=prev_hash, hash=_digest(seq, ts, actor_id, action, object_id, model_version, prev_hash),
+                    seq=seq, ts=ts, actor_id=actor_id, action=action, object_id=object_id,
+                    model_version=model_version, prev_hash=prev_hash,
+                    hash=_digest(seq, ts, actor_id, action, object_id, model_version, prev_hash),
                 )
                 db.add(entry)
                 db.commit()
