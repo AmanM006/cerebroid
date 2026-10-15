@@ -93,6 +93,27 @@ def _population(store: FeatureStore, root: Path) -> dict:
     }
 
 
+def _deployed_versions(registry: MarkerRegistry) -> dict[str, str]:
+    return {m.value: p.model_version for (m, v), p in registry.predictors.items() if v=="fused"}
+
+
+def _current_unseen(root: Path, registry: MarkerRegistry) -> dict | None:
+    """Held-out metrics, only if they were computed for exactly the deployed fused sets."""
+    report=_load_json(root/"metrics"/"unseen.json")
+    if not report or report.get("model_versions")!=_deployed_versions(registry):
+        return None
+    return {"cohorts": report["cohorts"]}
+
+
+def _current_alert(root: Path, registry: MarkerRegistry) -> dict | None:
+    alert=_load_json(root/"metrics"/"grade_alert.json")
+    if not alert or alert.get("model_version")!=_deployed_versions(registry).get("GRADE"):
+        return None
+    keys=("threshold", "grade4_missed_by_call", "grade4_missed_by_call_caught", "grade2_3_flag_only_share",
+          "patients", "method")
+    return {k: alert[k] for k in keys}
+
+
 def _load_json(path: Path) -> dict | None:
     if not path.is_file():
         return None
@@ -146,6 +167,8 @@ def model_card(
         training_population=_population(store, settings.artifacts_root),
         subgroups=_load_json(settings.artifacts_root/"metrics"/"subgroups_ucsf.json"),
         external_validation=_load_json(settings.artifacts_root/"metrics"/"external_tcga.json"),
+        unseen=_current_unseen(settings.artifacts_root, registry),
+        grade_alert=_current_alert(settings.artifacts_root, registry),
         request_id=getattr(request.state, "request_id", None),
     )
 

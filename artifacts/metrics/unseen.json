@@ -1,0 +1,84 @@
+{
+  "model_versions": {
+    "IDH": "sha256:6f7ed943339cdb89e13b274d5f8182c7c992de6af73f83c93e7361aba07047f0",
+    "1p19q": "sha256:e508251b88b37ed1a858da8c26ac84f5c51dff363e92b0ac2dd121cff7a76fb0",
+    "MGMT": "sha256:624f5de5754ee5bd94295b2fb0cc9d6fa6ebf701004a0bcc3bf3fde488423a17",
+    "GRADE": "sha256:7f4775c939c04a01c6ea0134618e9d752bada4080d05d2c1b3d4b82b7e5b8dd3"
+  },
+  "cohorts": [
+    {
+      "name": "UCSF held-out (same hospital)",
+      "patients": 99,
+      "markers": {
+        "IDH": {
+          "low_signal": false,
+          "n": 99,
+          "positives": 20,
+          "accuracy": 0.9596,
+          "sensitivity": 0.9,
+          "specificity": 0.9747,
+          "auc": 0.9829
+        },
+        "1p19q": {
+          "low_signal": false,
+          "n": 80,
+          "positives": 2,
+          "accuracy": 0.975,
+          "sensitivity": 0.0,
+          "specificity": 1.0,
+          "auc": 0.9167
+        },
+        "GRADE": {
+          "low_signal": false,
+          "n": 99,
+          "positives": 78,
+          "accuracy": 0.9495,
+          "sensitivity": 0.9615,
+          "specificity": 0.9048,
+          "auc": 0.9927
+        },
+        "MGMT": {
+          "low_signal": true,
+          "n": 84
+        }
+      }
+    },
+    {
+      "name": "TCGA held-out (other hospitals)",
+      "patients": 51,
+      "markers": {
+        "IDH": {
+          "low_signal": false,
+          "n": 45,
+          "positives": 18,
+          "accuracy": 0.9111,
+          "sensitivity": 0.7778,
+          "specificity": 1.0,
+          "auc": 0.9856
+        },
+        "1p19q": {
+          "low_signal": false,
+          "n": 43,
+          "positives": 4,
+          "accuracy": 0.907,
+          "sensitivity": 0.0,
+          "specificity": 1.0,
+          "auc": 0.6859
+        },
+        "GRADE": {
+          "low_signal": false,
+          "n": 51,
+          "positives": 31,
+          "accuracy": 0.8627,
+          "sensitivity": 1.0,
+          "specificity": 0.65,
+          "auc": 0.9484
+        },
+        "MGMT": {
+          "low_signal": true,
+          "n": 33
+        }
+      }
+    }
+  ]
+}

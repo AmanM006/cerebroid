@@ -1,0 +1,48 @@
+{
+  "marker": "GRADE",
+  "variant": "fused",
+  "model_version": "sha256:7f4775c939c04a01c6ea0134618e9d752bada4080d05d2c1b3d4b82b7e5b8dd3",
+  "method": "Highest P(grade 4) at which every grade 4 training patient is called grade 4 or flagged; out-of-fold predictions from 5-fold stratified CV x3, set median as in the app.",
+  "target_sensitivity": 1.0,
+  "threshold": 0.2686,
+  "patients": 510,
+  "grade4_patients": 387,
+  "sensitivity_at_threshold": 1.0,
+  "sensitivity_at_call": 0.9742,
+  "grade2_3_flagged_share": 0.3171,
+  "grade2_3_flag_only_share": 0.1545,
+  "grade4_missed_by_call_caught": 10,
+  "grade4_missed_by_call": 10,
+  "tradeoff": [
+    {
+      "threshold": 0.4,
+      "grade4_missed_by_call_caught": 5,
+      "grade2_3_flagged_share": 0.0407
+    },
+    {
+      "threshold": 0.3,
+      "grade4_missed_by_call_caught": 8,
+      "grade2_3_flagged_share": 0.1057
+    },
+    {
+      "threshold": 0.2,
+      "grade4_missed_by_call_caught": 10,
+      "grade2_3_flagged_share": 0.1951
+    },
+    {
+      "threshold": 0.15,
+      "grade4_missed_by_call_caught": 10,
+      "grade2_3_flagged_share": 0.2276
+    },
+    {
+      "threshold": 0.1,
+      "grade4_missed_by_call_caught": 10,
+      "grade2_3_flagged_share": 0.2602
+    },
+    {
+      "threshold": 0.05,
+      "grade4_missed_by_call_caught": 10,
+      "grade2_3_flagged_share": 0.2927
+    }
+  ]
+}

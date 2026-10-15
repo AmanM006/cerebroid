@@ -80,6 +80,8 @@ export interface MarkerProfile {
   prob_min?: number | null
   prob_median?: number | null
   prob_max?: number | null
+  /** GRADE only: P(grade 4) above which a grade 2-3 call is flagged; chosen on cross-validation. */
+  alert_threshold?: number | null
   model_version?: string | null
   reason?: string | null
   imaging_only_call?: string | null
@@ -232,6 +234,23 @@ export interface ModelCard {
   subgroups: GroupReport | null
   external_validation: GroupReport | null
   limitations: string[]
+  /** Held-out results of the deployed sets; null when not computed for these model files. */
+  unseen?: { cohorts: UnseenCohort[] } | null
+  grade_alert?: {
+    threshold: number; grade4_missed_by_call: number; grade4_missed_by_call_caught: number
+    grade2_3_flag_only_share: number; patients: number; method: string
+  } | null
+}
+
+export interface UnseenMetrics {
+  low_signal: boolean; n: number; positives?: number
+  accuracy?: number; sensitivity?: number | null; specificity?: number | null; auc?: number | null
+}
+
+export interface UnseenCohort {
+  name: string
+  patients: number
+  markers: Partial<Record<MarkerName, UnseenMetrics>>
 }
 
 export interface MetricsSummary {

@@ -45,6 +45,9 @@ export function MarkerCard({
   const agreeing = marker.n_models != null && marker.agreement != null
     ? Math.round(marker.agreement * marker.n_models) : null
   const needsTissue = marker.status === "predicted" && (marker.low_signal || (marker.verdict != null && marker.verdict !== "STABLE"))
+  // Set on cross-validation (ml/pipeline/grade_alert.py): catches every grade 4 the 0.5 call misses there.
+  const gradeAlert = marker.alert_threshold != null && marker.prob_median != null
+    && marker.prob_median >= marker.alert_threshold && marker.call === "grade 2-3"
   const predicted = marker.status === "predicted" && marker.prob_min != null && marker.prob_median != null && marker.prob_max != null
 
   return (
@@ -84,12 +87,12 @@ export function MarkerCard({
             call={marker.call}
             muted={marker.low_signal}
           />
-          {(needsTissue || marker.resolved_by_combining || (marker.marker === "GRADE" && marker.prob_median != null && marker.prob_median >= 0.20 && marker.call === "grade 2-3")) && (
+          {(needsTissue || marker.resolved_by_combining || (gradeAlert)) && (
             <div className="flex flex-wrap gap-1.5 font-mono text-[10.5px]">
-              {marker.marker === "GRADE" && marker.prob_median != null && marker.prob_median >= 0.20 && marker.call === "grade 2-3" && (
+              {gradeAlert && (
                 <span className="rounded-full border border-rose-800/80 bg-rose-950/40 px-2 py-0.5 text-rose-200 font-semibold shadow-sm"
-                  title="20%+ probability of Grade 4; non-enhancing pattern cannot exclude molecular Grade 4 (e.g. CDKN2A/B deletion). Urgent biopsy recommended.">
-                  ⚠ Grade 4 risk present ({Math.round(marker.prob_median * 100)}%) · Tissue biopsy required
+                  title={`P(grade 4) is at or above ${Math.round((marker.alert_threshold ?? 0) * 100)}%, the level chosen on cross-validation to catch every grade 4 tumour the call would miss there (its false-alarm rate is in Training data & fairness).`}>
+                  ⚠ Grade 4 not ruled out ({Math.round((marker.prob_median ?? 0) * 100)}%) · confirm with tissue
                 </span>
               )}
               {needsTissue && (

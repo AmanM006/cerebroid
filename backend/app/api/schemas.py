@@ -88,6 +88,8 @@ class MarkerProfileOut(_Response):
     prob_min: float | None=None
     prob_median: float | None=None
     prob_max: float | None=None
+    # GRADE only: P(grade 4) above which a grade 2-3 call is flagged, chosen on cross-validation.
+    alert_threshold: float | None=None
     model_version: str | None=None
     reason: str | None=None
     imaging_only_call: str | None=None
@@ -400,4 +402,8 @@ class ModelCardOut(_Response):
     training_population: dict
     subgroups: dict | None
     external_validation: dict | None
+    # Held-out results of the deployed sets (ml/pipeline/unseen_metrics.py), and the cross-validated
+    # grade 4 alert (ml/pipeline/grade_alert.py); None when computed for other model files.
+    unseen: dict | None=None
+    grade_alert: dict | None=None
     request_id: str | None

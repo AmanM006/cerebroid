@@ -45,6 +45,7 @@ from app.api.schemas import (
 from app.core.errors import AppError
 from app.db.models import Study, StudyKind
 from app.core.compute import heavy_slot
+from app.core.config import get_settings
 from app.services import uploads as uploads_service
 from app.core.ratelimit import limit_analysis
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue
@@ -100,6 +101,25 @@ def _clinical(value: object) -> ProvenancedValue:
     return ProvenancedValue(value=value, provenance=Provenance.CLINICAL_INPUT)  # type: ignore[arg-type]
 
 
+def _grade_alert() -> dict | None:
+    """The cross-validated grade 4 alert (ml/pipeline/grade_alert.py), or None if not computed."""
+    path=get_settings().artifacts_root/"metrics"/"grade_alert.json"
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+
+
+def _alert_threshold(result: MarkerResult) -> float | None:
+    """Only for the exact deployed GRADE set the threshold was computed on."""
+    if result.marker!=Marker.GRADE or result.prediction is None:
+        return None
+    alert=_grade_alert()
+    if not alert or alert.get("model_version")!=result.prediction.model_version:
+        return None
+    return float(alert["threshold"])
+
+
 def _marker_out(result: MarkerResult) -> MarkerProfileOut:
     if result.status=="known":
         return MarkerProfileOut(
@@ -125,6 +145,7 @@ def _marker_out(result: MarkerResult) -> MarkerProfileOut:
         prob_min=round(p.prob_min, 4),
         prob_median=round(p.prob_median, 4),
         prob_max=round(p.prob_max, 4),
+        alert_threshold=_alert_threshold(result),
         model_version=p.model_version,
         imaging_only_call=result.imaging_only.call if result.imaging_only else None,
         imaging_only_verdict=result.imaging_only.verdict if result.imaging_only else None,
