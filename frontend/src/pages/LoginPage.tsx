@@ -233,7 +233,7 @@ export function LoginPage() {
                   type="button"
                   onClick={() => {
                     setEmail("doctor")
-                    setPassword("doctor")
+                    setPassword("doctor-clinical-demo-2026")
                   }}
                   className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-red-500/10 text-xs text-neutral-300 transition-colors cursor-pointer"
                 >

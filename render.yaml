@@ -1,0 +1,39 @@
+# Render blueprint: one free web service (API + frontend) and one free Postgres.
+# Create it from the Render dashboard: New > Blueprint > this repository.
+# Render asks for the values marked sync: false (the README lists the test account passwords).
+services:
+  - type: web
+    name: vbx
+    runtime: docker
+    plan: free
+    dockerfilePath: ./ops/render/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PORT
+        value: "8000"
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: vbx-db
+          property: connectionString
+      - key: VBX_SEED_DEMO_CASES
+        value: UCSF-PDGM-0061,UCSF-PDGM-0073,UCSF-PDGM-0243,UCSF-PDGM-0018,UCSF-PDGM-0026,UCSF-PDGM-0232,UCSF-PDGM-0162,UCSF-PDGM-0282,UCSF-PDGM-0327
+      - key: VBX_DOCTOR_PASSWORD
+        value: doctor-clinical-demo-2026
+      - key: VBX_EVALUATOR_PASSWORD
+        value: vbx-eval-fcd664d1
+      - key: VBX_REVIEWER_PASSWORD
+        value: vbx-review-9e1208a4
+
+databases:
+  - name: vbx-db
+    plan: free
+    databaseName: vbx
+    user: vbx

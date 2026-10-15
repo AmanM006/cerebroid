@@ -100,6 +100,8 @@ def seed() -> None:
         _ensure_user("evaluator", Role.CLINICIAN, password)
     if password:=os.environ.get("VBX_REVIEWER_PASSWORD"):
         _ensure_user("reviewer", Role.REVIEWER, password)
+    doctor_pwd = os.environ.get("VBX_DOCTOR_PASSWORD", "doctor-clinical-demo-2026")
+    _ensure_user("doctor", Role.CLINICIAN, doctor_pwd)
 
 
 def main() -> None:
