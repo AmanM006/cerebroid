@@ -71,15 +71,21 @@ def hit(bucket: str, key: str, limit: int, window_s: int, message: str, record: 
 _LOGIN_MESSAGE="Too many failed sign-in attempts. Please wait and try again."
 
 
-def limit_login(request: Request) -> None:
-    """FastAPI dependency: 429 once a client IP has too many FAILED logins in the window.
+def login_limit_error(request: Request) -> AppError | None:
+    """The 429 to return if this client IP already has too many FAILED logins in the window, else None.
 
-    Only failures count (record_login_failure), so evaluators signing in from one shared network
-    never use up the allowance; someone guessing passwords does.
+    Only failures count (record_login_failure), and the login route still accepts a correct password
+    from a limited address: many people share one public address (a campus network), so someone
+    guessing there must not lock everyone else out. Wrong passwords from it get 429, so guessing
+    stays capped; real accounts are also locked after repeated failures.
     """
     s=get_settings()
-    hit("login", client_ip(request), s.login_rate_limit, s.login_rate_window_seconds, _LOGIN_MESSAGE,
-        record=False)
+    try:
+        hit("login", client_ip(request), s.login_rate_limit, s.login_rate_window_seconds, _LOGIN_MESSAGE,
+            record=False)
+    except AppError as exc:
+        return exc
+    return None
 
 
 def record_login_failure(request: Request) -> None:

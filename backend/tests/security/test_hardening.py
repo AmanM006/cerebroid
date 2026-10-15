@@ -51,6 +51,24 @@ def test_login_attempts_are_limited_per_client_ip(client, make_user, monkeypatch
         ratelimit.reset()
 
 
+def test_correct_password_still_works_from_a_limited_address(client, make_user, monkeypatch):
+    """Many people share one public address (a campus network): someone guessing there must not lock
+    everyone else out, while further wrong guesses from it stay blocked."""
+    make_user("alice")
+    monkeypatch.setattr(get_settings(), "login_rate_limit", 2)
+    ratelimit.reset()
+    try:
+        headers={"x-forwarded-for": "198.51.100.9"}
+        bad={"username": "alice", "password": "wrong-password"}
+        assert [client.post("/api/v1/auth/login", json=bad, headers=headers).status_code
+                for _ in range(3)]==[401, 401, 429]
+        good={"username": "alice", "password": TEST_PASSWORD}
+        assert client.post("/api/v1/auth/login", json=good, headers=headers).status_code==200
+        assert client.post("/api/v1/auth/login", json=bad, headers=headers).status_code==429
+    finally:
+        ratelimit.reset()
+
+
 def test_successful_logins_do_not_use_up_the_allowance(client, make_user, monkeypatch):
     make_user("alice")
     monkeypatch.setattr(get_settings(), "login_rate_limit", 2)

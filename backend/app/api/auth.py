@@ -12,7 +12,7 @@ from app.api.deps import get_current_user
 from app.api.schemas import LoginRequest, TokenResponse, UserOut
 from app.core.config import get_settings
 from app.core.errors import AppError
-from app.core.ratelimit import limit_login, limit_refresh, record_login_failure
+from app.core.ratelimit import limit_refresh, login_limit_error, record_login_failure
 from app.db.models import User
 from app.db.session import get_db
 from app.services import auth as auth_service
@@ -47,14 +47,17 @@ def _clear_refresh_cookie(response: Response) -> None:
     )
 
 
-@router.post("/login", dependencies=[Depends(limit_login)])
+@router.post("/login")
 def login(
     body: LoginRequest, request: Request, response: Response, db: Session=Depends(get_db),
 ) -> TokenResponse:
+    limited=login_limit_error(request)
     try:
         user=auth_service.authenticate(db, body.username, body.password)
     except AppError:
         record_login_failure(request)
+        if limited is not None:
+            raise limited from None
         raise
     issued=auth_service.start_session(db, user)
     _set_refresh_cookie(response, issued.refresh_token)
