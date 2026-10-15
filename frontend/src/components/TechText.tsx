@@ -60,7 +60,7 @@ export interface TechTextProps {
 }
 
 export function TechText({
-  text = "NovaCell",
+  text = "Cerebroid",
   fontFamily = "",
   fontWeight = 800,
   fontSize = 36,

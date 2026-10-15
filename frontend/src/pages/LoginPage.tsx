@@ -138,7 +138,7 @@ export function LoginPage() {
               className="text-3xl font-extrabold not-italic text-white leading-none drop-shadow-lg"
               style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              NovaCell
+              Cerebroid
             </h1>
             <p className="text-red-200/90 text-xs mt-1.5 font-medium tracking-wide flex items-center gap-2">
               <span className="w-6 h-[1px] bg-red-400" />

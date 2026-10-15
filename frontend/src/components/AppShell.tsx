@@ -12,7 +12,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="flex items-center gap-4">
           <Link to="/cases" className="flex items-center gap-2.5 group">
             <span className="font-heading text-lg font-black tracking-tight text-white group-hover:text-cyan-400 transition-colors">
-              VBX
+              Cerebroid
             </span>
             <span className="h-3.5 w-px bg-neutral-800" />
             <span className="text-[11px] font-mono tracking-wider text-neutral-400 uppercase">
