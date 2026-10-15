@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* One typeface across the app: the landing-page headline font. Tailwind's font-mono maps to it too,
+   with tabular figures so numbers in tables and probability bars still line up. */
+@theme {
+  --font-mono: 'Plus Jakarta Sans', 'Inter', sans-serif;
+}
+
 :root {
   color-scheme: dark;
 }
@@ -21,7 +27,8 @@ h1, h2, h3, h4, .font-heading {
 }
 
 code, pre, .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Custom dark clinical scrollbars */
