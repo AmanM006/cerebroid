@@ -1,6 +1,6 @@
 """Database tables.
 
-Privacy rules (CLAUDE.md §6): no direct identifiers anywhere. Users are
+Privacy rules: no direct identifiers anywhere. Users are
 pseudonymous usernames; studies hold only age (integer) and sex, never names,
 dates of birth or hospital IDs. All primary keys are random UUIDv4 so IDs
 can't be guessed or enumerated.
@@ -111,7 +111,7 @@ class Study(Base):
 
 
 class AuditEntry(Base):
-    """One tamper-evident audit record (CLAUDE.md §5).
+    """One tamper-evident audit record.
 
     hash=sha256 over this row's fields and the previous row's hash, so editing,
     deleting or reordering any row breaks every hash after it. Rows hold IDs

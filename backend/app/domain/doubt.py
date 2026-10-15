@@ -1,4 +1,4 @@
-"""Doubt decomposition (CLAUDE.md §2.4 item 5): why a marker call is uncertain,
+"""Doubt decomposition: why a marker call is uncertain,
 and what a clinician can do about each reason.
 
 Sources, each rated low / medium / high (or unknown when it can't be measured):

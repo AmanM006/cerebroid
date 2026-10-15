@@ -1,4 +1,4 @@
-"""Golden regression set (CLAUDE.md §7): the committed models must keep producing
+"""Golden regression set: the committed models must keep producing
 the frozen outputs for 10 held-out patients. An intended model update regenerates
 expected.json in the same commit; anything else that moves a prediction fails here."""
 import json

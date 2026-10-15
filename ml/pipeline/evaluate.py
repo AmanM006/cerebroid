@@ -7,7 +7,7 @@ stability rule as the API. Reports, per set:
   95% confidence intervals (1000 resamples, seed 0)
 - how many test patients got each verdict, and the error rate within each
   verdict: the check that "Stable" calls really are more often right
-And per marker, "resolved by combining" (CLAUDE.md §2.4 item 13): test patients
+And per marker, "resolved by combining": test patients
 whose imaging-only set is not Stable but whose fused set is Stable, with the
 fused call's accuracy on them, plus the reverse direction.
 

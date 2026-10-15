@@ -1,7 +1,7 @@
 """Global error handling.
 
 Every error response is {error_code, message, request_id} — nothing else.
-This is a security requirement (§5 of CLAUDE.md): stack traces, SQL, file
+This is a security requirement: stack traces, SQL, file
 paths and library versions must never reach a client, since peer teams will
 be actively probing error responses during the Bug Bounty phase.
 

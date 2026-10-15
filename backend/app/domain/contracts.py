@@ -1,8 +1,8 @@
-"""Shared types between the ML track and the API track.
+"""Shared types between the ML pipeline and the API.
 
 Everything that crosses the boundary between a marker plugin and the API is
 one of these models. Changing a field here changes the contract for both
-tracks, so changes go through the integration owner (CLAUDE.md §9A).
+sides at once.
 
 Models are frozen and reject unknown fields, so a typo in a field name is an
 error instead of a silently dropped value.
@@ -166,7 +166,7 @@ class ProvenancedValue(_Contract):
 class FeatureVector(_Contract):
     """Everything a marker plugin is allowed to see about one study.
 
-    age and sex are the only clinical inputs (CLAUDE.md §3 leakage rules);
+    age and sex are the only clinical inputs;
     there is deliberately no field for grade, pathology, treatment or outcome.
     A feature value of None means missing, never zero.
 
@@ -203,7 +203,7 @@ class SetPrediction(_Contract):
     Summary statistics are computed from the per-model probabilities instead
     of being passed in, so they can never disagree with the underlying votes.
     The verdict is supplied by the multiplicity engine, because its thresholds
-    are chosen on cross-validation data (CLAUDE.md §2.4 item 2).
+    are chosen on cross-validation data.
     """
 
     marker: Marker

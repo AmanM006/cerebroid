@@ -74,7 +74,7 @@ class ProfileInputs(_Response):
 
 class MarkerProfileOut(_Response):
     """One marker on the profile card. provenance and evidence_ids are required,
-    so a claim without them cannot be serialized (CLAUDE.md §4.4)."""
+    so a claim without them cannot be serialized."""
 
     marker: Marker
     status: Literal["known", "predicted", "unavailable"]
@@ -102,7 +102,7 @@ class MarkerProfileOut(_Response):
 
 
 class EvidenceItemOut(_Response):
-    """One evidence group for one marker; provenance is required (CLAUDE.md §4.4)."""
+    """One evidence group for one marker; provenance is required."""
 
     evidence_id: str
     group: str
@@ -116,7 +116,7 @@ class EvidenceItemOut(_Response):
 
 
 class LimeFactorOut(_Response):
-    """One evidence group's LIME weight; provenance is required (CLAUDE.md §4.4)."""
+    """One evidence group's LIME weight; provenance is required."""
 
     evidence_id: str
     group: str
@@ -235,7 +235,7 @@ class TippingOut(_Response):
 
 
 class ClaimOut(_Response):
-    """One templated statement; provenance and evidence_ids are required (CLAUDE.md §4.4)."""
+    """One templated statement; provenance and evidence_ids are required."""
 
     short: str
     text: str

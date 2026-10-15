@@ -1,4 +1,4 @@
-"""Tipping evidence (CLAUDE.md §2.4 item 4): the smallest plausible change to a
+"""Tipping evidence: the smallest plausible change to a
 clinician-verifiable input that flips the model set's majority call.
 
 Only inputs a clinician can check are varied: age and the interpretable tumor

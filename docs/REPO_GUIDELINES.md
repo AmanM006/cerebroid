@@ -1,8 +1,7 @@
 # Official Event Repository Guidelines (verbatim)
 
 > Preserved from the original `README.md` the organizers seeded this repository with.
-> This document is authoritative over anything in `CLAUDE.md` or elsewhere in this repo
-> wherever the two disagree — see [CLAUDE.md §11](../CLAUDE.md#11-official-repository-note-read-before-touching-branches).
+> This document is authoritative over anything else in this repository wherever the two disagree.
 
 ## Repository Guidelines
 

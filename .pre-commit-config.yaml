@@ -8,7 +8,7 @@ repos:
     rev: v0.8.4
     hooks:
       # check only -- never the `ruff-format` hook, it would rewrite the
-      # team's intentional no-space-around-operators style (CLAUDE.md §0.7).
+      # team's intentional no-space-around-operators style.
       - id: ruff
         args: ["--config", "backend/pyproject.toml"]
         files: ^backend/

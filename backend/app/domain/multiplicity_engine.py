@@ -1,7 +1,7 @@
 """Turns the near-optimal model set's votes for one patient into a verdict.
 
 The thresholds are not chosen here: they are fitted on cross-validation data
-during training (CLAUDE.md §2.4 item 2) and shipped in each marker's
+during training and shipped in each marker's
 meta.json, so the API applies exactly what the notebook validated.
 """
 import statistics

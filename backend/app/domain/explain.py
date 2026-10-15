@@ -9,7 +9,7 @@ class. A group whose values are already typical moves nothing, so the result
 reads "what about this patient, compared with a typical patient, drove the
 call". It measures model sensitivity, not biological cause.
 
-Explanation agreement (CLAUDE.md §2.4 item 3) is the mean pairwise Spearman
+Explanation agreement is the mean pairwise Spearman
 rank correlation of the groups' absolute effects across set members: models
 can agree on the call while relying on different evidence.
 """

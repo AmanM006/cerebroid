@@ -1,6 +1,6 @@
 import type { Provenance } from "../api/types"
 
-// Icon + text, never colour alone (CLAUDE.md §8 accessibility).
+// Icon + text, never colour alone.
 const LABELS: Record<Provenance, { icon: string; text: string; tone: string }> = {
   clinical_input: { icon: "✎", text: "Clinical", tone: "border-[#2b273d] bg-[#14121f] text-sky-300" },
   measured: { icon: "✓", text: "Measured", tone: "border-emerald-800/60 bg-emerald-950/30 text-emerald-300" },

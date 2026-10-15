@@ -1,4 +1,4 @@
-"""Falsification panel (CLAUDE.md §2.4 item 9): the case for a call, the case
+"""Falsification panel: the case for a call, the case
 against it, the strongest competing call, and what would overturn it.
 
 Every sentence is filled from a fixed template using computed results, and

@@ -108,4 +108,4 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 
 ## Process
 STRIDE review happens while each feature is built, and every mitigated attack gets a regression test in
-`backend/tests/security/` (see [CLAUDE.md](../CLAUDE.md) §5).
+`backend/tests/security/`.

@@ -1,4 +1,4 @@
-"""Next-measurement planning (CLAUDE.md §2.4 item 11). A decision-support
+"""Next-measurement planning. A decision-support
 heuristic, not expected information gain and not clinical guidance.
 
 WHO CNS5 (2021) adult-type diffuse gliomas, by the markers VBX estimates:

@@ -5,7 +5,7 @@ target-version="py311"
 [tool.ruff.lint]
 # Default ruleset (E4/E7/E9/F) plus explicit pycodestyle whitespace rules,
 # minus the ones that conflict with the team's no-space-around-operators
-# house style (see CLAUDE.md §0.7). ruff check only — never ruff format.
+# house style. ruff check only — never ruff format.
 select=["E", "F", "W"]
 ignore=[
     "E225",  # missing whitespace around operator      (x=1, a==b   -- intentional)

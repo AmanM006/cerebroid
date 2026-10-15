@@ -52,3 +52,8 @@ Thumbs.db
 *.sql
 generate_seed.py
 generate_demo_cases.py
+
+# --- internal working notes (never published) ---
+CLAUDE.md
+AGENTS.md
+.claude/
