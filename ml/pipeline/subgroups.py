@@ -31,7 +31,9 @@ def main() -> None:
     test=table[table["split"]=="test"].set_index("patient_id")
     groups=pd.DataFrame({
         "sex": test["sex"].map({1: "male", 0: "female"}),
-        "age_band": pd.cut(test["age"], [0, 45, 65, 200], right=False, labels=["under 45", "45-64", "65+"]).astype(str),
+        "age_band": pd.cut(
+            test["age"], [0, 45, 65, 200], right=False, labels=["under 45", "45-64", "65+"],
+        ).astype(str),
         "tumor_type": test.apply(tumor_type, axis=1),
     })
     report: dict={"cohort": "UCSF-PDGM held-out test split", "patients": int(len(test)), "markers": {}}

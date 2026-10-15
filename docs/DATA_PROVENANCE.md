@@ -148,6 +148,29 @@ This layer exports raw extracted features only.
 
 ---
 
+## External validation cohort (TCGA, evaluation only)
+
+Used only to test the deployed models; nothing is trained on it. Download date: 2026-10-15.
+
+| Source | Content used | License / terms |
+|---|---|---|
+| BraTS 2020 training set, Kaggle mirror `awsaf49/brats20-dataset-training-validation` (Menze 2015; Bakas 2017, 2018) | Pre-operative skull-stripped T1, T1c, T2, FLAIR and expert segmentations (labels 1 necrotic core, 2 edema, 4 enhancing, as in UCSF-PDGM); `name_mapping.csv` links subjects to TCGA IDs | TCIA CC BY 3.0 (TCGA images); cite the BraTS papers |
+| cBioPortal study `lgggbm_tcga_pub` (Ceccarelli et al., Cell 2016) | IDH status, IDH/1p19q subtype, MGMT promoter status, grade, age, sex | TCGA open access |
+| NCI Genomic Data Commons (TCGA-GBM, TCGA-LGG) | Race, ethnicity | NIH open access |
+
+| Stage | Count |
+|---|---|
+| BraTS 2020 training subjects | 369 |
+| ... with a TCGA patient ID | 167 |
+| ... with TCGA lab results (all) | 167 |
+| Race | White 147, Black or African American 12, Asian 3, other or not reported 5 |
+
+Labels: IDH Mutant=1 / WT=0; 1p/19q codeleted=1 for `IDHmut-codel`, 0 for `IDHmut-non-codel` and `IDHwt`;
+MGMT Methylated=1; grade G2/G3/G4. Features: `ml/pipeline/extract.py` mode v1, as for training.
+Committed: `artifacts/features/external_tcga.parquet` (derived features and labels only, sha256
+`2675ef88f20fc051adba79a20dc7fccc44a65ec1a5d29b758c7043489852d6e3`) and `artifacts/metrics/external_tcga.json`.
+Raw scans stay outside the repository.
+
 ## Synthetic data
 
 None used in the model. Demo test-account users are synthetic; labelled accordingly in the UI.

@@ -5,9 +5,16 @@ import { ErrorNotice } from "./ErrorNotice"
 
 const MARKERS=["IDH", "GRADE"] as const
 const NAMES: Record<string, string>={ IDH: "IDH", GRADE: "WHO grade" }
+// Below this many patients a percentage says more about chance than about the model.
+const MIN_GROUP=10
+
+function overall(data: ModelCard["external_validation"], marker: string): SubgroupMetrics | undefined {
+  return (data?.markers[marker] as unknown as { overall?: SubgroupMetrics } | undefined)?.overall
+}
 
 function cell(m: SubgroupMetrics | undefined) {
   if (!m) return <span className="text-neutral-600">-</span>
+  if (m.n<MIN_GROUP) return <span className="text-neutral-600">n={m.n} · too few to judge</span>
   const acc=m.accuracy!=null ? `${Math.round(m.accuracy*100)}%` : "-"
   return (
     <span>
@@ -88,7 +95,14 @@ export function DataCard() {
             <p className="text-[11px] text-neutral-400">
               {external.cohort} · {external.patients} patients · models applied unchanged
             </p>
+            <p className="text-[11px] text-neutral-300">
+              All patients: {MARKERS.map((m, i)=><span key={m}>{i>0 && " · "}{NAMES[m]} {cell(overall(external, m))}</span>)}
+            </p>
             <GroupTable title="Race" data={external} group="race" />
+            <p className="text-[11px] text-neutral-500">
+              Accuracy counts calls at the model's cut-off; AUC measures how well patients are ranked (0.5 = chance,
+              1 = perfect). Groups under {MIN_GROUP} patients are too small to compare.
+            </p>
           </>
         ) : (
           <p className="text-[11px] text-neutral-500">Not yet computed.</p>

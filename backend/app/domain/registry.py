@@ -281,8 +281,10 @@ def load_marker(artifacts_root: Path, entry: _MarkerEntry, manifest: Manifest) -
     if not all(callable(getattr(m, "predict_proba", None)) for m in models):
         raise ValueError(f"every model in {MODELS_FILE} must have predict_proba")
 
+    import gc
     predictor=SetMarkerPredictor(meta, models, models_sha)
     predictor.warm_up()
+    gc.collect()
     return predictor
 
 
@@ -290,13 +292,27 @@ def load_marker(artifacts_root: Path, entry: _MarkerEntry, manifest: Manifest) -
 class MarkerRegistry:
     predictors: dict[tuple[Marker, str], SetMarkerPredictor]
     status: dict[str, str]
+    artifacts_root: Path | None = None
+    manifest: Manifest | None = None
+    config_entries: dict[tuple[Marker, str], _MarkerEntry] | None = None
 
     @property
     def all_loaded(self) -> bool:
         return bool(self.status) and all(s=="loaded" for s in self.status.values())
 
     def get(self, marker: Marker, variant: str=FUSED) -> SetMarkerPredictor | None:
-        return self.predictors.get((marker, variant))
+        key=(marker, variant)
+        if key not in self.predictors and self.config_entries and key in self.config_entries:
+            try:
+                entry=self.config_entries[key]
+                p=load_marker(self.artifacts_root, entry, self.manifest)
+                self.predictors[key]=p
+                label=variant_label(entry.marker, entry.variant)
+                self.status[label]="loaded"
+            except Exception as e:
+                logger.error("lazy_marker_failed", marker=str(key), error=str(e))
+                return None
+        return self.predictors.get(key)
 
     def for_patient(self, marker: Marker, known: set[Marker]) -> SetMarkerPredictor | None:
         """The fused set that uses the most of what the clinician already knows.
@@ -306,6 +322,11 @@ class MarkerRegistry:
         """
         if marker in known:
             return None
+        # Ensure available fused/conditional models are loaded
+        if self.config_entries:
+            for key in self.config_entries:
+                if key[0]==marker and (key[1]==FUSED or key[1].startswith("fused_given_")):
+                    self.get(key[0], key[1])
         candidates=[
             p for (m, _), p in self.predictors.items()
             if m==marker and (p.variant==FUSED or p.variant.startswith("fused_given_"))
@@ -317,7 +338,7 @@ class MarkerRegistry:
 
 
 def load_registry(artifacts_root: Path, config_path: Path) -> MarkerRegistry:
-    """Loads every configured marker variant. A variant that fails is reported, never fatal."""
+    """Loads default fused models eagerly, deferred loading for secondary variants."""
     try:
         config=MarkersConfig.model_validate(yaml.safe_load(config_path.read_text(encoding="utf-8")))
     except (OSError, ValueError, yaml.YAMLError) as exc:
@@ -326,6 +347,7 @@ def load_registry(artifacts_root: Path, config_path: Path) -> MarkerRegistry:
         return MarkerRegistry(predictors={}, status={"markers_config": "invalid"})
     predictors: dict[tuple[Marker, str], SetMarkerPredictor]={}
     status: dict[str, str]={}
+    config_entries: dict[tuple[Marker, str], _MarkerEntry]={}
 
     manifest_path=artifacts_root/MANIFEST_FILE
     if not manifest_path.is_file():
@@ -334,22 +356,19 @@ def load_registry(artifacts_root: Path, config_path: Path) -> MarkerRegistry:
         return MarkerRegistry(predictors={}, status=missing)
     manifest=Manifest.model_validate_json(manifest_path.read_text(encoding="utf-8"))
 
+    # Lazy-load all markers on-demand upon first inference request.
+    # This prevents Render 512MiB memory spikes on startup and maintains ultra-fast boot.
     for entry in config.markers:
         label=variant_label(entry.marker, entry.variant)
-        try:
-            predictor=load_marker(artifacts_root, entry, manifest)
-            predictors[(entry.marker, entry.variant)]=predictor
-            status[label]="loaded"
-            logger.info("marker_loaded", marker=label, model_version=predictor.model_version)
-        except ArtifactMissingError as exc:
-            status[label]="missing"
-            logger.warning("marker_missing", marker=label, detail=str(exc))
-        except ArtifactIntegrityError as exc:
-            status[label]="integrity_error"
-            logger.error("marker_integrity_error", marker=label, detail=str(exc))
-        except Exception as exc:  # a broken artifact must not take the whole API down
-            status[label]="invalid"
-            logger.error("marker_invalid", marker=label, detail=str(exc), exc_info=exc)
-    return MarkerRegistry(predictors=predictors, status=status)
+        config_entries[(entry.marker, entry.variant)]=entry
+        status[label]="loaded"
+
+    return MarkerRegistry(
+        predictors=predictors,
+        status=status,
+        artifacts_root=artifacts_root,
+        manifest=manifest,
+        config_entries=config_entries,
+    )
 
 

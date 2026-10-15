@@ -134,7 +134,7 @@ export function CasesPage() {
               </span>
               <input
                 type="text"
-                placeholder="Search by Patient ID (e.g. UCSF-PDGM-0027)..."
+                placeholder="Search by Patient ID (e.g. UCSF-PDGM-0018)..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full rounded-xl border border-neutral-800 bg-[#0e0e0e] py-2 pl-10 pr-4 text-xs font-mono text-white placeholder-neutral-500 transition-all focus:border-neutral-600 focus:bg-[#141414] focus:outline-none"

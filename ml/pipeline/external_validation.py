@@ -38,8 +38,12 @@ from app.domain.contracts import FeatureVector, Marker, Sex  # noqa: E402
 from app.domain.profile import build_profile  # noqa: E402
 from app.domain.registry import load_registry  # noqa: E402
 
-LABEL_COLUMN={Marker.IDH: "idh", Marker.CODEL_1P19Q: "codeletion_1p19q", Marker.MGMT: "mgmt", Marker.GRADE: "who_grade"}
-POSITIVE={Marker.IDH: "mutant", Marker.CODEL_1P19Q: "codeleted", Marker.MGMT: "methylated", Marker.GRADE: "grade 4"}
+LABEL_COLUMN={
+    Marker.IDH: "idh", Marker.CODEL_1P19Q: "codeletion_1p19q", Marker.MGMT: "mgmt", Marker.GRADE: "who_grade",
+}
+POSITIVE={
+    Marker.IDH: "mutant", Marker.CODEL_1P19Q: "codeleted", Marker.MGMT: "methylated", Marker.GRADE: "grade 4",
+}
 RACE_GROUPS={"white": "White", "black or african american": "Black or African American", "asian": "Asian"}
 
 
@@ -51,7 +55,9 @@ def clinical(data: Path) -> pd.DataFrame:
     out["race"]=clin["race"].map(lambda r: RACE_GROUPS.get(str(r).lower(), "Other or not reported"))
     out["idh"]=clin["IDH_STATUS"].map({"Mutant": 1.0, "WT": 0.0})
     # Co-deletion is only defined for IDH-mutant tumors; IDH-wildtype tumors count as not codeleted.
-    out["codeletion_1p19q"]=clin["IDH_CODEL_SUBTYPE"].map({"IDHmut-codel": 1.0, "IDHmut-non-codel": 0.0, "IDHwt": 0.0})
+    out["codeletion_1p19q"]=clin["IDH_CODEL_SUBTYPE"].map(
+        {"IDHmut-codel": 1.0, "IDHmut-non-codel": 0.0, "IDHwt": 0.0}
+    )
     out["mgmt"]=clin["MGMT_PROMOTER_STATUS"].map({"Methylated": 1.0, "Unmethylated": 0.0})
     out["who_grade"]=clin["GRADE"].map({"G2": 2.0, "G3": 3.0, "G4": 4.0})
     return out
@@ -91,12 +97,15 @@ def metrics(rows: pd.DataFrame) -> dict:
     return out
 
 
-def main(data: Path) -> None:
-    configure_logging("WARNING")
+FEATURES=REPO/"artifacts"/"features"/"external_tcga.parquet"
+METRICS=REPO/"artifacts"/"metrics"/"external_tcga.json"
+
+
+def build_table(data: Path) -> pd.DataFrame:
+    """Features and labels for every BraTS scan with TCGA lab results (needs the raw scans)."""
     clin=clinical(data)
-    subs=subjects(data)
     rows=[]
-    for _, s in subs.iterrows():
+    for _, s in subjects(data).iterrows():
         pid=s["TCGA_TCIA_subject_ID"]
         if pid not in clin.index:
             continue
@@ -106,11 +115,11 @@ def main(data: Path) -> None:
             print("skip", pid, exc)
             continue
         rows.append({"patient_id": pid, **clin.loc[pid].to_dict(), **feats})
-    table=pd.DataFrame(rows).drop_duplicates("patient_id")
-    out=REPO/"artifacts"/"features"/"external_tcga.parquet"
-    table.to_parquet(out, index=False)
-    print("patients with scans + labels:", len(table), "| race:", table["race"].value_counts().to_dict())
+    return pd.DataFrame(rows).drop_duplicates("patient_id")
 
+
+def predict(table: pd.DataFrame) -> pd.DataFrame:
+    """One row per patient and marker: label, deployed-model probability, call and verdict."""
     registry=load_registry(REPO/"artifacts", REPO/"ml"/"configs"/"markers.yaml")
     preds=[]
     for _, r in table.iterrows():
@@ -135,19 +144,30 @@ def main(data: Path) -> None:
                 "call": float(result.call==POSITIVE[result.marker]),
                 "verdict": "LOW_SIGNAL" if result.low_signal else result.prediction.verdict.value,
             })
-    preds=pd.DataFrame(preds)
-    report: dict={"cohort": "TCGA-GBM + TCGA-LGG (BraTS 2020 pre-operative scans)", "feature_mode": "v1",
-                  "patients": int(table["patient_id"].nunique()),
-                  "race_counts": table["race"].value_counts().to_dict(), "markers": {}}
+    return pd.DataFrame(preds)
+
+
+def report(table: pd.DataFrame, preds: pd.DataFrame) -> dict:
+    out: dict={"cohort": "TCGA-GBM + TCGA-LGG (BraTS 2020 pre-operative scans)", "feature_mode": "v1",
+               "patients": int(table["patient_id"].nunique()),
+               "race_counts": table["race"].value_counts().to_dict(), "markers": {}}
     for marker, rows_m in preds.groupby("marker"):
         entry={"overall": metrics(rows_m)}
         for group in ("race", "sex", "age_band"):
             entry[f"by_{group}"]={g: metrics(r) for g, r in rows_m.groupby(group)}
-        report["markers"][marker]=entry
-    report["features_sha256"]=hashlib.sha256(out.read_bytes()).hexdigest()
-    metrics_path=REPO/"artifacts"/"metrics"/"external_tcga.json"
-    metrics_path.write_text(json.dumps(report, indent=2)+"\n", encoding="utf-8", newline="\n")
-    for marker, entry in report["markers"].items():
+        out["markers"][marker]=entry
+    return out
+
+
+def main(data: Path) -> None:
+    configure_logging("WARNING")
+    table=build_table(data)
+    table.to_parquet(FEATURES, index=False)
+    print("patients with scans + labels:", len(table), "| race:", table["race"].value_counts().to_dict())
+    result=report(table, predict(table))
+    result["features_sha256"]=hashlib.sha256(FEATURES.read_bytes()).hexdigest()
+    METRICS.write_text(json.dumps(result, indent=2)+"\n", encoding="utf-8", newline="\n")
+    for marker, entry in result["markers"].items():
         print(marker, entry["overall"], {g: m.get("auc") for g, m in entry["by_race"].items()})
 
 

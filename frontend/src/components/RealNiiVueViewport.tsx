@@ -42,11 +42,14 @@ export function RealNiiVueViewport({
   volumes,
   sliceType="multiplanar",
   overlayOpacity=0.45,
+  showCrosshair=true,
 }: {
   volumes: LoadedVolume[]
   sliceType?: SliceMode
   /** Opacity of the second volume (the tumor segmentation); 0 hides it. */
   overlayOpacity?: number
+  /** Whether to show the crosshair coordinate lines */
+  showCrosshair?: boolean
 }) {
   const canvasRef=useRef<HTMLCanvasElement>(null)
   const nvRef=useRef<Niivue | null>(null)
@@ -121,11 +124,11 @@ export function RealNiiVueViewport({
     const nv=nvRef.current
     if (!nv || state!=="ready") return
     applySliceType(nv, sliceType)
-    // In 3D volume rendering, crosshair lines obstruct the anatomy; in 2D slices they help locate voxels
+    // In 3D volume rendering or when disabled, crosshair lines are hidden
     nv.opts.show3Dcrosshair=false
-    nv.setCrosshairWidth(sliceType==="render3d" ? 0 : 1)
+    nv.setCrosshairWidth(!showCrosshair || sliceType==="render3d" ? 0 : 1)
     nv.drawScene()
-  }, [sliceType, state])
+  }, [sliceType, state, showCrosshair])
 
   useEffect(()=>{
     const overlay=nvRef.current?.volumes[1]
@@ -139,14 +142,50 @@ export function RealNiiVueViewport({
     const nv=nvRef.current
     const base=nv?.volumes[0]
     if (nv && base) {
-      nv.setColormap(base.id, cmap)
+      nv.setColorMap(base.id, cmap)
       nv.updateGLVolume()
       nv.drawScene()
     }
   }
 
+  // Keeps track of the current normalized slice position (0.0 to 1.0) along active axis
+  const [slicePos, setSlicePos] = useState<number>(0.5)
+
+  // Listen to NiiVue location updates when user drags or clicks on canvas
+  useEffect(() => {
+    const nv = nvRef.current
+    if (!nv) return
+
+    nv.onLocationChange = () => {
+      if (nv.scene?.crosshairPos) {
+        let frac = 0.5
+        if (sliceType === "axial") frac = nv.scene.crosshairPos[2] ?? 0.5
+        else if (sliceType === "coronal") frac = nv.scene.crosshairPos[1] ?? 0.5
+        else if (sliceType === "sagittal") frac = nv.scene.crosshairPos[0] ?? 0.5
+        setSlicePos(Math.max(0, Math.min(1, frac)))
+      }
+    }
+  }, [sliceType])
+
+  const handleSliderChange = (newFrac: number) => {
+    setSlicePos(newFrac)
+    const nv = nvRef.current
+    if (!nv || !nv.scene?.crosshairPos) return
+
+    const pos = [...nv.scene.crosshairPos]
+    if (sliceType === "axial") pos[2] = newFrac
+    else if (sliceType === "coronal") pos[1] = newFrac
+    else if (sliceType === "sagittal") pos[0] = newFrac
+    nv.scene.crosshairPos = pos
+    nv.updateGLVolume()
+    nv.drawScene()
+  }
+
+  // Slicing slider is supported in 2D or 3D axial/sagittal/coronal views
+  const hasSliceSlider = sliceType === "axial" || sliceType === "sagittal" || sliceType === "coronal"
+
   return (
-    <div className="relative h-full w-full overflow-hidden bg-black">
+    <div className="relative h-full w-full overflow-hidden bg-black flex flex-col">
       {state==="ready" && (
         <div className="absolute top-2 left-2 z-20 flex items-center gap-1 rounded-lg border border-neutral-800 bg-[#0c0c0c]/90 px-2 py-1 backdrop-blur-sm">
           <span className="font-mono text-[9px] text-neutral-400 mr-1">TISSUE:</span>
@@ -164,9 +203,47 @@ export function RealNiiVueViewport({
           ))}
         </div>
       )}
+
+      {/* Interactive Slice Slider Bar */}
+      {state === "ready" && hasSliceSlider && (
+        <div
+          draggable={false}
+          onDragStart={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="absolute bottom-2 left-3 right-3 z-30 flex items-center gap-2.5 rounded-lg border border-cyan-900/60 bg-[#0a0f14]/95 px-3 py-1.5 backdrop-blur-md shadow-lg transition-all select-none"
+        >
+          <span className="font-mono text-[10px] font-bold text-cyan-300 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+            {sliceType} Slice:
+          </span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.005"
+            value={slicePos}
+            draggable={false}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
+            className="flex-1 h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-cyan-400 hover:accent-cyan-300 transition-all"
+            aria-label={`Navigate ${sliceType} slice`}
+          />
+          <span className="font-mono text-[10px] text-neutral-400 w-10 text-right shrink-0">
+            {Math.round(slicePos * 100)}%
+          </span>
+        </div>
+      )}
+
       <canvas
         ref={canvasRef}
-        className="h-full w-full cursor-crosshair touch-none"
+        className="flex-1 min-h-0 w-full cursor-crosshair touch-none"
         aria-label="MRI volume viewer"
       />
       {state==="loading" && (

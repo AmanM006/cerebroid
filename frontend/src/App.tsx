@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from "./auth/AuthContext"
 import { CaseWorkspacePage } from "./pages/CaseWorkspacePage"
 import { CasesPage } from "./pages/CasesPage"
 import { LoginPage } from "./pages/LoginPage"
+import { LandingPage } from "./pages/LandingPage"
 
 function RequireAuth({ children }: { children: ReactNode }) {
   const { user, restoring }=useAuth()
@@ -16,10 +17,11 @@ export function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/cases" element={<RequireAuth><CasesPage /></RequireAuth>} />
           <Route path="/cases/:caseId" element={<RequireAuth><CaseWorkspacePage /></RequireAuth>} />
-          <Route path="*" element={<Navigate to="/cases" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
