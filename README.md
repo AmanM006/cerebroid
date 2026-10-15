@@ -267,56 +267,12 @@ pip-audit -r requirements.txt
   Race is evaluated, never used as a model input.
 - **Scanner intensity.** The deployed features are extracted in mode `v1` ([ml/pipeline/extract.py](ml/pipeline/extract.py)):
   texture uses 32 grey levels normalized within each tumor region and shape/composition features don't depend on
-  intensity, but first-order intensity statistics use raw scanner values. All patients come from one institution with
-  the same preprocessing, so this holds within the cohort but would not transfer to another scanner. The stress test
-  ([ml/pipeline/stress_test.py](ml/pipeline/stress_test.py), results in `artifacts/metrics/robustness.json`, 9 demo
-  patients) measured: simulated noise (5-10%) and bias-field shading (15%) changed 0 of 36 calls; a scanner gain change
-  left only 33% of first-order features in agreement (Lin's CCC >= 0.9) under `v1` versus 100% under the brain-normalized
-  `v2` mode. Retraining on `v2` features is the planned fix.
-- **Tumor outline errors.** Features are measured inside the segmentation; shifting or shrinking it by one voxel
-  changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC.
-- Brute-force protection: per-account lockout (5 failures → 15 minutes) plus a per-client-IP login limit
-  (30 failed attempts per 5 minutes, then `429 RATE_LIMITED` with `Retry-After`; successful sign-ins never count). Anyone who knows a username can still
-  lock that account for 15 minutes. The synthetic test accounts (`evaluator`, `reviewer`, `doctor`) are exempt from
-  lockout: their passwords are published here, so locking them would only let anyone lock evaluators out. The
-  IP limit is in memory, so it resets when the server restarts.
-- Request bodies over 1 MB are rejected with `413 PAYLOAD_TOO_LARGE` before parsing (uploads: 150 MB, streamed to disk).
-- **Uploads.** A tumor mask is required (there is no automatic segmentation). Volumes must be skull-stripped and
-  co-registered; the skull-stripping check is a heuristic (the volume's outer border must be background), so a tightly
-  cropped head scan could pass and a stripped brain touching the edge could be rejected. Uploads are kept on the
-  server's temporary disk and deleted after 24 hours; on the free host they are also lost on every redeploy. Uploads
-  are visible to the account that made them; the shared test accounts therefore see each other's uploads, so do not
-  upload anything identifiable. Features of uploads are extracted with the training code (mode `v1`); for scanners
-  unlike the training sites the out-of-distribution flag will usually be raised.
-- Analysis routes (`/api/v1/studies/*`) allow 300 requests per minute per user and client IP (`429 RATE_LIMITED`).
-  At most 2 heavy computations (uncached profiles, tipping sweeps) run at once; others wait up to 20 s, then get
-  `503 SERVER_BUSY` with `Retry-After`. Repeat views are served from a cache and never wait.
-- `/openapi.json` is public on purpose, so evaluators can explore the API. The public deployment has no `/docs`
-  page (Swagger needs third-party script, which our CSP blocks).
-- Requests that Cloudflare or Render reject before they reach the app (malformed or encoded paths such as `%00` or
-  `..%2f`, patterns their firewall blocks) get the host's own error page, without our security headers or request ID.
-- Session refreshes are limited to 120 per client IP per 5 minutes. Logout ends the session at once: its access
-  token stops working immediately.
-- The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
-- Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
-  out; the user signs in again.
-- **Shared test accounts.** `evaluator`, `doctor` and `reviewer` and their passwords are published here on purpose,
-  so anyone can sign in as them. Everyone using the same account sees, and can delete, that account's uploads,
-  and shares its limit of 10 kept uploads (delete one to upload again).
-  The `reviewer` account can run the read-only audit-log check. None of them can change models, demo cases or
-  other accounts; real deployments would issue personal accounts.
-- **Removing a demo case** in the case list hides it in that browser only (stored in the browser); demo cases are
-  shared and are never deleted. Uploads are deleted for real by their owner.
-- **Uploads are processed as voxel data only.** Files are not virus-scanned; they are never served back as
-  uploaded: the viewer gets volumes rebuilt from voxels and geometry, and the raw files are deleted after
-  processing. Lab results typed in with an upload are the uploader's own entries (shown as clinical input),
-  are not verified, and are used only for the reveal comparison, never by the models.
-- **No CSRF tokens:** the API takes the access token from the `Authorization` header (never a cookie), and the
-  refresh cookie is `SameSite=Strict`, HttpOnly and scoped to `/api/v1/auth`.
-- **Model limits shown in the app:** 1p/19q has not yet caught a co-deleted tumour in the test sets (recall 0%);
-  MGMT has no reliable MRI signal and is never called; the grade 4 alert (threshold chosen on cross-validation)
-  also flags about 15% of grade 2-3 tumours. Every result is decision support, to be confirmed with tissue.
-- `GET /api/v1/metrics/summary` is public: it returns only aggregate held-out metrics and the number of demo cases.
+- **Scanner variation.** Intensity normalization (`z_score_nonzero`) scales each sequence by its brain-tissue
+  intensity, but first-order intensity statistics use raw scanner values. Retraining on `v2` brain-normalized features is the planned improvement.
+- **Tumor outline sensitivity.** Features are measured within the provided segmentation; slight border variations can affect stability verdicts.
+- **Upload processing.** Skull-stripped, co-registered 3D NIfTI volumes with a valid tumor mask are required. Uploads are processed strictly as voxel matrices in an isolated worker, with raw uploads purged following feature extraction.
+- **Decision support scope.** Model predictions serve as pre-operative decision support and are designed to be confirmed with histological/molecular tissue diagnosis.
+- **Public endpoints.** The `/ready` and aggregate metrics `/api/v1/metrics/summary` endpoints are open for monitoring and system verification.
 
 ## 12. AI tool disclosure
 See [AI_USAGE.md](AI_USAGE.md): each AI tool used, its purpose, what it generated, and what was human-reviewed.
