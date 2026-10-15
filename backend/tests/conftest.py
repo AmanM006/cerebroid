@@ -15,6 +15,7 @@ os.environ["DATABASE_URL"]=TEST_DB_URL.render_as_string(hide_password=False)
 os.environ["JWT_SECRET_KEY"]=secrets.token_urlsafe(48)
 os.environ["APP_ENV"]="test"
 os.environ["WARMUP_PROFILES"]="false"
+os.environ["LOGIN_RATE_LIMIT"]="100000"  # tests log in constantly; the limit has its own test
 
 import pytest  # noqa: E402
 from alembic import command  # noqa: E402

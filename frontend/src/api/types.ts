@@ -233,3 +233,9 @@ export interface ModelCard {
   external_validation: GroupReport | null
   limitations: string[]
 }
+
+export interface MetricsSummary {
+  held_out_patients: number | null
+  demo_cases: number
+  sets: { marker: MarkerName; variant: string; auc: number | null; auc_ci95: [number, number] | null }[]
+}

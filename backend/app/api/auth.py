@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.api.schemas import LoginRequest, TokenResponse, UserOut
 from app.core.config import get_settings
+from app.core.ratelimit import limit_login
 from app.db.models import User
 from app.db.session import get_db
 from app.services import auth as auth_service
@@ -45,7 +46,7 @@ def _clear_refresh_cookie(response: Response) -> None:
     )
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[Depends(limit_login)])
 def login(body: LoginRequest, response: Response, db: Session=Depends(get_db)) -> TokenResponse:
     user=auth_service.authenticate(db, body.username, body.password)
     issued=auth_service.start_session(db, user)

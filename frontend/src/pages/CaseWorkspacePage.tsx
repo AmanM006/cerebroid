@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties, type DragEvent } from "react"
 import { useParams, Link } from "react-router-dom"
-import { api } from "../api/client"
+import { api, ApiError } from "../api/client"
 import type { Case, Readiness } from "../api/types"
 import { AppShell } from "../components/AppShell"
 import { ErrorNotice } from "../components/ErrorNotice"
@@ -24,16 +24,26 @@ export function CaseWorkspacePage() {
   const [known, setKnown] = useState<KnownResults>({})
   const [error, setError] = useState<unknown>(null)
 
-  // 5 Theme Presets (Stored in localStorage for persistence)
+  // 5 Theme Presets, remembered per browser. Storage can be unavailable (private mode) or hold a
+  // stale value, so reading and writing never throw and unknown names fall back to the default.
   const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
-    return (localStorage.getItem("cerebroid_theme") as ThemeMode) || "obsidian"
+    try {
+      const saved=localStorage.getItem("cerebroid_theme")
+      return saved && saved in WORKSPACE_THEMES ? (saved as ThemeMode) : "obsidian"
+    } catch {
+      return "obsidian"
+    }
   })
 
   const currentTheme = WORKSPACE_THEMES[themeMode] || WORKSPACE_THEMES.obsidian
 
   const changeTheme = (mode: ThemeMode) => {
     setThemeMode(mode)
-    localStorage.setItem("cerebroid_theme", mode)
+    try {
+      localStorage.setItem("cerebroid_theme", mode)
+    } catch {
+      // Not remembered across visits; the theme still applies now.
+    }
   }
 
   // Block positions in a modular 2x2 grid (all 4 fit immediately in the 100vh viewport)
@@ -66,8 +76,13 @@ export function CaseWorkspacePage() {
     setError(null)
     setChosenSequence(null)
     setKnown({})
-    api.getCase(caseId).then(setStudy).catch(setError)
-    api.readiness().then(setReadiness).catch(setError)
+    // Ignore responses for a case the user has already left, so a slow reply never shows the wrong patient.
+    let current=true
+    api.getCase(caseId).then((s)=>current && setStudy(s)).catch((e)=>current && setError(e))
+    api.readiness().then((r)=>current && setReadiness(r)).catch((e)=>current && setError(e))
+    return ()=>{
+      current=false
+    }
   }, [caseId])
 
   // Renders the case's volumes in one projection, or why they can't be shown
@@ -407,6 +422,24 @@ export function CaseWorkspacePage() {
         )}
         <div className="h-full w-full min-h-0 overflow-hidden">{content}</div>
       </div>
+    )
+  }
+
+  // A malformed or unknown case link gets one clear message instead of every panel failing on its own.
+  if (error instanceof ApiError && (error.status===404 || error.status===422)) {
+    return (
+      <AppShell>
+        <div className="mx-auto max-w-lg space-y-3 px-4 py-16 text-center">
+          <p className="text-lg font-bold text-white">Case not found</p>
+          <p className="text-sm text-neutral-400">
+            This case does not exist or you do not have access to it.
+          </p>
+          <Link to="/cases" className="inline-block rounded-lg border border-neutral-700 px-4 py-2 text-sm text-white hover:bg-white/10">
+            ← Back to cases
+          </Link>
+          <p className="text-[10px] text-neutral-600">request {error.requestId}</p>
+        </div>
+      </AppShell>
     )
   }
 

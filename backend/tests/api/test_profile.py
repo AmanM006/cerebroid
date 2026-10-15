@@ -472,3 +472,13 @@ def test_next_measurements_carry_guideline_pathways(client, make_user, deployed,
     assert "not a treatment recommendation" in body["pathway_label"]
     assert body["next_step"]["kind"] in {"decide_type", "decide_treatment", "confirm", "review"}
     assert body["pathway_basis"]
+
+
+def test_metrics_summary_is_public_and_only_reports_deployed_models(client, deployed, demo_study):
+    demo_study()
+    r=client.get("/api/v1/metrics/summary")
+    assert r.status_code==200
+    body=r.json()
+    assert body["demo_cases"]==1
+    # The committed heldout.json belongs to the real model files, not these test models: nothing shown.
+    assert body["sets"]==[]

@@ -10,8 +10,7 @@
  *   request_id, so a user can report the exact request that failed.
  */
 import type {
-  Case, CaseList, Doubt, ErrorBody, Evidence, ModelCard, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes,
-} from "./types"
+  Case, CaseList, Doubt, ErrorBody, Evidence, ModelCard, MarkerName, MriSequence, NextMeasurements, Profile, ProfileView, Readiness, Reveal, TokenResponse, User, Volumes, MetricsSummary } from "./types"
 
 export class ApiError extends Error {
   readonly status: number
@@ -26,7 +25,7 @@ export class ApiError extends Error {
   }
 }
 
-let accessToken: string | null = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("vbx_access_token") : null
+let accessToken: string | null=null
 let refreshInFlight: Promise<boolean> | null=null
 let onSessionExpired: (()=>void) | null=null
 
@@ -48,12 +47,10 @@ async function _doRefresh(): Promise<boolean> {
     const response=await fetch("/api/v1/auth/refresh", { method: "POST", credentials: "same-origin" })
     if (!response.ok) {
       accessToken=null
-      sessionStorage.removeItem("vbx_access_token")
       return false
     }
     const token = ((await response.json()) as TokenResponse).access_token
     accessToken=token
-    sessionStorage.setItem("vbx_access_token", token)
     return true
   } finally {
     refreshInFlight=null
@@ -98,17 +95,16 @@ export const api={
     if (!response.ok) throw await toApiError(response)
     const token = ((await response.json()) as TokenResponse).access_token
     accessToken=token
-    sessionStorage.setItem("vbx_access_token", token)
     return api.me()
   },
 
-  /** Restores a session from memory/storage or the refresh cookie after a page reload. */
+  /** Restores a session after a page reload from the HttpOnly refresh cookie. */
   async resume(): Promise<User | null> {
     if (accessToken) {
       try {
         return await api.me()
       } catch {
-        // Access token in storage might be expired, try refreshing
+        // The in-memory token may have expired; fall back to the refresh cookie.
       }
     }
     return (await refreshAccessToken()) ? api.me() : null
@@ -119,7 +115,6 @@ export const api={
       await fetch("/api/v1/auth/logout", { method: "POST", credentials: "same-origin" })
     } finally {
       accessToken=null
-      sessionStorage.removeItem("vbx_access_token")
     }
   },
 
@@ -168,6 +163,13 @@ export const api={
   listVolumes: (id: string)=>getJson<Volumes>(`/api/v1/studies/${encodeURIComponent(id)}/volumes`),
   volume: (id: string, sequence: MriSequence)=>
     api.getBytes(`/api/v1/studies/${encodeURIComponent(id)}/volume/${sequence}`),
+
+  /** Public held-out headline numbers for the landing page (no sign-in needed). */
+  async metricsSummary(): Promise<MetricsSummary> {
+    const response=await fetch("/api/v1/metrics/summary")
+    if (!response.ok) throw await toApiError(response)
+    return (await response.json()) as MetricsSummary
+  },
 
   /** /ready answers 503 while not ready, which is information here, not an error. */
   async readiness(): Promise<Readiness> {

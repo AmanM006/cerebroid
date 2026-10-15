@@ -169,3 +169,11 @@ def test_synthetic_test_accounts_are_never_locked(client, make_user, db):
         client.post("/api/v1/auth/login", json={"username": "evaluator", "password": "wrong-password-123"})
     ok=client.post("/api/v1/auth/login", json={"username": "evaluator", "password": TEST_PASSWORD})
     assert ok.status_code==200
+
+
+def test_control_characters_in_username_are_a_validation_error_not_a_crash(client):
+    # Postgres rejects NUL bytes in text; before validation this reached the query and returned 500.
+    for username in ("a\x00b", "tab\tname", "line\nbreak"):
+        response=client.post("/api/v1/auth/login", json={"username": username, "password": TEST_PASSWORD})
+        assert response.status_code==422, username
+        assert response.json()["error_code"]=="VALIDATION_ERROR"

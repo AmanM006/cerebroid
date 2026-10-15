@@ -4,9 +4,26 @@ import { ArrowDown } from "lucide-react"
 import Lenis from "lenis"
 import { NovaCell3DScene } from "../components/NovaCell3DScene"
 import { CircularText } from "../components/CircularText"
+import { api } from "../api/client"
+import type { MetricsSummary } from "../api/types"
 
 export function LandingPage() {
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+
+  // Headline numbers come from the server's held-out evaluation of the deployed models, never typed in.
+  const [summary, setSummary] = useState<MetricsSummary | null>(null)
+  useEffect(() => {
+    let current=true
+    api.metricsSummary().then((m)=>current && setSummary(m)).catch(()=>current && setSummary(null))
+    return ()=>{
+      current=false
+    }
+  }, [])
+  const auc=(marker: string, variant: string)=>{
+    const value=summary?.sets.find((x)=>x.marker===marker && x.variant===variant)?.auc
+    return value==null ? "—" : value.toFixed(3)
+  }
+  const cases=summary ? String(summary.demo_cases) : "—"
 
   // Initialize Lenis smooth scroll
   useEffect(() => {
@@ -162,7 +179,7 @@ export function LandingPage() {
               Clinical Multiplicity & Model Concordance
             </h2>
             <p className="mt-3 text-sm sm:text-base text-neutral-400 font-medium leading-relaxed">
-              Explore out-of-fold cross-validation predictions for IDH1/2 mutation, 1p/19q codeletion, and MGMT methylation across 9 authentic UCSF-PDGM test cases.
+              Explore predictions for IDH1/2 mutation, 1p/19q codeletion, and MGMT methylation on {cases} held-out UCSF-PDGM patients the models never saw in training.
             </p>
           </div>
 
@@ -177,7 +194,7 @@ export function LandingPage() {
               </div>
               <div className="mt-6 flex items-baseline justify-between pt-4 border-t border-neutral-800">
                 <span className="text-xs font-semibold text-neutral-400">Held-Out IDH AUC</span>
-                <span className="text-xl font-black text-red-400">0.977</span>
+                <span className="text-xl font-black text-red-400">{auc("IDH", "fused")}</span>
               </div>
             </div>
 
@@ -191,7 +208,7 @@ export function LandingPage() {
               </div>
               <div className="mt-6 flex items-baseline justify-between pt-4 border-t border-neutral-800">
                 <span className="text-xs font-semibold text-neutral-400">Held-Out IDH AUC</span>
-                <span className="text-xl font-black text-red-400">0.963</span>
+                <span className="text-xl font-black text-red-400">{auc("IDH", "imaging_only")}</span>
               </div>
             </div>
 
@@ -205,14 +222,14 @@ export function LandingPage() {
               </div>
               <div className="mt-6 flex items-baseline justify-between pt-4 border-t border-neutral-800">
                 <span className="text-xs font-semibold text-neutral-400">Held-Out 1p/19q AUC</span>
-                <span className="text-xl font-black text-red-400">0.974</span>
+                <span className="text-xl font-black text-red-400">{auc("1p19q", "fused_given_idh")}</span>
               </div>
             </div>
           </div>
 
           <div className="mt-10 flex flex-wrap items-center justify-between gap-4 pt-6 border-t border-neutral-800">
             <div className="flex items-center gap-3">
-              <span className="text-xs font-semibold text-neutral-400">9 Pre-loaded Benchmark Scans</span>
+              <span className="text-xs font-semibold text-neutral-400">{cases} Pre-loaded Held-out Scans</span>
               <span className="text-xs px-2.5 py-0.5 rounded-full bg-neutral-800 text-neutral-300 font-bold">240×240×155</span>
             </div>
             <Link

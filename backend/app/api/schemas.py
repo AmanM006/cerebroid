@@ -24,7 +24,8 @@ class _Response(BaseModel):
 
 
 class LoginRequest(_Request):
-    username: str=Field(min_length=1, max_length=64)
+    # No control characters: they are never part of a username, and a NUL byte cannot be stored in Postgres.
+    username: str=Field(min_length=1, max_length=64, pattern=r"^[^\x00-\x1f\x7f]+$")
     password: str=Field(min_length=1, max_length=256)
 
 
@@ -312,6 +313,21 @@ class ModelSetCardOut(_Response):
     # Test-split results from ml/pipeline/evaluate.py, shown only for the exact deployed model file.
     held_out: dict | None
     held_out_stale: bool
+
+
+class HeldOutMetricOut(_Response):
+    marker: Marker
+    variant: str
+    auc: float | None
+    auc_ci95: list[float] | None
+
+
+class MetricsSummaryOut(_Response):
+    """Public headline numbers for the landing page: computed held-out results, never typed in."""
+    held_out_patients: int | None
+    demo_cases: int
+    sets: list[HeldOutMetricOut]
+    request_id: str | None
 
 
 class ModelCardOut(_Response):

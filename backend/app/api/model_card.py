@@ -6,12 +6,16 @@ from pathlib import Path
 import pandas as pd
 
 from fastapi import APIRouter, Depends, Request
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_feature_store, get_registry
-from app.api.schemas import ModelCardOut, ModelSetCardOut
+from app.api.schemas import HeldOutMetricOut, MetricsSummaryOut, ModelCardOut, ModelSetCardOut
 from app.core.config import get_settings
-from app.db.models import User
+from app.db.models import Study, StudyKind, User
+from app.db.session import get_db
 from app.domain.feature_store import FeatureStore
+from app.domain.contracts import Marker
 from app.domain.registry import MarkerRegistry
 
 router=APIRouter(prefix="/api/v1", tags=["model card"])
@@ -142,5 +146,32 @@ def model_card(
         training_population=_population(store, settings.artifacts_root),
         subgroups=_load_json(settings.artifacts_root/"metrics"/"subgroups_ucsf.json"),
         external_validation=_load_json(settings.artifacts_root/"metrics"/"external_tcga.json"),
+        request_id=getattr(request.state, "request_id", None),
+    )
+
+
+@router.get("/metrics/summary")
+def metrics_summary(
+    request: Request,
+    registry: MarkerRegistry=Depends(get_registry),
+    db: Session=Depends(get_db),
+) -> MetricsSummaryOut:
+    """Public (no sign-in): held-out AUCs of the deployed model sets and the number of demo cases.
+
+    Only results computed for the exact deployed model files (matching sha256) are returned, so the
+    landing page can never show numbers from older models.
+    """
+    metrics=_load_json(get_settings().artifacts_root/"metrics"/"heldout.json") or {"sets": []}
+    sets=[]
+    for m in metrics.get("sets", []):
+        predictor=registry.predictors.get((Marker(m["marker"]), m["variant"]))
+        if predictor is None or predictor.model_version!=m.get("model_version"):
+            continue
+        sets.append(HeldOutMetricOut(
+            marker=m["marker"], variant=m["variant"], auc=m.get("auc"), auc_ci95=m.get("auc_ci95"),
+        ))
+    demo=db.scalar(select(func.count()).select_from(Study).where(Study.kind==StudyKind.DEMO)) or 0
+    return MetricsSummaryOut(
+        held_out_patients=metrics.get("n_patients"), demo_cases=demo, sets=sets,
         request_id=getattr(request.state, "request_id", None),
     )

@@ -18,7 +18,7 @@ from app.api import audit, auth, cases, health, model_card, studies
 from app.core.config import get_settings
 from app.core.errors import not_found, register_exception_handlers
 from app.core.logging import configure_logging
-from app.core.middleware import RequestIDMiddleware
+from app.core.middleware import BodySizeLimitMiddleware, RequestIDMiddleware
 from app.domain.feature_store import load_feature_store
 from app.domain.registry import load_registry
 from app.domain.volume_store import VolumeStore
@@ -42,6 +42,8 @@ def create_app() -> FastAPI:
 
     app=FastAPI(title="Cerebroid API", version="0.1.0", lifespan=lifespan)
 
+    # Added first so it runs inside RequestIDMiddleware: a 413 still gets the request ID and headers.
+    app.add_middleware(BodySizeLimitMiddleware, max_body_bytes=settings.max_body_bytes)
     app.add_middleware(RequestIDMiddleware)
     app.add_middleware(
         CORSMiddleware,

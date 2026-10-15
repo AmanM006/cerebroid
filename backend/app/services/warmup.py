@@ -24,17 +24,20 @@ def _warm(registry: MarkerRegistry, store: FeatureStore) -> None:
     try:
         with get_session_factory()() as db:
             studies=db.scalars(select(Study).where(Study.kind==StudyKind.DEMO)).all()
-        demo=[s for s in studies if s.source_patient_id and store.has(s.source_patient_id)]
         # Only the default view: it loads the same model sets as one viewer opening one case,
         # so the warm-up never raises memory above normal use (the host has 512 MB).
-        jobs=[(s, FUSED, {}) for s in demo]
-        for study, view, known in jobs:
+        done=0
+        for study in studies:
+            patient_id=study.source_patient_id
+            if patient_id is None or not store.has(patient_id):
+                continue
             vector=store.vector_for(
-                patient_id=study.source_patient_id, study_id=str(study.id), age=study.age,
-                sex=study.sex, prior_biopsy=study.prior_biopsy, known_markers=known,
+                patient_id=patient_id, study_id=str(study.id), age=study.age,
+                sex=study.sex, prior_biopsy=study.prior_biopsy, known_markers={},
             )
-            build_profile(registry, vector, view)
-        logger.info("warmup_done", profiles=len(jobs), seconds=round(time.perf_counter()-started, 1))
+            build_profile(registry, vector, FUSED)
+            done+=1
+        logger.info("warmup_done", profiles=done, seconds=round(time.perf_counter()-started, 1))
     except Exception as exc:  # noqa: BLE001 - warm-up is best-effort
         logger.warning("warmup_failed", error=type(exc).__name__)
 

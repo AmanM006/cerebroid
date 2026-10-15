@@ -14,7 +14,10 @@ import uuid
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
-from starlette.responses import Response
+from starlette.responses import JSONResponse, Response
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+from app.core.config import get_settings
 
 REQUEST_ID_HEADER="X-Request-Id"
 # A caller-supplied ID is reused only if it is short and plain, so it can't inject into logs or headers.
@@ -55,6 +58,9 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         response.headers[REQUEST_ID_HEADER]=request_id
         for name, value in SECURITY_HEADERS.items():
             response.headers.setdefault(name, value)
+        if get_settings().is_production:
+            # Production is served only over HTTPS; tell browsers never to use plain HTTP for it.
+            response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
         logger.info(
             "request_handled",
             method=request.method,
@@ -63,3 +69,52 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
             duration_ms=round(duration_ms, 2),
         )
         return response
+
+
+class BodySizeLimitMiddleware:
+    """Rejects request bodies over max_body_bytes with 413 before any route parses them.
+
+    Without it the server reads an arbitrarily large body into memory just to reject it. Checks the
+    declared Content-Length first, then counts bytes as they arrive (chunked bodies send none).
+    """
+
+    def __init__(self, app: ASGIApp, max_body_bytes: int) -> None:
+        self.app=app
+        self.max_body_bytes=max_body_bytes
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"]!="http":
+            await self.app(scope, receive, send)
+            return
+        declared=dict(scope.get("headers") or []).get(b"content-length")
+        if declared is not None and (not declared.isdigit() or int(declared)>self.max_body_bytes):
+            await self._reject(scope, receive, send)
+            return
+
+        body: list[Message]=[]
+        size=0
+        more=True
+        while more:
+            message=await receive()
+            if message["type"]!="http.request":
+                body.append(message)
+                break
+            size+=len(message.get("body", b""))
+            if size>self.max_body_bytes:
+                await self._reject(scope, receive, send)
+                return
+            body.append(message)
+            more=message.get("more_body", False)
+
+        async def replay() -> Message:
+            return body.pop(0) if body else await receive()
+        await self.app(scope, replay, send)
+
+    async def _reject(self, scope: Scope, receive: Receive, send: Send) -> None:
+        request_id=(scope.get("state") or {}).get("request_id")
+        response=JSONResponse(
+            {"error_code": "PAYLOAD_TOO_LARGE", "message": "Request body is too large.",
+             "request_id": request_id},
+            status_code=413,
+        )
+        await response(scope, receive, send)

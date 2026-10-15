@@ -56,7 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span className="text-[10.5px]">WHO 2021 CNS Molecular Taxonomy · Virtual Molecular Biopsy</span>
         </div>
         <div className="flex items-center gap-4 text-[10.5px]">
-          <span>Adult UCSF-PDGM Cohort (n=494)</span>
+          <span>Trained on UCSF-PDGM + TCGA (adult gliomas)</span>
           <span>Platt Calibration</span>
         </div>
       </footer>

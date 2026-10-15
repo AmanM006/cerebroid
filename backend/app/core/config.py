@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     log_level: str="INFO"
     # Precompute demo-case profiles in the background after start-up (see app/services/warmup.py).
     warmup_profiles: bool=True
+    # Largest request body accepted (bytes); every current endpoint takes small JSON at most.
+    max_body_bytes: int=1_000_000
+    # Login attempts allowed per client IP per window (generous: evaluators share few IPs).
+    login_rate_limit: int=30
+    login_rate_window_seconds: int=300
     cors_origins: str="http://localhost:5173"
 
     database_url: str="postgresql+psycopg://vbx:vbx@localhost:5432/vbx"

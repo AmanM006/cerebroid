@@ -27,6 +27,8 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | T | Mass assignment (e.g. sending `"role": "reviewer"`) | Strict request model with `extra="forbid"`; role is never read from the request | `test_login_rejects_unknown_fields` |
 | D | Huge request bodies hashed by argon2 | Username ≤64 chars, password ≤256 chars, rejected before hashing | `test_login_rejects_oversized_password` |
 | D | Attacker locks a known account | Accepted: lockout is temporary (15 min); disclosed in README Known Limitations | — |
+| S | Password guessing across accounts, or on the lockout-exempt test accounts | Per-client-IP limit, 30 attempts per 5 min (last `X-Forwarded-For` hop, which the client cannot forge) | `test_login_attempts_are_limited_per_client_ip` |
+| T/D | Control characters (NUL) in the username reaching Postgres (500) | Username pattern rejects control characters with 422 | `test_control_characters_in_username_are_a_validation_error_not_a_crash` |
 | I | Passwords in logs | Logs carry only `user_id`, reason code and `request_id` | manual log scan |
 
 ### `POST /api/v1/auth/refresh`, `POST /api/v1/auth/logout`
@@ -82,6 +84,9 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | E | API process modifying its own code or models at runtime | Files in the image are root-owned and read-only to the non-root `vbx` user | manual check in container |
 
 ### Global (all routes)
+- **Request size (D):** bodies over 1 MB get `413 PAYLOAD_TOO_LARGE` before parsing, declared or chunked (`test_oversized_body_is_rejected_before_parsing`, `test_chunked_oversized_body_is_rejected`).
+- **Transport (I):** HSTS is sent in production (`test_hsts_only_in_production`).
+- **Token storage (I):** the access token is held in memory only; a reload restores the session through the HttpOnly refresh cookie.
 | STRIDE | Risk | Mitigation |
 |---|---|---|
 | I | Unhandled exceptions leaking stack traces / SQL / paths | Global exception handler (`backend/app/core/errors.py`) returns only `{error_code, message, request_id}`; full exception is logged server-side only, via structlog, keyed by `request_id`. |

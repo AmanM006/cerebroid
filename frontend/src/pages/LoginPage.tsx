@@ -61,8 +61,8 @@ export function LoginPage() {
     setError(null)
     try {
       await login(email, password)
-    } catch (err: any) {
-      setError(err?.message || "Invalid credentials or server error.")
+    } catch (err: unknown) {
+      setError(err instanceof Error && err.message ? err.message : "Invalid credentials or server error.")
     } finally {
       setSubmitting(false)
     }
@@ -232,6 +232,7 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    setError(null)
                     setEmail("doctor")
                     setPassword("doctor-clinical-demo-2026")
                   }}
@@ -242,6 +243,7 @@ export function LoginPage() {
                 <button
                   type="button"
                   onClick={() => {
+                    setError(null)
                     setEmail("evaluator")
                     setPassword("vbx-eval-fcd664d1")
                   }}

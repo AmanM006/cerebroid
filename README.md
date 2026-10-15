@@ -147,6 +147,7 @@ docker compose exec api python -m app.cli create-user --username evaluator --rol
 | `GET /api/v1/studies/{id}/tipping?marker=IDH` | Bearer | For each clinician-verifiable input (age, tumor volume, enhancing and necrotic share, edema-to-core ratio): the nearest plausible value that flips the majority call, and the call across the whole plausible range. Model sensitivity, not cause. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/falsification?marker=IDH` | Bearer | The case for and against the call (strongest input groups each way), the competing call with its model votes, what change to a verifiable input would overturn it, and the lab test that settles it. Every sentence is a fixed template over computed results and lists its evidence IDs. Accepts `known=`. |
 | `GET /api/v1/studies/{id}/next-measurements` | Bearer | Decision-support heuristic: the WHO CNS5 adult diffuse-glioma categories still consistent with the settled markers (lab results, or Stable calls with real signal) and the lab tests ranked by how far they would narrow them. MGMT is listed as treatment-relevant only. Also returns, for each possible type, the guideline treatment pathway (EANO 2021 guideline; FDA 2024 vorasidenib label) with how MGMT and grade change it, labelled as a summary for tumor-board discussion, not a recommendation. Accepts `known=`. |
+| `GET /api/v1/metrics/summary` | none | Public headline numbers for the landing page: held-out AUC per deployed model set (only for the exact deployed model files) and the number of demo cases. |
 | `GET /api/v1/model-card` | Bearer | Intended use, data source and cohort counts, limitations, and per deployed model set: size, families, CV loss, skill, verdict thresholds, library versions and held-out test metrics (AUC with 95% CI, error rate per verdict). Metrics are shown only for the exact model file they were computed on. |
 | `GET /api/v1/audit/verify` | Bearer (reviewer) | Recomputes the hash-chained audit log; returns whether it is intact, the entry count and the first tampered entry. Every profile, evidence, doubt, tipping, falsification, reveal and volume read is recorded with IDs only. |
 | `GET /api/v1/studies/{id}/volumes` | Bearer | MRI sequences stored for the study (`t1`, `t1c`, `t2`, `flair`, `seg`) |
@@ -269,10 +270,13 @@ pip-audit -r requirements.txt
   `v2` mode. Retraining on `v2` features is the planned fix.
 - **Tumor outline errors.** Features are measured inside the segmentation; shifting or shrinking it by one voxel
   changed 1-2 of 36 calls and several verdicts (most became Contested). There is no automatic segmentation or mask QC yet.
-- Brute-force protection is per-account lockout (5 failures → 15 minutes); there is no per-IP rate limiting.
-  Anyone who knows a username can therefore lock that account for 15 minutes. The synthetic test accounts
-  (`evaluator`, `reviewer`) are exempt: their passwords are published here, so locking them would only let anyone
-  lock evaluators out.
+- Brute-force protection: per-account lockout (5 failures → 15 minutes) plus a per-client-IP login limit
+  (30 attempts per 5 minutes, then `429 RATE_LIMITED` with `Retry-After`). Anyone who knows a username can still
+  lock that account for 15 minutes. The synthetic test accounts (`evaluator`, `reviewer`, `doctor`) are exempt from
+  lockout: their passwords are published here, so locking them would only let anyone lock evaluators out. The
+  IP limit is in memory, so it resets when the server restarts.
+- Request bodies over 1 MB are rejected with `413 PAYLOAD_TOO_LARGE` before parsing.
+- `/docs` and `/openapi.json` are public on purpose, so evaluators can explore the API.
 - The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
 - Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
   out; the user signs in again.
@@ -311,6 +315,8 @@ Every error response has the shape `{error_code, message, request_id}`.
 | `AUTH_INVALID_CREDENTIALS` | Login failed (same response for unknown user, wrong password, locked account) |
 | `AUTH_INVALID_TOKEN` | Access or refresh token invalid, expired, revoked or reused |
 | `FORBIDDEN` | Authenticated but the role is not allowed |
+| `RATE_LIMITED` | Too many sign-in attempts from this client; retry after the `Retry-After` seconds |
+| `PAYLOAD_TOO_LARGE` | Request body over 1 MB |
 | `NOT_FOUND` | Resource doesn't exist or isn't visible to this user |
 | `INVALID_KNOWN_MARKER` | A `known` value isn't `<IDH\|1p19q\|MGMT\|GRADE>:<0\|1>`, or repeats a marker |
 | `FEATURES_NOT_READY` | No extracted imaging features exist for this study yet |
