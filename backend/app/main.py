@@ -7,12 +7,16 @@ tricks. Model artifacts are loaded once at startup, not per request.
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+from pathlib import Path
+
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import audit, auth, cases, health, model_card, studies
 from app.core.config import get_settings
-from app.core.errors import register_exception_handlers
+from app.core.errors import not_found, register_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import RequestIDMiddleware
 from app.domain.feature_store import load_feature_store
@@ -53,7 +57,28 @@ def create_app() -> FastAPI:
     app.include_router(audit.router)
     app.include_router(model_card.router)
 
+    if settings.frontend_dist is not None and (settings.frontend_dist/"index.html").is_file():
+        _serve_frontend(app, settings.frontend_dist)
+
     return app
+
+
+_API_PREFIXES=("api/", "health", "ready", "docs", "redoc", "openapi.json")
+
+
+def _serve_frontend(app: FastAPI, dist: Path) -> None:
+    """Serves the built single-page app; unknown paths get index.html so client-side routes work."""
+    root=dist.resolve()
+    app.mount("/assets", StaticFiles(directory=root/"assets"), name="assets")
+
+    @app.get("/{path:path}", include_in_schema=False)
+    def frontend(path: str) -> FileResponse:
+        if path.startswith(_API_PREFIXES):
+            raise not_found()
+        candidate=(root/path).resolve()
+        if path and candidate.is_relative_to(root) and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(root/"index.html", headers={"Cache-Control": "no-cache"})
 
 
 app=create_app()

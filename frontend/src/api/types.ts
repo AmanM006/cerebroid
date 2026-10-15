@@ -146,50 +146,16 @@ export interface Evidence {
   latency_ms: number
 }
 
-export interface Claim {
-  text: string
-  evidence_ids: string[]
-  provenance: Provenance
-}
-
-export interface Falsification {
+export interface NextMeasurements {
   study_id: string
-  marker: MarkerName
-  variant: string
-  call: string
-  verdict: Verdict
-  supporting: Claim[]
-  contradicting: Claim[]
-  competing: Claim
-  overturn: Claim[]
-  confirmatory_test: string
-  model_version: string
+  input_hash: string
+  label: "decision-support heuristic"
+  marker_states: {
+    marker: MarkerName; value: string | null; settled: boolean; from_lab: boolean; reason: string; provenance: Provenance
+  }[]
+  candidate_categories: string[]
+  tests: { marker: MarkerName; test: string; settled: boolean; remaining_worst_case: number | null; reason: string }[]
   request_id: string | null
-  latency_ms: number
-}
-
-export interface TippingItem {
-  input: string
-  label: string
-  unit: string
-  current: number
-  /** Nearest plausible value at which the majority call flips; null when none does. */
-  flip_at: number | null
-  flips_to: string | null
-  curve: { value: number; positive_fraction: number; prob_median: number }[]
-  provenance: Provenance
-}
-
-export interface Tipping {
-  study_id: string
-  marker: MarkerName
-  variant: string
-  call: string
-  method: string
-  items: TippingItem[]
-  model_version: string
-  request_id: string | null
-  latency_ms: number
 }
 
 export type DoubtLevel="low" | "medium" | "high" | "unknown"

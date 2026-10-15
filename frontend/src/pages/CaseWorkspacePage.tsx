@@ -1,12 +1,13 @@
 import { useEffect, useState, type CSSProperties, type DragEvent } from "react"
 import { useParams, Link } from "react-router-dom"
 import { api } from "../api/client"
-import type { Case, Readiness } from "../api/types"
+import type { Case, MarkerName, Readiness } from "../api/types"
 import { AppShell } from "../components/AppShell"
 import { ErrorNotice } from "../components/ErrorNotice"
 import { RealNiiVueViewport, type SliceMode } from "../components/RealNiiVueViewport"
 import { SEQUENCE_LABELS, useCaseVolumes, type AnatomicalSequence } from "../components/useCaseVolumes"
 import { ProfilePanel } from "../components/ProfilePanel"
+import { NextStepPanel } from "../components/NextStepPanel"
 import { ProvenanceBadge } from "../components/ProvenanceBadge"
 
 export type Plane2D = "sagittal" | "axial" | "coronal"
@@ -18,6 +19,7 @@ export function CaseWorkspacePage() {
   const { caseId } = useParams<{ caseId: string }>()
   const [study, setStudy] = useState<Case | null>(null)
   const [readiness, setReadiness] = useState<Readiness | null>(null)
+  const [known, setKnown] = useState<Partial<Record<MarkerName, 0 | 1>>>({})
   const [error, setError] = useState<unknown>(null)
 
   // Block positions in a modular 2x2 grid (all 4 fit immediately in the 100vh viewport)
@@ -49,6 +51,7 @@ export function CaseWorkspacePage() {
     setStudy(null)
     setError(null)
     setChosenSequence(null)
+    setKnown({})
     api.getCase(caseId).then(setStudy).catch(setError)
     api.readiness().then(setReadiness).catch(setError)
   }, [caseId])
@@ -286,7 +289,7 @@ export function CaseWorkspacePage() {
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
           <span className="font-semibold text-white group-hover:text-cyan-300">
-            Molecular Profile (Multiplicity)
+            Tumor markers
           </span>
           <span className="text-[9px] text-neutral-500 rounded bg-[#181818] px-1 py-0.2 border border-neutral-800">
             [Drag / Swap]
@@ -296,12 +299,19 @@ export function CaseWorkspacePage() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {caseId && <ProfilePanel key={caseId} studyId={caseId} readiness={readiness} />}
+        {caseId && (
+          <ProfilePanel
+            studyId={caseId}
+            readiness={readiness}
+            known={known}
+            onKnownChange={setKnown}
+          />
+        )}
       </div>
     </div>
   )
 
-  // Component 4: Evidence & Doubt
+  // Component 4: Next Step & Evidence
   const renderEvidenceDoubt = (index: number) => (
     <div
       key="evidence_doubt"
@@ -318,37 +328,17 @@ export function CaseWorkspacePage() {
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
           <span className="font-semibold text-white group-hover:text-cyan-300">
-            Clinical Doubt &amp; Evidence
+            Next Step
           </span>
           <span className="text-[9px] text-neutral-500 rounded bg-[#181818] px-1 py-0.2 border border-neutral-800">
             [Drag / Swap]
           </span>
         </div>
-        <span className="text-[10px] text-amber-400">Decision Support</span>
+        <span className="text-[10px] text-neutral-400">Decision Support</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3.5 font-mono text-xs text-neutral-400 space-y-3">
-        <div className="rounded-xl border border-neutral-800 bg-[#121212] p-3 text-[11px] text-neutral-300 space-y-1.5">
-          <span className="font-bold text-white block">Multiplicity Protocol:</span>
-          <p>• Stable markers (nearly all equally good models agree): the imaging call is consistent.</p>
-          <p>• Contested / Arbitrary markers: histology / tissue biopsy mandatory.</p>
-        </div>
-
-        <div className="rounded-xl border border-neutral-800 bg-[#121212] p-3 text-[11px] space-y-1.5">
-          <span className="font-bold text-white block">Diagnostic Criteria (WHO 2021):</span>
-          <div className="flex items-center justify-between border-b border-neutral-850 pb-1">
-            <span>IDH1/2 Mutation</span>
-            <span className="text-white font-semibold">Codon 132/172</span>
-          </div>
-          <div className="flex items-center justify-between border-b border-neutral-850 pb-1">
-            <span>1p/19q Co-deletion</span>
-            <span className="text-white font-semibold">Oligodendroglioma</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>MGMT Promoter</span>
-            <span className="text-white font-semibold">Methylated</span>
-          </div>
-        </div>
+      <div className="flex-1 overflow-y-auto p-4">
+        {caseId && <NextStepPanel studyId={caseId} known={known} />}
       </div>
     </div>
   )

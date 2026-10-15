@@ -15,16 +15,27 @@ const MARKER_STATUS_TEXT: Record<string, string> = {
 
 // What the models may look at: the counterfactual views show what each source decides alone.
 const VIEWS: { id: ProfileView; label: string; hint: string }[] = [
-  { id: "fused", label: "MRI + patient info", hint: "All inputs combined" },
-  { id: "imaging_only", label: "MRI only", hint: "Context-blind: age, sex and history hidden from the models" },
-  { id: "clinical_only", label: "Patient info only", hint: "Image-blind: only age, sex and history" },
+  { id: "fused", label: "MRI + age & sex", hint: "All inputs combined" },
+  { id: "imaging_only", label: "MRI only", hint: "Age, sex and history hidden from the models" },
+  { id: "clinical_only", label: "Age & sex only", hint: "No imaging: only age, sex and history" },
 ]
 
 const short = (sha: string) => sha.replace("sha256:", "").slice(0, 10)
 
-export function ProfilePanel({ studyId, readiness }: { studyId: string; readiness: Readiness | null }) {
-  const [known, setKnown] = useState<KnownResults>({})
+export function ProfilePanel({
+  studyId,
+  readiness,
+  known,
+  onKnownChange,
+}: {
+  studyId: string
+  readiness: Readiness | null
+  /** Lab results the clinician entered; owned by the page so other panels follow them too. */
+  known: KnownResults
+  onKnownChange: (known: KnownResults) => void
+}) {
   const [view, setView] = useState<ProfileView>("fused")
+  const [showLabForm, setShowLabForm] = useState(false)
   // Each result remembers which request it answers; "loading" = the latest answer is for an older request.
   const [result, setResult] = useState<{ key: string; profile: Profile | null; error: unknown } | null>(null)
   const key = JSON.stringify([studyId, known, view])
@@ -56,10 +67,17 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
 
   return (
     <div className="space-y-3">
-      <KnownResultsForm value={known} onChange={setKnown} disabled={notReady} />
+      {showLabForm || Object.keys(known).length > 0 ? (
+        <KnownResultsForm value={known} onChange={onKnownChange} disabled={notReady} />
+      ) : (
+        <button onClick={() => setShowLabForm(true)}
+          className="font-mono text-[11px] text-[#8c889e] hover:text-white cursor-pointer">
+          Have a lab result already? <span className="text-cyan-300">▸ Enter it</span>
+        </button>
+      )}
 
       <div role="radiogroup" aria-label="Inputs the models may use" className="flex flex-wrap items-center gap-1.5">
-        <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-[#716c87]">Models see:</span>
+        <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-[#716c87]">Based on:</span>
         {VIEWS.map((v) => (
           <button
             key={v.id}
@@ -113,7 +131,7 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
               onClick={reveal}
               className="w-full rounded-xl border border-[#262335] bg-[#14121d] py-2 text-xs font-medium text-slate-200 transition-all hover:border-[#38334d] hover:bg-[#1a1726] hover:text-white cursor-pointer"
             >
-              Reveal Ground Truth Result
+              Reveal true lab results
             </button>
           )}
           {revealError !== null && <ErrorNotice error={revealError} />}
@@ -126,9 +144,10 @@ export function ProfilePanel({ studyId, readiness }: { studyId: string; readines
             {profile.missing_inputs.length > 0 && (
               <p>Missing inputs: {profile.missing_inputs.join(", ")} (uncertainty higher)</p>
             )}
-            <p className="text-[#565169]">
-              pipeline {short(profile.feature_pipeline_version)} · input {short(profile.input_hash)}
-              {profile.request_id && <> · req {profile.request_id}</>}
+            <p className="w-fit cursor-help text-[#565169]"
+              title={`Features ${short(profile.feature_pipeline_version)} · input ${short(profile.input_hash)}`
+                + (profile.request_id ? ` · request ${profile.request_id}` : "")}>
+              ⓘ Reproducibility details
             </p>
           </div>
         </div>

@@ -225,6 +225,33 @@ export function LoginPage() {
               </button>
             </form>
 
+            {/* Quick Test Accounts for Evaluators */}
+            <div className="mt-6 pt-4 border-t border-white/10 text-center font-mono">
+              <p className="text-[11px] text-neutral-400 mb-2">Test / Evaluator Access:</p>
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail("doctor")
+                    setPassword("doctor")
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-red-500/10 text-xs text-neutral-300 transition-colors cursor-pointer"
+                >
+                  Fill: <span className="text-white font-bold">doctor</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail("evaluator")
+                    setPassword("vbx-eval-fcd664d1")
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 hover:border-red-500/50 hover:bg-red-500/10 text-xs text-neutral-300 transition-colors cursor-pointer"
+                >
+                  Fill: <span className="text-white font-bold">evaluator</span>
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 

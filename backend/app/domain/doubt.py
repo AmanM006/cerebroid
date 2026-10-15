@@ -30,6 +30,9 @@ from app.domain.multiplicity_engine import iqr
 Level=Literal["low", "medium", "high", "unknown"]
 LEVEL_ORDER: dict[Level, int]={"unknown": 0, "low": 1, "medium": 2, "high": 3}
 
+SEQUENCE_NAMES={"t1", "t1ce", "t2", "flair", "adc", "asl"}
+REGION_NAMES={"et": "enhancing tumor", "ncr": "necrotic core", "ed": "edema"}
+
 K_NEIGHBOURS=5
 # Robust z-scores are clipped so one extreme feature can't dominate the distance.
 Z_CLIP=10.0
@@ -155,25 +158,22 @@ def decompose(
             provenance=Provenance.REFERENCE_COHORT,
         ))
 
-    REGION_NAMES={"et": "enhancing tumor (et)", "ncr": "necrotic core (ncr)", "ed": "edema (ed)"}
+    # A missing MRI sequence is missing data: it can be supplied. A tumor region absent from the
+    # outline (no necrotic core, no enhancement) is what the tumor looks like, common in lower
+    # grades; the models take it as an input (missing__<region>), so it is reported, not flagged.
     missing=vector.missing_inputs()
-    sequences_missing=[m for m in missing if m in {"t1", "t1ce", "t2", "flair", "adc", "asl"}]
-    regions_missing=[REGION_NAMES.get(m, m) for m in missing if m in REGION_NAMES]
-    level="high" if sequences_missing else "medium" if missing else "low"
-    if sequences_missing:
-        detail=f"Missing: {', '.join(missing)}."
-        action=f"Supply the missing input ({', '.join(sequences_missing)}) and re-run."
-    elif regions_missing:
-        detail=f"Absent tumor sub-region in mask: {', '.join(regions_missing)} (features imputed to cohort median)."
-        action="Verify segmentation mask; absence of necrosis or enhancement may reflect tumor biology rather than missing data."
-    else:
-        detail="All expected MRI inputs are present."
-        action="No action needed."
+    sequences=[m for m in missing if m in SEQUENCE_NAMES]
+    regions=[REGION_NAMES[m] for m in missing if m in REGION_NAMES]
+    absent=""
+    if regions:
+        absent=f" The outline has no {' and no '.join(regions)}, which the models use as a finding."
     components.append(DoubtComponent(
-        source="missing_inputs", level=level, value=float(len(missing)),
-        detail=detail,
-        action=action,
-        provenance=Provenance.MISSING if missing else Provenance.CLINICAL_INPUT,
+        source="missing_inputs", level="high" if sequences else "low", value=float(len(sequences)),
+        detail=(f"Missing MRI sequence: {', '.join(sequences)}." if sequences
+                else "All four MRI sequences are present.")+absent,
+        action=f"Supply the missing sequence ({', '.join(sequences)}) and re-run." if sequences
+        else "No action needed.",
+        provenance=Provenance.MISSING if sequences else Provenance.CLINICAL_INPUT,
     ))
 
     if skill is None:

@@ -1,48 +1,46 @@
-# One entry per marker plugin. artifact_dir is relative to artifacts/.
-# Each directory holds meta.json + models.joblib, both listed with their sha256 in artifacts/manifest.json.
 markers:
-  - marker: IDH
-    variant: fused
-    artifact_dir: models/idh
-  - marker: 1p19q
-    variant: fused
-    artifact_dir: models/1p19q
-  - marker: MGMT
-    variant: fused
-    artifact_dir: models/mgmt
-  - marker: GRADE
-    variant: fused
-    artifact_dir: models/grade
-  - marker: IDH
-    variant: imaging_only
-    artifact_dir: models/idh_imaging_only
-  - marker: 1p19q
-    variant: imaging_only
-    artifact_dir: models/1p19q_imaging_only
-  - marker: MGMT
-    variant: imaging_only
-    artifact_dir: models/mgmt_imaging_only
-  - marker: GRADE
-    variant: imaging_only
-    artifact_dir: models/grade_imaging_only
-  - marker: 1p19q
-    variant: fused_given_idh
-    artifact_dir: models/1p19q_fused_given_idh
-  - marker: MGMT
-    variant: fused_given_idh
-    artifact_dir: models/mgmt_fused_given_idh
-  - marker: GRADE
-    variant: fused_given_idh
-    artifact_dir: models/grade_fused_given_idh
-  - marker: IDH
-    variant: clinical_only
-    artifact_dir: models/idh_clinical_only
-  - marker: 1p19q
-    variant: clinical_only
-    artifact_dir: models/1p19q_clinical_only
-  - marker: MGMT
-    variant: clinical_only
-    artifact_dir: models/mgmt_clinical_only
-  - marker: GRADE
-    variant: clinical_only
-    artifact_dir: models/grade_clinical_only
+- marker: IDH
+  variant: fused
+  artifact_dir: models/idh
+- marker: 1p19q
+  variant: fused
+  artifact_dir: models/1p19q
+- marker: MGMT
+  variant: fused
+  artifact_dir: models/mgmt
+- marker: GRADE
+  variant: fused
+  artifact_dir: models/grade
+- marker: IDH
+  variant: imaging_only
+  artifact_dir: models/idh_imaging_only
+- marker: 1p19q
+  variant: imaging_only
+  artifact_dir: models/1p19q_imaging_only
+- marker: MGMT
+  variant: imaging_only
+  artifact_dir: models/mgmt_imaging_only
+- marker: GRADE
+  variant: imaging_only
+  artifact_dir: models/grade_imaging_only
+- marker: 1p19q
+  variant: fused_given_idh
+  artifact_dir: models/1p19q_fused_given_idh
+- marker: MGMT
+  variant: fused_given_idh
+  artifact_dir: models/mgmt_fused_given_idh
+- marker: GRADE
+  variant: fused_given_idh
+  artifact_dir: models/grade_fused_given_idh
+- marker: IDH
+  variant: clinical_only
+  artifact_dir: models/idh_clinical_only
+- marker: 1p19q
+  variant: clinical_only
+  artifact_dir: models/1p19q_clinical_only
+- marker: MGMT
+  variant: clinical_only
+  artifact_dir: models/mgmt_clinical_only
+- marker: GRADE
+  variant: clinical_only
+  artifact_dir: models/grade_clinical_only

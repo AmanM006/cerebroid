@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     ports:
-      - "127.0.0.1:8000:8000"
+      - "8000:8000"
     environment:
       APP_ENV: ${APP_ENV:-development}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
@@ -13,6 +13,10 @@ services:
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env (see .env.example)}
       JWT_ACCESS_TOKEN_TTL_MINUTES: ${JWT_ACCESS_TOKEN_TTL_MINUTES:-15}
       JWT_REFRESH_TOKEN_TTL_DAYS: ${JWT_REFRESH_TOKEN_TTL_DAYS:-7}
+      # Created at start-up if missing (python -m app.cli seed); leave the passwords empty to skip the accounts.
+      VBX_SEED_DEMO_CASES: ${VBX_SEED_DEMO_CASES:-UCSF-PDGM-0061,UCSF-PDGM-0073,UCSF-PDGM-0243,UCSF-PDGM-0018,UCSF-PDGM-0026,UCSF-PDGM-0232,UCSF-PDGM-0162,UCSF-PDGM-0282,UCSF-PDGM-0327}
+      VBX_EVALUATOR_PASSWORD: ${VBX_EVALUATOR_PASSWORD:-}
+      VBX_REVIEWER_PASSWORD: ${VBX_REVIEWER_PASSWORD:-}
     depends_on:
       db:
         condition: service_healthy

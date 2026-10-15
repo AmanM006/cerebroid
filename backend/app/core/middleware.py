@@ -17,15 +17,32 @@ from starlette.requests import Request
 from starlette.responses import Response
 
 REQUEST_ID_HEADER="X-Request-Id"
-_REQ_ID_RE=re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+# A caller-supplied ID is reused only if it is short and plain, so it can't inject into logs or headers.
+_SAFE_REQUEST_ID=re.compile(r"^[A-Za-z0-9-]{8,64}$")
+
+# Same policy as ops/nginx/security_headers.inc, so the API is covered when reached directly
+# or when it serves the frontend itself. NiiVue needs WebGL, blob: workers and wasm.
+SECURITY_HEADERS={
+    "Content-Security-Policy": (
+        "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+        "font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob:; "
+        "connect-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; "
+        "base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+    ),
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+}
 
 logger=structlog.get_logger("http")
 
 
 class RequestIDMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
-        raw_id=request.headers.get(REQUEST_ID_HEADER, "")
-        request_id=raw_id if _REQ_ID_RE.match(raw_id) else str(uuid.uuid4())
+        supplied=request.headers.get(REQUEST_ID_HEADER, "")
+        request_id=supplied if _SAFE_REQUEST_ID.match(supplied) else str(uuid.uuid4())
         request.state.request_id=request_id
 
         structlog.contextvars.clear_contextvars()
@@ -36,9 +53,8 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
         duration_ms=(time.perf_counter()-start)*1000
 
         response.headers[REQUEST_ID_HEADER]=request_id
-        response.headers.setdefault("X-Content-Type-Options", "nosniff")
-        response.headers.setdefault("X-Frame-Options", "DENY")
-        response.headers.setdefault("Referrer-Policy", "no-referrer")
+        for name, value in SECURITY_HEADERS.items():
+            response.headers.setdefault(name, value)
         logger.info(
             "request_handled",
             method=request.method,

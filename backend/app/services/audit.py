@@ -39,28 +39,18 @@ def record(
     model_version: str | None=None,
 ) -> AuditEntry:
     """Append one entry and commit it."""
-    bind = db.get_bind()
-    for attempt in range(3):
-        try:
-            if bind is not None and bind.dialect.name == "postgresql":
-                db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": _LOCK_KEY})
-            last=db.scalar(select(AuditEntry).order_by(AuditEntry.seq.desc()).limit(1))
-            seq=1 if last is None else last.seq+1
-            prev_hash=GENESIS if last is None else last.hash
-            ts=datetime.now(UTC)
-            entry=AuditEntry(
-                seq=seq, ts=ts, actor_id=actor_id, action=action, object_id=object_id,
-                model_version=model_version, prev_hash=prev_hash,
-                hash=_digest(seq, ts, actor_id, action, object_id, model_version, prev_hash),
-            )
-            db.add(entry)
-            db.commit()
-            return entry
-        except Exception:
-            db.rollback()
-            if attempt == 2:
-                raise
-    raise RuntimeError("unreachable")
+    db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": _LOCK_KEY})
+    last=db.scalar(select(AuditEntry).order_by(AuditEntry.seq.desc()).limit(1))
+    seq=1 if last is None else last.seq+1
+    prev_hash=GENESIS if last is None else last.hash
+    ts=datetime.now(UTC)
+    entry=AuditEntry(
+        seq=seq, ts=ts, actor_id=actor_id, action=action, object_id=object_id, model_version=model_version,
+        prev_hash=prev_hash, hash=_digest(seq, ts, actor_id, action, object_id, model_version, prev_hash),
+    )
+    db.add(entry)
+    db.commit()
+    return entry
 
 
 @dataclass(frozen=True)

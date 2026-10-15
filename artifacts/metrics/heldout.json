@@ -483,5 +483,35 @@
         0.7326
       ]
     }
-  ]
+  ],
+  "resolved_by_combining": {
+    "IDH": {
+      "n_test": 99,
+      "imaging_only_not_stable": 6,
+      "resolved_by_combining": 3,
+      "fused_accuracy_on_resolved": 1.0,
+      "stable_only_without_context": 6
+    },
+    "1p19q": {
+      "n_test": 80,
+      "imaging_only_not_stable": 0,
+      "resolved_by_combining": 0,
+      "fused_accuracy_on_resolved": null,
+      "stable_only_without_context": 0
+    },
+    "MGMT": {
+      "n_test": 84,
+      "imaging_only_not_stable": 0,
+      "resolved_by_combining": 0,
+      "fused_accuracy_on_resolved": null,
+      "stable_only_without_context": 0
+    },
+    "GRADE": {
+      "n_test": 99,
+      "imaging_only_not_stable": 7,
+      "resolved_by_combining": 2,
+      "fused_accuracy_on_resolved": 1.0,
+      "stable_only_without_context": 4
+    }
+  }
 }
