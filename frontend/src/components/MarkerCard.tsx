@@ -96,8 +96,8 @@ export function MarkerCard({
               )}
               {marker.resolved_by_combining && (
                 <span className="rounded-full border border-purple-800/50 bg-purple-950/30 px-2 py-0.5 text-purple-200"
-                  title={`MRI alone was ${marker.imaging_only_verdict?.toLowerCase()}; MRI with patient information is Stable`}>
-                  ◆ Resolved by combining
+                  title={`MRI alone was ${marker.imaging_only_verdict?.toLowerCase()}; combined with patient age and sex produces stable verdict`}>
+                  ◆ Decided by MRI + Age & Sex
                 </span>
               )}
             </div>

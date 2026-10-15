@@ -86,7 +86,7 @@ export function LimeView({
 
       <ol className="space-y-1.5">
         {[
-          { id: "how-common", label: `Usual result for most patients (${lime.call})`,
+          { id: "how-common", label: `Patient age & cohort baseline (${lime.call})`,
             points: ((positive ? 1 : -1)*Number(lime.typical.value)+(positive ? 0 : 1))*100-50 },
           ...lime.factors.filter((f)=>f.supports_call).map((f)=>({
             id: f.evidence_id, label: plain(f.label), points: Math.abs(f.effect)*100,
