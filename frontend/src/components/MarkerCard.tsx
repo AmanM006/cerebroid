@@ -112,23 +112,25 @@ export function MarkerCard({
           </button>
 
           {open && (
-            <div className="space-y-2.5 border-t border-[#1b1926] pt-2">
-              <p className="font-mono text-[10.5px] text-[#716c87]">
-                {agreeing != null && <>{agreeing}/{marker.n_models} models say {marker.call}</>}
-                {marker.imaging_only_verdict && <> · MRI alone: {marker.imaging_only_call}</>}
-                {marker.variant === "fused_given_idh" && <> · uses the known IDH result</>}
+            <div className="space-y-3 border-t border-neutral-800 pt-3">
+              <p className="font-mono text-xs text-neutral-300 font-semibold leading-relaxed">
+                {agreeing != null && <span className="text-white font-bold">{agreeing}/{marker.n_models} models say {marker.call}</span>}
+                {marker.imaging_only_verdict && <span className="text-neutral-400"> · MRI alone: <span className="text-neutral-200">{marker.imaging_only_call}</span></span>}
+                {marker.variant === "fused_given_idh" && <span className="text-neutral-400"> · uses the known IDH result</span>}
               </p>
               {explainable && (
                 <>
-                  <div role="tablist" className="flex flex-wrap gap-1">
+                  <div role="tablist" className="flex flex-wrap gap-2 pt-0.5">
                     {TABS.map((t) => (
                       <button
                         key={t.id}
                         role="tab"
                         aria-selected={tab === t.id}
                         onClick={() => setTab(t.id)}
-                        className={`rounded-md border px-2 py-0.5 font-mono text-[10px] transition-colors cursor-pointer ${
-                          tab === t.id ? "border-cyan-700 bg-cyan-950/50 text-cyan-200" : "border-[#2a2638] text-[#8c889e] hover:text-white"
+                        className={`rounded-lg border px-3 py-1 font-mono text-xs font-bold transition-all cursor-pointer ${
+                          tab === t.id
+                            ? "border-cyan-500 bg-cyan-950/80 text-cyan-200 shadow-sm"
+                            : "border-neutral-800 bg-[#121214] text-neutral-400 hover:text-white hover:border-neutral-700"
                         }`}
                       >
                         {t.label}
