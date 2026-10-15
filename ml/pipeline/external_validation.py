@@ -1,6 +1,6 @@
 """External validation on TCGA gliomas, with performance by race, sex and age.
 
-UCSF-PDGM (our training data) comes from one hospital and records no race. The TCGA-GBM
+UCSF-PDGM (our training data) comes from one hospital and its public release has no race field. The TCGA-GBM
 and TCGA-LGG cohorts come from many US hospitals and record race, so we run the deployed
 models, unchanged, on them:
 
