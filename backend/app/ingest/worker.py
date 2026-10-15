@@ -124,6 +124,9 @@ def process(study_dir: Path) -> dict:
         name=next(k for k, v in RADIOMICS_NAME.items() if v==radiomics_name)
         image=sitk.ReadImage(str(work/f"{name}.nii"))
         view=sitk.GetArrayViewFromImage(image)
+        # Defence in depth: SimpleITK's NIfTI reader already replaces NaN and infinity on read.
+        if not np.isfinite(view).all():
+            raise UploadError("NIFTI_INVALID", f"{name} contains invalid voxel values (NaN or infinity).")
         if _border_foreground(view)>MAX_BORDER_FOREGROUND:
             raise UploadError(
                 "NOT_SKULL_STRIPPED",

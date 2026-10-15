@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     # MRI uploads: where they are processed and kept, size, rate and retention limits.
     upload_dir: str=""
     upload_max_body_bytes: int=150_000_000
-    upload_rate_limit: int=10
+    upload_rate_limit: int=20
     upload_rate_window_seconds: int=3600
     upload_max_per_user: int=10
     upload_ttl_hours: int=24

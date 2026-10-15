@@ -87,7 +87,7 @@ Legend: **S**poofing · **T**ampering · **R**epudiation · **I**nfo disclosure 
 | | Threat | Mitigation | Test |
 |---|---|---|---|
 | T | Malicious NIfTI crashing or exploiting the parser | Header checked by our own code before any image library reads it (magic, 3D, dimensions, data type, spacing, file length); parsing runs in a separate worker process with a CPU limit and a timeout | `test_bad_uploads_fail_with_a_clear_error` |
-| D | Gzip bomb / huge uploads | 40 MB per file while copying, 160 MB decompressed (stream-decompressed with a hard cap), 150 MB request, one upload processed at a time, 10 per hour and 10 stored per user | `test_gzip_bomb_is_stopped_while_decompressing` |
+| D | Gzip bomb / huge uploads | 40 MB per file while copying, 160 MB decompressed (stream-decompressed with a hard cap), 150 MB request, one upload processed at a time, 20 per hour and 10 stored per user | `test_gzip_bomb_is_stopped_while_decompressing` |
 | T | Path traversal through file names | Client file names are never used: files are stored under server-generated names in a server-generated directory | `test_upload_is_processed_and_analysed_like_a_demo_case` |
 | I | Faces in head MRI; identifying header text | Skull-stripping heuristic rejects non-stripped volumes; saved volumes are rebuilt from voxels and geometry only, raw files deleted after processing | `test_bad_uploads_fail_with_a_clear_error` |
 | E | Reading or deleting another user's upload | Shared ownership check (`get_accessible_study`); delete requires owner and upload kind | `test_upload_is_processed_and_analysed_like_a_demo_case` |

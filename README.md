@@ -294,6 +294,22 @@ pip-audit -r requirements.txt
 - The refresh cookie has the `Secure` flag only when `APP_ENV=production`.
 - Refreshing the same session from two tabs at the same moment counts as token reuse and signs that session
   out; the user signs in again.
+- **Shared test accounts.** `evaluator`, `doctor` and `reviewer` and their passwords are published here on purpose,
+  so anyone can sign in as them. Everyone using the same account sees, and can delete, that account's uploads.
+  The `reviewer` account can run the read-only audit-log check. None of them can change models, demo cases or
+  other accounts; real deployments would issue personal accounts.
+- **Removing a demo case** in the case list hides it in that browser only (stored in the browser); demo cases are
+  shared and are never deleted. Uploads are deleted for real by their owner.
+- **Uploads are processed as voxel data only.** Files are not virus-scanned; they are never served back as
+  uploaded: the viewer gets volumes rebuilt from voxels and geometry, and the raw files are deleted after
+  processing. Lab results typed in with an upload are the uploader's own entries (shown as clinical input),
+  are not verified, and are used only for the reveal comparison, never by the models.
+- **No CSRF tokens:** the API takes the access token from the `Authorization` header (never a cookie), and the
+  refresh cookie is `SameSite=Strict`, HttpOnly and scoped to `/api/v1/auth`.
+- **Model limits shown in the app:** 1p/19q has not yet caught a co-deleted tumour in the test sets (recall 0%);
+  MGMT has no reliable MRI signal and is never called; the grade 4 alert (threshold chosen on cross-validation)
+  also flags about 15% of grade 2-3 tumours. Every result is decision support, to be confirmed with tissue.
+- `GET /api/v1/metrics/summary` is public: it returns only aggregate held-out metrics and the number of demo cases.
 
 ## 12. AI tool disclosure
 See [AI_USAGE.md](AI_USAGE.md): each AI tool used, its purpose, what it generated, and what was human-reviewed.
