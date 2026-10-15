@@ -61,7 +61,10 @@ def _population(store: FeatureStore) -> dict:
         "age_range": [ages[0], ages[-1]],
         "grade_4_share": round(sum(1 for r in rows if r.get("who_grade")==4)/len(rows), 3),
         "tumor_types": counts,
-        "race": "not recorded in UCSF-PDGM; performance by race is measured on the external TCGA cohort",
+        "race": (
+            "not included in the public UCSF-PDGM release; performance by race is measured on the "
+            "external TCGA cohort"
+        ),
     }
 
 

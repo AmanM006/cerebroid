@@ -2,7 +2,7 @@
 
 Reports accuracy, AUC (when both classes are present) and Stable-call accuracy by sex,
 age band and tumor type, so any gap between groups is measured rather than hidden.
-UCSF-PDGM records no race; race is evaluated on the external TCGA cohort
+UCSF-PDGM's public release has no race field; race is evaluated on the external TCGA cohort
 (ml/pipeline/external_validation.py). Small subgroups are reported with their size.
 
     backend/.venv/Scripts/python ml/pipeline/subgroups.py
