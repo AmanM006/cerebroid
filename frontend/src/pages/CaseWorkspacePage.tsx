@@ -10,6 +10,7 @@ import { NextStepPanel } from "../components/NextStepPanel"
 import { ProfilePanel } from "../components/ProfilePanel"
 import type { KnownResults } from "../components/KnownResultsForm"
 import { ProvenanceBadge } from "../components/ProvenanceBadge"
+import { WORKSPACE_THEMES, type ThemeMode } from "../theme/workspaceThemes"
 
 export type Plane2D = "sagittal" | "axial" | "coronal"
 
@@ -22,6 +23,18 @@ export function CaseWorkspacePage() {
   const [readiness, setReadiness] = useState<Readiness | null>(null)
   const [known, setKnown] = useState<KnownResults>({})
   const [error, setError] = useState<unknown>(null)
+
+  // 5 Theme Presets (Stored in localStorage for persistence)
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    return (localStorage.getItem("cerebroid_theme") as ThemeMode) || "obsidian"
+  })
+
+  const currentTheme = WORKSPACE_THEMES[themeMode] || WORKSPACE_THEMES.obsidian
+
+  const changeTheme = (mode: ThemeMode) => {
+    setThemeMode(mode)
+    localStorage.setItem("cerebroid_theme", mode)
+  }
 
   // Block positions in a modular 2x2 grid (all 4 fit immediately in the 100vh viewport)
   const [blocks, setBlocks] = useState<BlockId[]>([
@@ -151,16 +164,16 @@ export function CaseWorkspacePage() {
     setDragTargetIndex(null)
   }
 
-  // Component 1: 3D GPU Viewport
+  // Component 1: 3D NIfTI GPU Viewport
   const render3DViewport = (index: number) => (
     <div
       key="3d_viewport"
-      className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
+      className={`relative flex h-full flex-col overflow-hidden rounded-2xl border ${currentTheme.borderCard} ${currentTheme.bgCard} ${currentTheme.glowEffect} transition-all duration-300`}
     >
       <div
         draggable
         onDragStart={(e) => handleDragStart(e, index)}
-        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+        className={`flex items-center justify-between border-b border-white/5 ${currentTheme.bgHeader} px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none`}
       >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
@@ -168,11 +181,11 @@ export function CaseWorkspacePage() {
           title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
-          <span className="font-semibold text-white group-hover:text-cyan-300">
+          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentTheme.accent }} />
+          <span className={`font-semibold ${currentTheme.textPrimary} group-hover:text-cyan-300`}>
             3D NIfTI GPU Viewport
           </span>
-          <span className="text-[9px] text-neutral-500 rounded bg-[#181818] px-1 py-0.2 border border-neutral-800">
+          <span className="text-[9px] text-neutral-500 rounded bg-black/40 px-1 py-0.2 border border-white/5">
             [Drag / Swap]
           </span>
         </div>
@@ -186,7 +199,7 @@ export function CaseWorkspacePage() {
               }}
               className={`rounded px-1.5 py-0.5 text-[9.5px] uppercase transition-colors cursor-pointer ${
                 mri3dMode === m
-                  ? "bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold"
+                  ? `${currentTheme.badgeBg} ${currentTheme.badgeText} border ${currentTheme.badgeBorder} font-bold`
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -201,8 +214,8 @@ export function CaseWorkspacePage() {
             title="Toggle 3D coordinate crosshairs"
             className={`ml-1 rounded px-1.5 py-0.5 text-[9.5px] uppercase transition-colors cursor-pointer border ${
               showCrosshairs
-                ? "bg-cyan-950 text-cyan-300 border-cyan-700 font-bold"
-                : "border-neutral-800 text-neutral-500 hover:text-neutral-300"
+                ? `${currentTheme.badgeBg} ${currentTheme.badgeText} ${currentTheme.badgeBorder} font-bold`
+                : "border-white/5 text-neutral-400 hover:text-white"
             }`}
           >
             {showCrosshairs ? "Crosshair: ON" : "Crosshair: OFF"}
@@ -214,9 +227,9 @@ export function CaseWorkspacePage() {
         {mriStage(mri3dMode, undefined, showCrosshairs)}
       </div>
 
-      <div className="flex shrink-0 items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
+      <div className={`flex shrink-0 items-center justify-between border-t border-white/5 ${currentTheme.bgHeader} px-3 py-1.5 text-[10px] font-mono ${currentTheme.textSecondary}`}>
         {sequencePicker}
-        <span className="text-cyan-400">Drag to slice · Shift+drag to rotate 3D</span>
+        <span style={{ color: currentTheme.accent }}>Drag to slice · Shift+drag to rotate 3D</span>
       </div>
     </div>
   )
@@ -225,12 +238,12 @@ export function CaseWorkspacePage() {
   const render2DSlice = (index: number) => (
     <div
       key="2d_slice"
-      className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
+      className={`relative flex h-full flex-col overflow-hidden rounded-2xl border ${currentTheme.borderCard} ${currentTheme.bgCard} ${currentTheme.glowEffect} transition-all duration-300`}
     >
       <div
         draggable
         onDragStart={(e) => handleDragStart(e, index)}
-        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+        className={`flex items-center justify-between border-b border-white/5 ${currentTheme.bgHeader} px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none`}
       >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
@@ -238,11 +251,11 @@ export function CaseWorkspacePage() {
           title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
-          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-          <span className="font-semibold text-white group-hover:text-cyan-300">
+          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentTheme.accent }} />
+          <span className={`font-semibold ${currentTheme.textPrimary} group-hover:text-cyan-300`}>
             2D Slice
           </span>
-          <span className="text-[9px] text-neutral-500 rounded bg-[#181818] px-1 py-0.2 border border-neutral-800">
+          <span className="text-[9px] text-neutral-500 rounded bg-black/40 px-1 py-0.2 border border-white/5">
             [Drag / Swap]
           </span>
         </div>
@@ -256,7 +269,7 @@ export function CaseWorkspacePage() {
               }}
               className={`rounded px-1.5 py-0.5 text-[9.5px] uppercase transition-colors cursor-pointer ${
                 selectedPlane === plane
-                  ? "bg-cyan-950 text-cyan-300 border border-cyan-800 font-bold"
+                  ? `${currentTheme.badgeBg} ${currentTheme.badgeText} border ${currentTheme.badgeBorder} font-bold`
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -270,9 +283,9 @@ export function CaseWorkspacePage() {
         {mriStage(selectedPlane, undefined, false)}
       </div>
 
-      <div className="flex shrink-0 items-center justify-between border-t border-neutral-850 bg-[#0c0c0c] px-3 py-1.5 text-[10px] font-mono text-neutral-400">
+      <div className={`flex shrink-0 items-center justify-between border-t border-white/5 ${currentTheme.bgHeader} px-3 py-1.5 text-[10px] font-mono ${currentTheme.textSecondary}`}>
         {sequencePicker}
-        <span className="text-cyan-400">Interactive {selectedPlane.toUpperCase()}</span>
+        <span style={{ color: currentTheme.accent }}>Interactive {selectedPlane.toUpperCase()}</span>
       </div>
     </div>
   )
@@ -281,12 +294,12 @@ export function CaseWorkspacePage() {
   const renderMolecularProfile = (index: number) => (
     <div
       key="molecular_profile"
-      className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
+      className={`relative flex h-full flex-col overflow-hidden rounded-2xl border ${currentTheme.borderCard} ${currentTheme.bgCard} ${currentTheme.glowEffect} transition-all duration-300`}
     >
       <div
         draggable
         onDragStart={(e) => handleDragStart(e, index)}
-        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+        className={`flex items-center justify-between border-b border-white/5 ${currentTheme.bgHeader} px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none`}
       >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
@@ -294,11 +307,11 @@ export function CaseWorkspacePage() {
           title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
-          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-          <span className="font-semibold text-white group-hover:text-cyan-300">
+          <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: currentTheme.accent }} />
+          <span className={`font-semibold ${currentTheme.textPrimary} group-hover:text-cyan-300`}>
             Tumor markers
           </span>
-          <span className="text-[9px] text-neutral-500 rounded bg-[#181818] px-1 py-0.2 border border-neutral-800">
+          <span className="text-[9px] text-neutral-500 rounded bg-black/40 px-1 py-0.2 border border-white/5">
             [Drag / Swap]
           </span>
         </div>
@@ -321,12 +334,12 @@ export function CaseWorkspacePage() {
   const renderEvidenceDoubt = (index: number) => (
     <div
       key="evidence_doubt"
-      className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
+      className={`relative flex h-full flex-col overflow-hidden rounded-2xl border ${currentTheme.borderCard} ${currentTheme.bgCard} ${currentTheme.glowEffect} transition-all duration-300`}
     >
       <div
         draggable
         onDragStart={(e) => handleDragStart(e, index)}
-        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+        className={`flex items-center justify-between border-b border-white/5 ${currentTheme.bgHeader} px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none`}
       >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
@@ -335,14 +348,14 @@ export function CaseWorkspacePage() {
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-          <span className="font-semibold text-white group-hover:text-cyan-300">
+          <span className={`font-semibold ${currentTheme.textPrimary} group-hover:text-cyan-300`}>
             Next Step
           </span>
-          <span className="text-[9px] text-neutral-500 rounded bg-[#181818] px-1 py-0.2 border border-neutral-800">
+          <span className="text-[9px] text-neutral-500 rounded bg-black/40 px-1 py-0.2 border border-white/5">
             [Drag / Swap]
           </span>
         </div>
-        <span className="text-[10px] text-neutral-400">Decision Support</span>
+        <span className={`text-[10px] ${currentTheme.textSecondary}`}>Decision Support</span>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
@@ -405,13 +418,13 @@ export function CaseWorkspacePage() {
             - 3D NIfTI GPU Viewport & 2D True Voxel Slice side-by-side
             - Full height utilization without feeling cramped
            ========================================================================= */}
-        <section className="flex h-[calc(100vh-3.25rem)] w-full flex-col px-4 py-2 space-y-2">
+        <section className={`flex h-[calc(100vh-3.25rem)] w-full flex-col px-4 py-2 space-y-2 ${currentTheme.bgWorkspace} transition-colors duration-300`}>
           {/* Top Case Header */}
-          <div className="flex shrink-0 items-center justify-between border-b border-neutral-850 pb-1.5 px-1">
+          <div className="flex shrink-0 items-center justify-between border-b border-white/5 pb-1.5 px-1">
             <div className="flex items-center gap-3">
               <Link
                 to="/cases"
-                className="rounded-xl border border-neutral-800 bg-[#121212] px-3 py-1 text-xs font-mono text-neutral-300 hover:border-neutral-600 hover:text-white transition-all cursor-pointer"
+                className="rounded-xl border border-white/10 bg-black/40 px-3 py-1 text-xs font-mono text-neutral-300 hover:border-neutral-500 hover:text-white transition-all cursor-pointer"
               >
                 ← Back to Cohort
               </Link>
@@ -432,15 +445,40 @@ export function CaseWorkspacePage() {
               )}
             </div>
 
-            <div className="flex items-center gap-3 font-mono text-xs">
+            {/* Interactive Theme Switcher Bar */}
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-1 bg-black/60 rounded-xl p-1 border border-white/10 backdrop-blur-md">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 px-2 font-bold">
+                  Theme:
+                </span>
+                {(["obsidian", "cyber", "nordic", "emerald", "aurora"] as const).map((tId) => {
+                  const t = WORKSPACE_THEMES[tId]
+                  const isActive = themeMode === tId
+                  return (
+                    <button
+                      key={tId}
+                      onClick={() => changeTheme(tId)}
+                      className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
+                        isActive
+                          ? `${t.badgeBg} ${t.badgeText} font-bold shadow-sm border ${t.badgeBorder}`
+                          : "text-neutral-400 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: t.accent }} />
+                      <span>{t.name.split(" ")[0]}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
               <a
                 href="#molecular-section"
-                className="flex items-center gap-1.5 rounded-lg border border-neutral-800 bg-[#141414] px-2.5 py-1 text-[11px] text-neutral-300 hover:border-cyan-700 hover:text-cyan-300 transition-colors"
+                className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-black/40 px-3 py-1 text-[11px] font-mono text-neutral-300 hover:border-cyan-500 hover:text-cyan-300 transition-colors"
               >
-                <span>↓ Molecular & Evidence (Scroll to Section 2)</span>
+                <span>↓ Molecular</span>
               </a>
               <span className="rounded-full bg-emerald-950/60 border border-emerald-700/50 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
-                ● Active Session
+                ● Live
               </span>
             </div>
           </div>
@@ -460,9 +498,9 @@ export function CaseWorkspacePage() {
            ========================================================================= */}
         <section
           id="molecular-section"
-          className="flex min-h-[calc(100vh-3.25rem)] w-full flex-col border-t border-neutral-850 px-4 py-4 space-y-3 bg-[#050505]"
+          className={`flex min-h-[calc(100vh-3.25rem)] w-full flex-col border-t border-white/5 px-4 py-4 space-y-3 ${currentTheme.bgWorkspace} transition-colors duration-300`}
         >
-          <div className="flex shrink-0 items-center justify-between border-b border-neutral-850 pb-2 px-1">
+          <div className="flex shrink-0 items-center justify-between border-b border-white/5 pb-2 px-1">
             <div className="flex items-center gap-2 font-mono">
               <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
               <h2 className="text-sm font-bold uppercase tracking-wider text-white">
