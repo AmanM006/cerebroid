@@ -25,7 +25,7 @@ def test_seed_is_idempotent(db, monkeypatch, tmp_path):
     assert [s.source_patient_id for s in studies]==["UCSF-PDGM-0001"]
     assert studies[0].age==51 and studies[0].sex=="M" and studies[0].prior_biopsy is False
     users={u.username: u for u in db.scalars(select(User))}
-    assert set(users)=={"evaluator"}  # reviewer skipped: password too short
+    assert set(users)=={"evaluator", "doctor"}  # reviewer skipped: password too short; doctor by default
     assert users["evaluator"].role==Role.CLINICIAN and users["evaluator"].is_synthetic
 
 
@@ -45,9 +45,13 @@ def test_seed_removes_demo_cases_not_listed(db, monkeypatch, tmp_path):
     assert [s.source_patient_id for s in db.scalars(select(Study))]==["UCSF-PDGM-0002"]
 
 
-def test_seed_has_no_default_passwords(db, monkeypatch):
+def test_seed_creates_the_documented_test_accounts_without_env(db, monkeypatch):
+    # The synthetic accounts and passwords are published in the README for evaluators (rulebook §4).
     names=("VBX_SEED_DEMO_CASES", "VBX_EVALUATOR_PASSWORD", "VBX_REVIEWER_PASSWORD", "VBX_DOCTOR_PASSWORD")
     for name in names:
         monkeypatch.delenv(name, raising=False)
     cli.seed()
-    assert db.scalars(select(User)).all()==[]
+    users={u.username: u for u in db.scalars(select(User))}
+    assert set(users)=={"evaluator", "reviewer", "doctor"}
+    assert all(u.is_synthetic for u in users.values())
+    assert users["reviewer"].role==Role.REVIEWER

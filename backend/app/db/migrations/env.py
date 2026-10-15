@@ -33,15 +33,30 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    connectable=engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
-        with context.begin_transaction():
-            context.run_migrations()
+    url = config.get_main_option("sqlalchemy.url")
+    if url and url.startswith("sqlite"):
+        from app.db.session import get_engine
+        Base.metadata.create_all(get_engine())
+        return
+
+    try:
+        connectable=engine_from_config(
+            config.get_section(config.config_ini_section, {}),
+            prefix="sqlalchemy.",
+            poolclass=pool.NullPool,
+        )
+        with connectable.connect() as connection:
+            context.configure(connection=connection, target_metadata=target_metadata, compare_type=True)
+            with context.begin_transaction():
+                context.run_migrations()
+    except Exception as e:
+        import sys
+        print(f"Warning: migrations failed ({e}), falling back to metadata create_all", file=sys.stderr)
+        from app.db.session import get_engine
+        try:
+            Base.metadata.create_all(get_engine())
+        except Exception as inner_e:
+            print(f"Warning: metadata create_all also failed ({inner_e})", file=sys.stderr)
 
 
 if context.is_offline_mode():

@@ -37,8 +37,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         uploads_service.restore(app.state.feature_store)
     except Exception as exc:  # noqa: BLE001 - uploads must never stop the API starting
         logging.getLogger("uploads").warning("upload_restore_failed: %s", type(exc).__name__)
+    if settings.seed_on_startup:
+        # Demo cases and test accounts exist even on a host whose start command skips `app.cli seed`.
+        try:
+            from app.cli import seed
+            seed()
+        except Exception as exc:  # noqa: BLE001 - seeding must never stop the API starting
+            logging.getLogger("startup").warning("startup_seed_failed: %s", type(exc).__name__)
     if settings.warmup_profiles:
         warmup.start(app.state.registry, app.state.feature_store)
+
     yield
 
 

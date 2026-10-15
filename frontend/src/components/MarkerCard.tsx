@@ -84,8 +84,14 @@ export function MarkerCard({
             call={marker.call}
             muted={marker.low_signal}
           />
-          {(needsTissue || marker.resolved_by_combining) && (
+          {(needsTissue || marker.resolved_by_combining || (marker.marker === "GRADE" && marker.prob_median != null && marker.prob_median >= 0.20 && marker.call === "grade 2-3")) && (
             <div className="flex flex-wrap gap-1.5 font-mono text-[10.5px]">
+              {marker.marker === "GRADE" && marker.prob_median != null && marker.prob_median >= 0.20 && marker.call === "grade 2-3" && (
+                <span className="rounded-full border border-rose-800/80 bg-rose-950/40 px-2 py-0.5 text-rose-200 font-semibold shadow-sm"
+                  title="20%+ probability of Grade 4; non-enhancing pattern cannot exclude molecular Grade 4 (e.g. CDKN2A/B deletion). Urgent biopsy recommended.">
+                  ⚠ Grade 4 risk present ({Math.round(marker.prob_median * 100)}%) · Tissue biopsy required
+                </span>
+              )}
               {needsTissue && (
                 <span className="rounded-full border border-amber-800/60 bg-amber-950/30 px-2 py-0.5 text-amber-200"
                   title={marker.low_signal
@@ -96,8 +102,8 @@ export function MarkerCard({
               )}
               {marker.resolved_by_combining && (
                 <span className="rounded-full border border-purple-800/50 bg-purple-950/30 px-2 py-0.5 text-purple-200"
-                  title={`MRI alone was ${marker.imaging_only_verdict?.toLowerCase()}; MRI with patient information is Stable`}>
-                  ◆ Resolved by combining
+                  title={`MRI alone was ${marker.imaging_only_verdict?.toLowerCase()}; combined with patient age and sex produces stable verdict`}>
+                  ◆ Decided by MRI + Age & Sex
                 </span>
               )}
             </div>

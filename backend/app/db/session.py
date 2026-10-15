@@ -14,8 +14,15 @@ from app.core.config import get_settings
 
 @lru_cache
 def get_engine() -> Engine:
+    url=get_settings().database_url
+    if url.startswith("sqlite"):
+        # Fallback on a host without Postgres: requests run on a thread pool and uploads finish on a
+        # background thread, so connections must be shareable across threads; wait on write locks.
+        return create_engine(
+            url, pool_pre_ping=True, connect_args={"check_same_thread": False, "timeout": 15},
+        )
     return create_engine(
-        get_settings().database_url,
+        url,
         pool_pre_ping=True,
         pool_size=5,
         max_overflow=10,

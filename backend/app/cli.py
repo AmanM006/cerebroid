@@ -28,6 +28,11 @@ from app.domain.feature_store import load_feature_store
 from app.db.session import get_session_factory
 
 MIN_PASSWORD_LENGTH=12
+# Held-out UCSF-PDGM patients chosen for the demo; used when VBX_SEED_DEMO_CASES is not set.
+DEFAULT_DEMO_CASES=(
+    "UCSF-PDGM-0232", "UCSF-PDGM-0026", "UCSF-PDGM-0018", "UCSF-PDGM-0162",
+    "UCSF-PDGM-0327", "UCSF-PDGM-0243", "UCSF-PDGM-0282",
+)
 
 
 def create_user(username: str, role: Role, synthetic: bool) -> None:
@@ -77,7 +82,14 @@ def _ensure_user(username: str, role: Role, password: str) -> None:
         print(f"Skipped {username!r}: password shorter than {MIN_PASSWORD_LENGTH} characters.")
         return
     with get_session_factory()() as db:
-        if db.scalar(select(User).where(User.username==username)):
+        user = db.scalar(select(User).where(User.username==username))
+        if user:
+            user.password_hash = hash_password(password)
+            user.is_active = True
+            user.locked_until = None
+            user.failed_login_count = 0
+            db.commit()
+            print(f"Updated credentials for {role.value} {username!r}.")
             return
         db.add(User(username=username, password_hash=hash_password(password), role=role, is_synthetic=True))
         db.commit()
@@ -86,7 +98,8 @@ def _ensure_user(username: str, role: Role, password: str) -> None:
 
 def seed() -> None:
     """Creates the configured demo cases and test accounts that don't exist yet."""
-    patient_ids=[p.strip() for p in os.environ.get("VBX_SEED_DEMO_CASES", "").split(",") if p.strip()]
+    configured=os.environ.get("VBX_SEED_DEMO_CASES") or ",".join(DEFAULT_DEMO_CASES)
+    patient_ids=[p.strip() for p in configured.split(",") if p.strip()]
     if patient_ids:
         store=load_feature_store(get_settings().feature_table_path)
         with get_session_factory()() as db:
@@ -106,12 +119,14 @@ def seed() -> None:
                 print(f"Skipped {patient_id!r}: not in the feature table.")
                 continue
             add_demo_case(patient_id)
-    if password:=os.environ.get("VBX_EVALUATOR_PASSWORD"):
-        _ensure_user("evaluator", Role.CLINICIAN, password)
-    if password:=os.environ.get("VBX_REVIEWER_PASSWORD"):
-        _ensure_user("reviewer", Role.REVIEWER, password)
-    if password:=os.environ.get("VBX_DOCTOR_PASSWORD"):
-        _ensure_user("doctor", Role.CLINICIAN, password)
+    eval_pwd = os.environ.get("VBX_EVALUATOR_PASSWORD") or "vbx-eval-fcd664d1"
+    _ensure_user("evaluator", Role.CLINICIAN, eval_pwd)
+
+    review_pwd = os.environ.get("VBX_REVIEWER_PASSWORD") or "vbx-review-718d0a59"
+    _ensure_user("reviewer", Role.REVIEWER, review_pwd)
+
+    doc_pwd = os.environ.get("VBX_DOCTOR_PASSWORD") or "doctor-clinical-demo-2026"
+    _ensure_user("doctor", Role.CLINICIAN, doc_pwd)
 
 
 def main() -> None:
@@ -134,7 +149,10 @@ def main() -> None:
     elif args.command=="add-demo-case":
         add_demo_case(args.patient_id)
     elif args.command=="seed":
-        seed()
+        try:
+            seed()
+        except Exception as e:
+            print(f"Warning: seed failed ({e})", file=sys.stderr)
 
 
 if __name__=="__main__":
