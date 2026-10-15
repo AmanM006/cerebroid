@@ -154,15 +154,17 @@ export function CaseWorkspacePage() {
   const render3DViewport = (index: number) => (
     <div
       key="3d_viewport"
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
-      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+      >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
           className="flex items-center gap-2 group cursor-pointer"
-          title="Drag or click to swap block"
+          title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
@@ -222,15 +224,17 @@ export function CaseWorkspacePage() {
   const render2DSlice = (index: number) => (
     <div
       key="2d_slice"
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
-      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+      >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
           className="flex items-center gap-2 group cursor-pointer"
-          title="Drag or click to swap block"
+          title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
@@ -276,15 +280,17 @@ export function CaseWorkspacePage() {
   const renderMolecularProfile = (index: number) => (
     <div
       key="molecular_profile"
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
-      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+      >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
           className="flex items-center gap-2 group cursor-pointer"
-          title="Drag or click to swap block"
+          title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
@@ -315,15 +321,17 @@ export function CaseWorkspacePage() {
   const renderEvidenceDoubt = (index: number) => (
     <div
       key="evidence_doubt"
-      draggable
-      onDragStart={(e) => handleDragStart(e, index)}
       className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-neutral-800 bg-[#080808] transition-all hover:border-neutral-700"
     >
-      <div className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none">
+      <div
+        draggable
+        onDragStart={(e) => handleDragStart(e, index)}
+        className="flex items-center justify-between border-b border-neutral-850 bg-[#101010] px-3.5 py-1.5 text-[11px] font-mono cursor-grab active:cursor-grabbing select-none"
+      >
         <div
           onClick={() => swapBlocks(index, (index + 1) % 4)}
           className="flex items-center gap-2 group cursor-pointer"
-          title="Drag or click to swap block"
+          title="Drag handle or click to swap block"
         >
           <span className="text-neutral-500 group-hover:text-cyan-400 font-bold">⠿</span>
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />

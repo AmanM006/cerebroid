@@ -206,7 +206,17 @@ export function RealNiiVueViewport({
 
       {/* Interactive Slice Slider Bar */}
       {state === "ready" && hasSliceSlider && (
-        <div className="absolute bottom-2 left-3 right-3 z-20 flex items-center gap-2.5 rounded-lg border border-cyan-900/60 bg-[#0a0f14]/90 px-3 py-1.5 backdrop-blur-md shadow-lg transition-all">
+        <div
+          draggable={false}
+          onDragStart={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+          }}
+          onMouseDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="absolute bottom-2 left-3 right-3 z-30 flex items-center gap-2.5 rounded-lg border border-cyan-900/60 bg-[#0a0f14]/95 px-3 py-1.5 backdrop-blur-md shadow-lg transition-all select-none"
+        >
           <span className="font-mono text-[10px] font-bold text-cyan-300 uppercase tracking-wider shrink-0 flex items-center gap-1.5">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
             {sliceType} Slice:
@@ -217,6 +227,10 @@ export function RealNiiVueViewport({
             max="1"
             step="0.005"
             value={slicePos}
+            draggable={false}
+            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
             onChange={(e) => handleSliderChange(parseFloat(e.target.value))}
             className="flex-1 h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-cyan-400 hover:accent-cyan-300 transition-all"
             aria-label={`Navigate ${sliceType} slice`}
