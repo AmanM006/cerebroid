@@ -29,10 +29,7 @@ from app.db.session import get_session_factory
 
 MIN_PASSWORD_LENGTH=12
 # Held-out UCSF-PDGM patients chosen for the demo; used when VBX_SEED_DEMO_CASES is not set.
-DEFAULT_DEMO_CASES=(
-    "UCSF-PDGM-0232", "UCSF-PDGM-0026", "UCSF-PDGM-0018", "UCSF-PDGM-0162",
-    "UCSF-PDGM-0327", "UCSF-PDGM-0243", "UCSF-PDGM-0282",
-)
+DEFAULT_DEMO_CASES=("UCSF-PDGM-0232", "UCSF-PDGM-0327", "UCSF-PDGM-0243")
 
 
 def create_user(username: str, role: Role, synthetic: bool) -> None:

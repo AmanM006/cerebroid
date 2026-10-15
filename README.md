@@ -93,9 +93,9 @@ Register a public-dataset patient from the feature table as a demo case (age, se
 docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-0004
 ```
 
-To reproduce the deployed demo on a fresh stack, register the seven held-out test patients:
+To reproduce the deployed demo on a fresh stack, register the three held-out test patients:
 ```bash
-for p in 0232 0026 0018 0162 0327 0243 0282; do
+for p in 0232 0327 0243; do
   docker compose exec api python -m app.cli add-demo-case --patient-id UCSF-PDGM-$p
 done
 ```
@@ -106,7 +106,7 @@ done
 - **How it is hosted (Render, free tier):** one Docker web service built from the root [Dockerfile](Dockerfile) (identical to [ops/render/Dockerfile](ops/render/Dockerfile), which the blueprint uses)
   (the API also serves the built frontend, so the app is one origin) plus a free Postgres, both defined in
   [render.yaml](render.yaml). To recreate it: Render dashboard → New → Blueprint → this repository; enter the
-  test-account passwords below when asked. Migrations, the seven demo cases and the test accounts are created at
+  test-account passwords below when asked. Migrations, the three demo cases and the test accounts are created at
   start-up (`python -m app.cli seed`, idempotent; demo cases not in `VBX_SEED_DEMO_CASES` are removed). After
   start-up the demo cases' profiles are precomputed in the background, so first views are fast.
 - **Cold start:** the free tier sleeps after 15 idle minutes; the first request then takes about a minute.
