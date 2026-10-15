@@ -77,7 +77,14 @@ def _ensure_user(username: str, role: Role, password: str) -> None:
         print(f"Skipped {username!r}: password shorter than {MIN_PASSWORD_LENGTH} characters.")
         return
     with get_session_factory()() as db:
-        if db.scalar(select(User).where(User.username==username)):
+        user = db.scalar(select(User).where(User.username==username))
+        if user:
+            user.password_hash = hash_password(password)
+            user.is_active = True
+            user.locked_until = None
+            user.failed_login_count = 0
+            db.commit()
+            print(f"Updated credentials for {role.value} {username!r}.")
             return
         db.add(User(username=username, password_hash=hash_password(password), role=role, is_synthetic=True))
         db.commit()
