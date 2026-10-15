@@ -54,7 +54,6 @@ export function FalsificationView({
       <ClaimList title="For" claims={panel.supporting} tone="text-emerald-300" />
       <ClaimList title="Against" claims={panel.contradicting} tone="text-rose-300" />
       <ClaimList title="Alternative" claims={[panel.competing]} tone="text-amber-300" />
-      <ClaimList title="Would overturn" claims={panel.overturn} tone="text-cyan-300" />
       <p className="text-[10.5px] text-[#8c889e]">Settled by: <span className="text-[#c9c5d8]">{panel.confirmatory_test}</span></p>
     </div>
   )
