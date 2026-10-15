@@ -55,7 +55,12 @@ def authenticate(db: Session, username: str, password: str) -> User:
         logger.info("login_failed", reason="unknown_user")
         raise _invalid_credentials()
 
-    if user.locked_until is not None and user.locked_until>now:
+    locked_until = (
+        user.locked_until.replace(tzinfo=UTC)
+        if user and user.locked_until is not None and user.locked_until.tzinfo is None
+        else (user.locked_until if user else None)
+    )
+    if locked_until is not None and locked_until > now:
         logger.info("login_failed", reason="locked", user_id=str(user.id))
         raise _invalid_credentials()
 
@@ -133,7 +138,8 @@ def rotate_session(db: Session, raw_token: str | None) -> IssuedSession:
         raise _invalid_session()
 
     user=db.get(User, record.user_id)
-    if record.expires_at<=datetime.now(UTC) or user is None or not user.is_active:
+    record_expires = record.expires_at.replace(tzinfo=UTC) if record.expires_at.tzinfo is None else record.expires_at
+    if record_expires<=datetime.now(UTC) or user is None or not user.is_active:
         logger.info("refresh_failed", reason="expired_or_inactive", user_id=str(record.user_id))
         raise _invalid_session()
 
