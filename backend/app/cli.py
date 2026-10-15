@@ -134,7 +134,10 @@ def main() -> None:
     elif args.command=="add-demo-case":
         add_demo_case(args.patient_id)
     elif args.command=="seed":
-        seed()
+        try:
+            seed()
+        except Exception as e:
+            print(f"Warning: seed failed ({e})", file=sys.stderr)
 
 
 if __name__=="__main__":
