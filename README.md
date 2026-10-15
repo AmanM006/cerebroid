@@ -159,6 +159,9 @@ Example with curl:
 curl -c cookies.txt -X POST http://localhost:8080/api/v1/auth/login -H "Content-Type: application/json" -d '{"username":"<name>","password":"<password>"}'
 curl http://localhost:8080/api/v1/cases -H "Authorization: Bearer <access_token>"
 curl -b cookies.txt -c cookies.txt -X POST http://localhost:8080/api/v1/auth/refresh
+# Upload a study (clinician account; files are .nii or .nii.gz). Then poll /status until "ready".
+curl -X POST http://localhost:8080/api/v1/studies -H "Authorization: Bearer <access_token>" \n  -F age=41 -F sex=F -F t1=@t1.nii.gz -F t1c=@t1c.nii.gz -F t2=@t2.nii.gz -F flair=@flair.nii.gz -F seg=@seg.nii.gz
+curl http://localhost:8080/api/v1/studies/<study_id>/status -H "Authorization: Bearer <access_token>"
 ```
 
 ### Auth design
@@ -189,12 +192,13 @@ See [.env.example](.env.example).
 | `JWT_SECRET_KEY` | **Required.** JWT signing key, ≥32 random characters |
 | `JWT_ACCESS_TOKEN_TTL_MINUTES` | Access token lifetime (1–15, default 15) |
 | `JWT_REFRESH_TOKEN_TTL_DAYS` | Refresh token lifetime (1–30, default 7) |
+| Optional limits | `LOGIN_RATE_LIMIT` (30), `LOGIN_RATE_WINDOW_SECONDS` (300), `REFRESH_RATE_LIMIT` (120), `ANALYSIS_RATE_LIMIT` (300 per `ANALYSIS_RATE_WINDOW_SECONDS`, 60), `LOGIN_MAX_FAILED_ATTEMPTS` (5), `LOGIN_LOCKOUT_MINUTES` (15), `MAX_BODY_BYTES` (1 000 000), `UPLOAD_MAX_BODY_BYTES` (150 000 000), `UPLOAD_RATE_LIMIT` (20 per `UPLOAD_RATE_WINDOW_SECONDS`, 3600), `UPLOAD_MAX_PER_USER` (10), `UPLOAD_TTL_HOURS` (24), `UPLOAD_TIMEOUT_SECONDS` (240), `HEAVY_CONCURRENCY` (2), `HEAVY_WAIT_SECONDS` (20), `CLIENT_IP_HEADER` (`cf-connecting-ip` on Render, otherwise empty). Read by the API process with the defaults shown; under Docker Compose add them to the `api` service's `environment`. |
 
 ## 9. Database setup
 `docker compose up` starts PostgreSQL 16 with a persistent named volume (`db_data`) and the API applies
 Alembic migrations on startup. No manual setup is required.
 
-Tables: `users`, `refresh_tokens`, `studies`. No direct identifiers are stored: usernames are pseudonymous,
+Tables: `users`, `refresh_tokens`, `studies`, `audit_log` (plus Alembic's `alembic_version`). No direct identifiers are stored: usernames are pseudonymous,
 studies hold only age and sex, and all IDs are random UUIDs.
 
 ## 10. Test instructions
@@ -312,6 +316,9 @@ pip-audit -r requirements.txt
 - **Model limits shown in the app:** 1p/19q caught no co-deleted tumour in the test sets (recall 0%);
   MGMT has no reliable MRI signal and is never called; the grade 4 alert (threshold chosen on cross-validation)
   also flags about 15% of grade 2-3 tumours. Every result is decision support, to be confirmed with tissue.
+- **Audit log.** Entries are hash-chained, so editing or deleting one is detected; someone with write access to the
+  database could still rebuild the whole chain from the start (the head hash then changes, so recording it
+  elsewhere detects that). In a self-hosted copy that is whoever runs the database.
 - `GET /api/v1/metrics/summary` is public: it returns only aggregate held-out metrics and the number of demo cases.
 
 ## 12. AI tool disclosure
