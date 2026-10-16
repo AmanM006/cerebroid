@@ -1,6 +1,7 @@
 import type { ReactNode } from "react"
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom"
 import { AuthProvider, useAuth } from "./auth/AuthContext"
+import { BriefingPage } from "./pages/BriefingPage"
 import { CaseWorkspacePage } from "./pages/CaseWorkspacePage"
 import { CasesPage } from "./pages/CasesPage"
 import { LoginPage } from "./pages/LoginPage"
@@ -21,6 +22,7 @@ export function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/cases" element={<RequireAuth><CasesPage /></RequireAuth>} />
           <Route path="/cases/:caseId" element={<RequireAuth><CaseWorkspacePage /></RequireAuth>} />
+          <Route path="/cases/:caseId/briefing" element={<RequireAuth><BriefingPage /></RequireAuth>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

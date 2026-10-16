@@ -520,6 +520,14 @@ export function CaseWorkspacePage() {
 
             {/* Clean OLED stealth navigation */}
             <div className="flex items-center gap-3">
+              {caseId && (
+                <Link
+                  to={`/cases/${caseId}/briefing${Object.keys(known).length ? `?known=${Object.entries(known).map(([m, v])=>`${m}:${v}`).join(",")}` : ""}`}
+                  className="flex items-center gap-1.5 rounded-xl border border-neutral-800 bg-[#0d0d0f] px-3 py-1.5 text-xs font-mono text-neutral-300 hover:border-neutral-600 hover:text-white transition-colors"
+                >
+                  <span>⎙ Print briefing</span>
+                </Link>
+              )}
               <a
                 href="#molecular-section"
                 className="flex items-center gap-1.5 rounded-xl border border-neutral-800 bg-[#0d0d0f] px-3 py-1.5 text-xs font-mono text-neutral-300 hover:border-neutral-600 hover:text-white transition-colors"
