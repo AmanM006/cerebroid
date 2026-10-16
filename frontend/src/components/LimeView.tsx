@@ -92,7 +92,12 @@ export function LimeView({
 
       {drivers.length===0 ? (
         <p className="text-sm text-neutral-200">
-          No strong signs in this scan. The result reflects how common {lime.call} is. Confirm with tissue.
+          {/* No single group moves the call by MIN_DRIVER_POINTS. Either the patient sits where a typical
+              training patient sits (the call is what is typical there), or many small signs add up. */}
+          {Math.abs(Number(lime.probability.value)-Number(lime.typical.value))*100<MIN_DRIVER_POINTS
+            ? <>This scan looks like a typical patient in the training data, and its result ({lime.call}) matches what
+              is typical there. Nothing in it stands out from that. Confirm with tissue.</>
+            : <>Many small signs together point to {lime.call}; no single one decides it. Confirm with tissue.</>}
         </p>
       ) : (
         <ol className="space-y-1.5">
