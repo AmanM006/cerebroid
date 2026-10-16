@@ -189,10 +189,18 @@ def plan(results: list[MarkerResult], age: int | None=None) -> Plan:
             for outcome in OUTCOMES[state.marker]
         )
         narrows=worst<len(candidates)
-        reason=(
-            f"{state.reason}; would leave at most {worst} of {len(candidates)} candidate categories"
-            if narrows else f"{state.reason}; does not narrow the remaining categories"
-        )
+        if state.settled and not candidates:
+            # Each call is Stable, but together they fit no WHO tumor type: none of them is safe to plan on.
+            reason=(f"Models agree on {state.value} (Stable), but the calls together fit no WHO tumor type; "
+                    "confirm on tissue before planning")
+        elif state.settled and not narrows:
+            # The models already settled this marker: the test confirms their call, it decides nothing new.
+            reason=(f"Models already agree: {state.value} (Stable), usable for planning now. "
+                    "This test confirms it for the final diagnosis")
+        elif narrows:
+            reason=f"{state.reason}; would leave at most {worst} of {len(candidates)} candidate categories"
+        else:
+            reason=f"{state.reason}; does not narrow the remaining categories"
         tests.append(TestSuggestion(
             state.marker, CONFIRMATORY_TEST[state.marker], state.settled, worst, reason,
         ))

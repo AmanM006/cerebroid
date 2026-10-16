@@ -95,3 +95,15 @@ def test_unsettled_type_marker_comes_before_mgmt():
         _predicted(Marker.MGMT, True, low_signal=True), _predicted(Marker.GRADE, True),
     ))
     assert result.next_step.kind=="decide_type" and result.next_step.marker==Marker.IDH
+
+
+def test_stable_calls_that_fit_no_tumor_type_are_never_offered_for_planning():
+    """IDH wildtype with grade 2-3 is no WHO 2021 adult type: each Stable call must say to confirm first."""
+    result=plan(_results(
+        _predicted(Marker.IDH, False), _predicted(Marker.CODEL_1P19Q, False),
+        _predicted(Marker.MGMT, True, low_signal=True), _predicted(Marker.GRADE, False),
+    ))
+    assert result.next_step.kind=="review"
+    for t in result.tests:
+        if t.settled:
+            assert "usable for planning" not in t.reason and "confirm on tissue before planning" in t.reason
