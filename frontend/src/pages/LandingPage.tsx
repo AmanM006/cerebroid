@@ -4,6 +4,7 @@ import { ArrowDown } from "lucide-react"
 import Lenis from "lenis"
 import { NovaCell3DScene } from "../components/NovaCell3DScene"
 import { CircularText } from "../components/CircularText"
+import { FaqSection } from "../components/FaqSection"
 import { api } from "../api/client"
 import type { MetricsSummary } from "../api/types"
 
@@ -241,6 +242,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <FaqSection idhAuc={auc("IDH", "fused")} />
     </div>
   )
 }

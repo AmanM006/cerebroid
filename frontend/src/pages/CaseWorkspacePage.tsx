@@ -11,6 +11,7 @@ import { NextStepPanel } from "../components/NextStepPanel"
 import { ProfilePanel } from "../components/ProfilePanel"
 import type { KnownResults } from "../components/KnownResultsForm"
 import { ProvenanceBadge } from "../components/ProvenanceBadge"
+import { SafeUsePanel } from "../components/SafeUsePanel"
 import { WORKSPACE_THEMES } from "../theme/workspaceThemes"
 
 export type Plane2D = "sagittal" | "axial" | "coronal"
@@ -569,6 +570,8 @@ export function CaseWorkspacePage() {
               ↑ Back to Neuroimaging Viewports
             </a>
           </div>
+
+          <SafeUsePanel />
 
           <div className="grid flex-1 grid-cols-1 md:grid-cols-2 gap-4">
             <div className="min-h-[550px]">{renderBlock(blocks[2] ?? "molecular_profile", 2)}</div>
