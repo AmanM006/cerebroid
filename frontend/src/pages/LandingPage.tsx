@@ -84,15 +84,15 @@ export function LandingPage() {
 
         {/* 
           HUGE WATERMARK TEXT "CEREBROID" 
-          Spanning full viewport width in ultra-faint white display typography
+          Shifted rightward with padding-left so 'B' and 'C' have generous breathing room
         */}
         <div 
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none select-none z-0 transition-transform duration-300 ease-out"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-center pointer-events-none select-none z-0 transition-transform duration-300 ease-out flex items-center justify-center pl-10 md:pl-20 overflow-visible"
           style={{
-            transform: `translate(calc(-50% + ${mousePos.x * 0.3}px), calc(-50% + ${mousePos.y * 0.3}px))`,
+            transform: `translate(calc(-47% + ${mousePos.x * 0.15}px), calc(-50% + ${mousePos.y * 0.15}px))`,
           }}
         >
-          <span className="text-[13vw] font-black tracking-wider text-white/[0.04] uppercase whitespace-nowrap block">
+          <span className="text-[9.5vw] font-black tracking-wider text-white/[0.04] uppercase whitespace-nowrap block select-none">
             CEREBROID
           </span>
         </div>
