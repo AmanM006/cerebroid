@@ -15,6 +15,7 @@ import structlog
 
 from app.core.compute import heavy_slot
 from app.domain.contracts import MARKER_LABELS, FeatureVector, Marker, SetPrediction, StabilityVerdict
+from app.domain.doubt import HIGH_AMBIGUITY
 from app.domain.registry import FUSED, IMAGING_ONLY, MarkerRegistry, ModelOutputError
 
 logger=structlog.get_logger("profile")
@@ -47,6 +48,9 @@ class MarkerResult:
     # The scan's imaging features are further from the training patients than 99% of them are from
     # each other: the models are extrapolating, so the call is never shown as Stable.
     out_of_distribution: bool=False
+    # The models agree, but their median probability sits within HIGH_AMBIGUITY of the decision
+    # threshold: agreement on a near coin flip is not a confident call, so it is never Stable.
+    close_call: bool=False
 
     @property
     def resolved_by_combining(self) -> bool:
@@ -59,21 +63,32 @@ class MarkerResult:
         )
 
 
-def screen_out_of_distribution(results: list[MarkerResult], unlike_training: bool) -> list[MarkerResult]:
-    """Applies the data-sparsity check of the doubt decomposition to every predicted call: on a scan
-    unlike the training cases, agreement among the models is not evidence, so a Stable verdict
-    becomes Contested and the result is flagged."""
-    if not unlike_training:
-        return results
+def is_close_call(prediction: SetPrediction) -> bool:
+    """The doubt decomposition's "high ambiguity": the median sits next to the decision threshold."""
+    return abs(prediction.prob_median-prediction.decision_threshold)<HIGH_AMBIGUITY
+
+
+def screen_prediction(prediction: SetPrediction, unlike_training: bool) -> SetPrediction:
+    """A Stable verdict needs more than models agreeing: the scan must resemble the training cases
+    (data sparsity) and the agreed probability must not sit on the decision boundary (ambiguity).
+    Otherwise it becomes Contested. The same rules as the doubt decomposition, so every route agrees."""
+    if prediction.verdict==StabilityVerdict.STABLE and (unlike_training or is_close_call(prediction)):
+        return prediction.model_copy(update={"verdict": StabilityVerdict.CONTESTED})
+    return prediction
+
+
+def apply_safety_screens(results: list[MarkerResult], unlike_training: bool) -> list[MarkerResult]:
+    """Applies screen_prediction to every predicted call and flags why it was downgraded."""
     screened=[]
     for r in results:
         if r.status!="predicted" or r.prediction is None:
             screened.append(r)
             continue
-        prediction=r.prediction
-        if prediction.verdict==StabilityVerdict.STABLE:
-            prediction=prediction.model_copy(update={"verdict": StabilityVerdict.CONTESTED})
-        screened.append(replace(r, prediction=prediction, out_of_distribution=True))
+        close=r.prediction.verdict==StabilityVerdict.STABLE and is_close_call(r.prediction)
+        screened.append(replace(
+            r, prediction=screen_prediction(r.prediction, unlike_training),
+            out_of_distribution=unlike_training, close_call=close,
+        ))
     return screened
 
 

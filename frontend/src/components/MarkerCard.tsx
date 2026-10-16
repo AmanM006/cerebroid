@@ -12,6 +12,7 @@ import { VerdictBadge } from "./VerdictBadge"
 function verdictMeaning(marker: MarkerProfile): string {
   if (marker.out_of_distribution) return "Scan unlike the training cases: do not rely on the AI"
   if (marker.low_signal) return "Confirm with tissue testing"
+  if (marker.close_call) return "The models agree, but it's a close call"
   if (marker.verdict === "STABLE") return "The models agree"
   if (marker.verdict === "ARBITRARY") return "The models are split close to 50/50"
   if (marker.verdict === "CONTESTED") {
@@ -88,7 +89,7 @@ export function MarkerCard({
             call={marker.call}
             muted={marker.low_signal}
           />
-          {(needsTissue || marker.resolved_by_combining || (gradeAlert) || marker.out_of_distribution) && (
+          {(needsTissue || marker.resolved_by_combining || (gradeAlert) || marker.out_of_distribution || marker.close_call) && (
             <div className="flex flex-wrap gap-1.5 font-mono text-[10.5px]">
               {gradeAlert && (
                 <span className="rounded-full border border-rose-800/80 bg-rose-950/40 px-2 py-0.5 text-rose-200 font-semibold shadow-sm"
@@ -100,6 +101,12 @@ export function MarkerCard({
                 <span className="rounded-full border border-rose-800/80 bg-rose-950/40 px-2 py-0.5 text-rose-200 font-semibold"
                   title={marker.reason ?? "This scan is unlike the training cases"}>
                   ⚠ Unlike training scans · refer for expert review
+                </span>
+              )}
+              {marker.close_call && !marker.out_of_distribution && (
+                <span className="rounded-full border border-amber-800/60 bg-amber-950/30 px-2 py-0.5 text-amber-200 font-semibold"
+                  title={marker.reason ?? "The probability sits close to the decision boundary"}>
+                  ◐ Close call
                 </span>
               )}
               {needsTissue && (

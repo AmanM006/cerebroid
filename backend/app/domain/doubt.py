@@ -36,6 +36,8 @@ REGION_NAMES={"et": "enhancing tumor", "ncr": "necrotic core", "ed": "edema"}
 K_NEIGHBOURS=5
 # Further from its nearest training patients than this share of the training cohort: "unlike training".
 HIGH_SPARSITY=0.99
+# A median probability closer than this to the decision threshold is a close call (ambiguity "high").
+HIGH_AMBIGUITY=0.1
 # Robust z-scores are clipped so one extreme feature can't dominate the distance.
 Z_CLIP=10.0
 
@@ -139,7 +141,7 @@ def decompose(
     ))
 
     margin=abs(prediction.prob_median-prediction.decision_threshold)
-    level="high" if margin<0.1 else "medium" if margin<0.2 else "low"
+    level="high" if margin<HIGH_AMBIGUITY else "medium" if margin<0.2 else "low"
     components.append(DoubtComponent(
         source="ambiguity", level=level, value=round(margin, 4),
         detail=f"Median probability {prediction.prob_median:.2f} is {margin:.2f} from the decision boundary "

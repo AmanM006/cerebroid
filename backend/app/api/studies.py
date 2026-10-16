@@ -49,7 +49,7 @@ from app.core.config import get_settings
 from app.services import uploads as uploads_service
 from app.core.ratelimit import limit_analysis
 from app.domain.contracts import (
-    MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue, SetPrediction, StabilityVerdict,
+    MARKER_LABELS, FeatureVector, Marker, Provenance, ProvenancedValue, SetPrediction,
 )
 from app.domain.doubt import HIGH_SPARSITY, decompose, primary
 from app.domain.explain import REGION_LABELS, explain_set
@@ -60,7 +60,9 @@ from app.domain.pathways import LABEL as PATHWAY_LABEL
 from app.domain.pathways import SOURCES as PATHWAY_SOURCES
 from app.domain.tipping import find_tipping_points
 from app.domain.feature_store import FeatureStore
-from app.domain.profile import MarkerResult, build_profile, known_label, screen_out_of_distribution
+from app.domain.profile import (
+    MarkerResult, apply_safety_screens, build_profile, known_label, screen_prediction,
+)
 from app.domain.registry import MarkerRegistry, SetMarkerPredictor, variant_label
 from app.domain.volume_store import Sequence, VolumeStore
 
@@ -128,6 +130,11 @@ OUT_OF_DISTRIBUTION_REASON=(
 )
 
 
+CLOSE_CALL_REASON=(
+    "The models agree, but the probability sits close to the decision boundary: confirm with tissue."
+)
+
+
 def _similarity(store: FeatureStore, study: Study, vector: FeatureVector) -> float | None:
     """The data-sparsity percentile /doubt reports, computed once for the whole profile."""
     if store.reference is None:
@@ -140,9 +147,7 @@ def _screened(
 ) -> SetPrediction:
     """The same out-of-distribution rule as /profile, so every route reports the same verdict."""
     pct=_similarity(store, study, vector)
-    if pct is not None and pct>=HIGH_SPARSITY and prediction.verdict==StabilityVerdict.STABLE:
-        return prediction.model_copy(update={"verdict": StabilityVerdict.CONTESTED})
-    return prediction
+    return screen_prediction(prediction, pct is not None and pct>=HIGH_SPARSITY)
 
 
 def _marker_out(result: MarkerResult) -> MarkerProfileOut:
@@ -178,7 +183,9 @@ def _marker_out(result: MarkerResult) -> MarkerProfileOut:
         skill=None if result.skill is None else round(result.skill, 4),
         low_signal=result.low_signal,
         out_of_distribution=result.out_of_distribution,
-        reason=OUT_OF_DISTRIBUTION_REASON if result.out_of_distribution else None,
+        close_call=result.close_call,
+        reason=(OUT_OF_DISTRIBUTION_REASON if result.out_of_distribution
+                else CLOSE_CALL_REASON if result.close_call else None),
     )
 
 
@@ -213,7 +220,7 @@ def get_profile(
     )
     pct=_similarity(store, study, vector)
     unlike_training=pct is not None and pct>=HIGH_SPARSITY
-    results=screen_out_of_distribution(build_profile(registry, vector, view), unlike_training)
+    results=apply_safety_screens(build_profile(registry, vector, view), unlike_training)
     versions={
         variant_label(r.marker, r.variant): r.prediction.model_version
         for r in results if r.prediction is not None and r.variant is not None
@@ -663,7 +670,7 @@ def get_next_measurements(
     )
     pct=_similarity(store, study, vector)
     unlike_training=pct is not None and pct>=HIGH_SPARSITY
-    result=plan(screen_out_of_distribution(build_profile(registry, vector), unlike_training), age=study.age)
+    result=plan(apply_safety_screens(build_profile(registry, vector), unlike_training), age=study.age)
     audit("next_measurements.read", str(study.id))
     return NextMeasurementsOut(
         study_id=study.id,

@@ -107,3 +107,19 @@ def test_stable_calls_that_fit_no_tumor_type_are_never_offered_for_planning():
     for t in result.tests:
         if t.settled:
             assert "usable for planning" not in t.reason and "confirm on tissue before planning" in t.reason
+
+
+
+def test_agreement_on_a_near_coin_flip_is_never_stable():
+    """Models agreeing at 0.59 on a 0.5 threshold sit on the boundary (doubt: ambiguity high)."""
+    from app.domain.profile import apply_safety_screens
+    stable=StabilityVerdict.STABLE
+    near=SetPrediction(marker=Marker.IDH, model_probabilities=[0.57, 0.59, 0.71], verdict=stable,
+                       model_version="sha256:x")
+    clear=SetPrediction(marker=Marker.IDH, model_probabilities=[0.93, 0.95, 0.96], verdict=stable,
+                        model_version="sha256:x")
+    for prediction, expected, close in ((near, StabilityVerdict.CONTESTED, True), (clear, stable, False)):
+        r=MarkerResult(Marker.IDH, "predicted", call=prediction.call, prediction=prediction)
+        [screened]=apply_safety_screens([r], unlike_training=False)
+        assert screened.prediction.verdict==expected and screened.close_call is close
+        assert screened.call==r.call  # the call itself never changes, only how sure it is

@@ -101,6 +101,8 @@ class MarkerProfileOut(_Response):
     low_signal: bool=False
     # The scan is unlike the training cases (data sparsity high): never Stable, refer for expert review.
     out_of_distribution: bool=False
+    # The models agree on a probability next to the decision boundary (ambiguity high): never Stable.
+    close_call: bool=False
 
 
 class EvidenceItemOut(_Response):

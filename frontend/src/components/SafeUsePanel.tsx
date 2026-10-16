@@ -19,6 +19,7 @@ const NEVER=[
 const STOP_WHEN: { badge: string; tone: string; meaning: string }[]=[
   { badge: "⚠ Unlike training scans", tone: "border-rose-800/80 bg-rose-950/40 text-rose-200", meaning: "do not rely on the AI; refer" },
   { badge: "Contested · Arbitrary", tone: "border-amber-800/60 bg-amber-950/30 text-amber-200", meaning: "models disagree; confirm with tissue" },
+  { badge: "◐ Close call", tone: "border-amber-800/60 bg-amber-950/30 text-amber-200", meaning: "models agree on a near coin flip; confirm" },
   { badge: "MRI can't tell", tone: "border-neutral-700 bg-neutral-900 text-neutral-300", meaning: "no signal; order the lab test" },
   { badge: "⚠ Grade 4 not ruled out", tone: "border-rose-800/80 bg-rose-950/40 text-rose-200", meaning: "treat as possible grade 4" },
 ]

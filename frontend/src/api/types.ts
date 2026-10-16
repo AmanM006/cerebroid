@@ -93,6 +93,8 @@ export interface MarkerProfile {
   low_signal?: boolean
   /** The scan is unlike the training cases: never Stable, refer for expert review. */
   out_of_distribution?: boolean
+  /** The models agree on a probability next to the decision boundary: never Stable. */
+  close_call?: boolean
 }
 
 export interface Reveal {
