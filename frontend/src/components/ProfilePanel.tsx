@@ -56,16 +56,33 @@ export function ProfilePanel({
     details: Partial<Record<MarkerName, string>>
   } | null>(null)
   const [revealError, setRevealError] = useState<unknown>(null)
+  // Which lab results are shown: every marker, or the ones revealed one card at a time.
+  const [shown, setShown] = useState<{ studyId: string; all: boolean; markers: MarkerName[] } | null>(null)
+
+  function loadTruth(): Promise<void> {
+    if (truth?.studyId === studyId) return Promise.resolve()
+    return api.reveal(studyId).then((r) => setTruth({
+      studyId,
+      values: Object.fromEntries(r.results.map((x) => [x.marker, x.value])),
+      details: Object.fromEntries(r.results.filter((x) => x.detail).map((x) => [x.marker, x.detail as string])),
+    }))
+  }
 
   function reveal() {
-    api.reveal(studyId)
-      .then((r) => setTruth({
-        studyId,
-        values: Object.fromEntries(r.results.map((x) => [x.marker, x.value])),
-        details: Object.fromEntries(r.results.filter((x) => x.detail).map((x) => [x.marker, x.detail as string])),
-      }))
-      .catch(setRevealError)
+    loadTruth().then(() => setShown({ studyId, all: true, markers: [] })).catch(setRevealError)
   }
+
+  function revealOne(marker: MarkerName) {
+    loadTruth().then(() => setShown((s) => ({
+      studyId,
+      all: s?.studyId === studyId && s.all,
+      markers: [...(s?.studyId === studyId ? s.markers : []), marker],
+    }))).catch(setRevealError)
+  }
+
+  const showsAll = truth?.studyId === studyId && shown?.studyId === studyId && shown.all
+  const shows = (marker: MarkerName) => truth?.studyId === studyId && shown?.studyId === studyId
+    && (shown.all || shown.markers.includes(marker))
 
   const loading = result?.key !== key
   const profile = result?.profile ?? null
@@ -137,9 +154,10 @@ export function ProfilePanel({
         <div className={`space-y-2.5 ${loading ? "opacity-60" : ""}`}>
           {profile.markers.map((m) => (
             <MarkerCard key={m.marker} marker={m} studyId={studyId} known={known} explainable={view === "fused"}
-              truth={truth?.studyId === studyId ? truth.values[m.marker] : undefined} />
+              truth={shows(m.marker) ? truth?.values[m.marker] : undefined}
+              onReveal={shows(m.marker) || m.status === "known" ? undefined : () => revealOne(m.marker)} />
           ))}
-          {truth?.studyId !== studyId && (
+          {!showsAll && (
             <button
               onClick={reveal}
               className="w-full rounded-xl border border-neutral-800 bg-[#121214] py-2.5 text-xs font-semibold text-white transition-all hover:border-neutral-600 hover:bg-[#1a1a1d] cursor-pointer shadow-sm"
@@ -149,7 +167,7 @@ export function ProfilePanel({
           )}
           {revealError !== null && <ErrorNotice error={revealError} />}
 
-          {truth?.studyId === studyId && (
+          {showsAll && truth && (
             <div className="rounded-xl border border-neutral-800 bg-[#0e0e10] p-3 font-mono text-xs">
               <p className="mb-2 text-[11px] uppercase tracking-wider text-neutral-500">Lab results vs prediction</p>
               <table className="w-full">

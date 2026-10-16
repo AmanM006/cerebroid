@@ -30,12 +30,15 @@ type Tab = (typeof TABS)[number]["id"]
 export function MarkerCard({
   marker,
   truth,
+  onReveal,
   studyId,
   known,
   explainable = true,
 }: {
   marker: MarkerProfile
   truth?: ProvenancedValue
+  /** Shows this marker's lab result only (the panel's Reveal button shows all of them). */
+  onReveal?: () => void
   studyId: string
   known: Partial<Record<MarkerName, 0 | 1>>
   /** Evidence and doubt describe the combined model set, so they are offered only in that view. */
@@ -180,6 +183,12 @@ export function MarkerCard({
           )}
           <ProvenanceBadge provenance={truth.provenance} />
         </p>
+      )}
+      {!truth && onReveal && (
+        <button type="button" onClick={onReveal}
+          className="mt-2 font-mono text-[11px] text-[#8f8aa6] underline-offset-2 hover:text-white hover:underline cursor-pointer">
+          Reveal lab result
+        </button>
       )}
       {marker.status === "known" && (
         <p className="mt-2 font-mono text-[10.5px] text-[#716c87]">Lab result entered by clinician</p>
