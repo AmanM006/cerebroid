@@ -91,6 +91,8 @@ export interface MarkerProfile {
   skill?: number | null
   /** The set barely beats the base rate: its agreement is not evidence. */
   low_signal?: boolean
+  /** The scan is unlike the training cases: never Stable, refer for expert review. */
+  out_of_distribution?: boolean
 }
 
 export interface Reveal {

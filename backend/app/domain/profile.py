@@ -8,7 +8,7 @@ Each marker ends up in exactly one state:
 import json
 import threading
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Literal
 
 import structlog
@@ -44,6 +44,9 @@ class MarkerResult:
     imaging_only: SetPrediction | None=None
     skill: float | None=None
     low_signal: bool=False
+    # The scan's imaging features are further from the training patients than 99% of them are from
+    # each other: the models are extrapolating, so the call is never shown as Stable.
+    out_of_distribution: bool=False
 
     @property
     def resolved_by_combining(self) -> bool:
@@ -54,6 +57,24 @@ class MarkerResult:
             and self.prediction.verdict==StabilityVerdict.STABLE
             and self.imaging_only.verdict!=StabilityVerdict.STABLE
         )
+
+
+def screen_out_of_distribution(results: list[MarkerResult], unlike_training: bool) -> list[MarkerResult]:
+    """Applies the data-sparsity check of the doubt decomposition to every predicted call: on a scan
+    unlike the training cases, agreement among the models is not evidence, so a Stable verdict
+    becomes Contested and the result is flagged."""
+    if not unlike_training:
+        return results
+    screened=[]
+    for r in results:
+        if r.status!="predicted" or r.prediction is None:
+            screened.append(r)
+            continue
+        prediction=r.prediction
+        if prediction.verdict==StabilityVerdict.STABLE:
+            prediction=prediction.model_copy(update={"verdict": StabilityVerdict.CONTESTED})
+        screened.append(replace(r, prediction=prediction, out_of_distribution=True))
+    return screened
 
 
 def known_label(marker: Marker, value: int) -> str:
