@@ -104,6 +104,9 @@ def test_stable_calls_that_fit_no_tumor_type_are_never_offered_for_planning():
         _predicted(Marker.MGMT, True, low_signal=True), _predicted(Marker.GRADE, False),
     ))
     assert result.next_step.kind=="review"
+    reason=result.next_step.reason
+    assert reason.startswith("IDH wildtype, 1p/19q intact, grade 2-3: not a WHO 2021 type")
+    assert "glioblastoma" in reason
     for t in result.tests:
         if t.settled:
             assert "usable for planning" not in t.reason and "confirm on tissue before planning" in t.reason

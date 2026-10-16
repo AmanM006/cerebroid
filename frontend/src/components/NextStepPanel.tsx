@@ -46,7 +46,7 @@ export function NextStepPanel({
         <p className="text-xs font-bold uppercase tracking-wider text-neutral-300">Still possible</p>
         <div className="flex flex-wrap gap-2">
           {plan.candidate_categories.length===0 ? (
-            <span className="text-sm font-semibold text-amber-200">No category fits the settled markers: review the calls.</span>
+            <span className="text-sm font-semibold text-amber-200">None of the WHO 2021 types fits these calls together.</span>
           ) : plan.candidate_categories.map((c)=>(
             <span key={c} className="rounded-xl border border-neutral-700 bg-[#161618] px-3.5 py-1.5 text-xs font-bold text-white shadow-sm">{c}</span>
           ))}

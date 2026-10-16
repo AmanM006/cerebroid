@@ -145,11 +145,24 @@ def _basis(states: dict[Marker, MarkerState], candidates: list[Category], age: i
     return lines
 
 
+def _no_category_reason(states: dict[Marker, MarkerState]) -> str:
+    """Why the settled calls fit no WHO CNS5 adult diffuse glioma type, built from the calls themselves."""
+    # The grade value already names itself ("grade 2-3"); the others need the marker ("IDH wildtype").
+    settled=[s.value if m==Marker.GRADE else f"{NAMES[m]} {s.value}" for m, s in states.items()
+             if s.settled and s.value is not None and m!=Marker.MGMT]
+    calls=", ".join(settled)
+    idh, grade=states[Marker.IDH], states[Marker.GRADE]
+    if idh.settled and idh.value=="wildtype" and grade.value=="grade 2-3":
+        return (f"{calls}: not a WHO 2021 type. In adults, an IDH-wildtype diffuse glioma is classed as "
+                "glioblastoma when molecular tests find a TERT promoter mutation, EGFR amplification or "
+                "chromosome 7 gain with 10 loss, even if it looks lower grade. Test all markers on tissue.")
+    return f"{calls}: together these fit no WHO 2021 tumor type. Test all markers on tissue."
+
+
 def _next_step(tests: list[TestSuggestion], candidates: list[Category],
                states: dict[Marker, MarkerState]) -> NextStep:
     if not candidates:
-        return NextStep("review", None, "Review the calls",
-                        "The settled calls fit no WHO tumor type; tissue testing of all markers is needed.")
+        return NextStep("review", None, "Review the calls", _no_category_reason(states))
     deciding=[t for t in tests if t.marker!=Marker.MGMT and not t.settled]
     if deciding:
         t=deciding[0]
